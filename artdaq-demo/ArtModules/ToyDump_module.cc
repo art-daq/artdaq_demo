@@ -67,8 +67,6 @@ private:
 	std::string raw_data_label_;
 	int num_adcs_to_write_;
 	int num_adcs_to_print_;
-	bool dump_to_file_;
-	bool dump_to_screen_;
 	uint32_t columns_to_display_on_screen_;
 	std::string output_file_name_;
 };

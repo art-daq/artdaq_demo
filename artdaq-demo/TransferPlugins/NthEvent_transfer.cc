@@ -96,13 +96,13 @@ namespace artdaq
 	   * \brief Get the source rank from the physical transfer
 	   * \return The source rank from the physical transfer
 	   */
-	  int source_rank() const { return physical_transfer_->source_rank(); }
+	  int source_rank() const override { return physical_transfer_->source_rank(); }
 
 		/**
 	   * \brief Get the destination rank from the physical transfer
 	   * \return The destination rank from the physical transfer
 	   */
-	  int destination_rank() const { return physical_transfer_->destination_rank(); }
+	  int destination_rank() const override { return physical_transfer_->destination_rank(); }
 
 
 	private:
