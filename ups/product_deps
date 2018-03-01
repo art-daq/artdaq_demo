@@ -19,13 +19,15 @@ bindir      fq_dir      bin
 product		 version	optional
 artdaq           v3_00_03
 artdaq_core_demo v1_06_08
-cetbuildtools    v7_00_02       -       only_for_build
+cetbuildtools    v7_01_00       -       only_for_build
 end_product_list
 
 # See https://cdcvs.fnal.gov/redmine/projects/cet-is-public/wiki/AboutQualifiers for information about the qualifiers used
 # -nq- here means there is no qualifier
 # a "-" here means the dependent product is not required by the parent and will not be setup
 qualifier	   artdaq	 	 artdaq_core_demo
+c2:s64:prof   c2:s64:prof  	 c2:s64:prof
+c2:s64:debug  c2:s64:debug 	 c2:s64:debug
 e15:s64:prof   e15:s64:prof  	 e15:s64:prof
 e15:s64:debug  e15:s64:debug 	 e15:s64:debug
 e14:s50:prof   e14:s50:prof  	 e14:s50:prof
