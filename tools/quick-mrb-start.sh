@@ -270,12 +270,14 @@ if [[ $opt_develop -eq 1 ]]; then
 		mrb gitCheckout ssh://p-artdaq@cdcvs.fnal.gov/cvs/projects/artdaq
 		mrb gitCheckout -d artdaq_core_demo ssh://p-artdaq-core-demo@cdcvs.fnal.gov/cvs/projects/artdaq-core-demo
 		mrb gitCheckout -d artdaq_demo ssh://p-artdaq-demo@cdcvs.fnal.gov/cvs/projects/artdaq-demo
+		mrb gitCheckout -d artdaq_mpich_plugin ssh://p-artdaq-utilities@cdcvs.fnal.gov/cvs/projects/artdaq-utilities-mpich-plugin
 	else
 		mrb gitCheckout -d artdaq_core http://cdcvs.fnal.gov/projects/artdaq-core
 		mrb gitCheckout -d artdaq_utilities http://cdcvs.fnal.gov/projects/artdaq-utilities
 		mrb gitCheckout http://cdcvs.fnal.gov/projects/artdaq
 		mrb gitCheckout -d artdaq_core_demo http://cdcvs.fnal.gov/projects/artdaq-core-demo
 		mrb gitCheckout -d artdaq_demo http://cdcvs.fnal.gov/projects/artdaq-demo
+		mrb gitCheckout -d artdaq_mpich_plugin http://cdcvs.fnal.gov/projects/artdaq-utilities-mpich-plugin
 		mrb gitCheckout -d artdaq_ganglia_plugin http://cdcvs.fnal.gov/projects/artdaq-utilities-ganglia-plugin
 		mrb gitCheckout -d artdaq_epics_plugin http://cdcvs.fnal.gov/projects/artdaq-utilities-epics-plugin
 		mrb gitCheckout -d artdaq_mfextensions http://cdcvs.fnal.gov/projects/mf-extensions-git
