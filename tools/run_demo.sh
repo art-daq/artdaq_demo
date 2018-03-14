@@ -47,7 +47,7 @@ fi
     	xloc=800
     fi
 
-    $toolsdir/xt_cmd.sh $basedir --geom '100x33+'$xloc'+0 -sl 2500' \
+    $toolsdir/xt_cmd.sh $basedir --geom '150x33+'$xloc'+0 -sl 2500' \
         -c '. ./setupARTDAQDEMO' \
         -c 'art -c '$toolsdir'/fcl/TransferInputShmem.fcl'
 
