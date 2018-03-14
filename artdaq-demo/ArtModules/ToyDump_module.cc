@@ -44,9 +44,10 @@ public:
 	 * \verbatim
 	 * ToyDump accepts the following Parameters:
 	 * "raw_data_label" (Default: "daq"): The label used to identify artdaq data
-	 * "num_adcs_to_show" (Default: 0): How many ADCs to print from each ToyFragment
-	 * "dump_to_file" (Default: true): Whether to write data to a binary file "out.bin"
-	 * "dump_to_screen" (Default: false): Whether to write data to stdout
+	 * "num_adcs_to_print" (Default: 10): How many ADCs to print to screen from each ToyFragment (-1 to disable, 0 for all)
+	 * "num_adcs_to_write" (Default: 0): How many ADCs to write to file from each ToyFragment (-1 to disable, 0 for all)
+	 * "output_file_name" (Default: "out.bin"): File to write ADC values to
+	 * "binary_mode" (Default: true): Whether to write output in binary (true) or as tab-delimited ASCII text (false)
 	 * "columns_to_display_on_screen" (Default: 10): How many ADC values to print in each row when writing to stdout
 	 * \endverbatim
 	 */
@@ -67,6 +68,7 @@ private:
 	std::string raw_data_label_;
 	int num_adcs_to_write_;
 	int num_adcs_to_print_;
+	bool binary_mode_;
 	uint32_t columns_to_display_on_screen_;
 	std::string output_file_name_;
 };
@@ -77,6 +79,7 @@ demo::ToyDump::ToyDump(fhicl::ParameterSet const& pset)
 	, raw_data_label_(pset.get<std::string>("raw_data_label", "daq"))
 	, num_adcs_to_write_(pset.get<int>("num_adcs_to_write", 0))
 	, num_adcs_to_print_(pset.get<int>("num_adcs_to_print", 10))
+	, binary_mode_(pset.get<bool>("binary_mode", true))
 	, columns_to_display_on_screen_(pset.get<uint32_t>("columns_to_display_on_screen", 10))
 	, output_file_name_(pset.get<std::string>("output_file_name", "out.bin"))
 {}
@@ -156,12 +159,26 @@ void demo::ToyDump::analyze(art::Event const& evt)
 				TLOG(TLVL_WARNING) << "Asked for more ADC values to file than are in Fragment. Only writing what's here...";
 				numAdcs = bb.total_adc_values();
 			}
-			std::ofstream output(output_file_name_, std::ios::out | std::ios::app | std::ios::binary);
-			for (uint32_t i_adc = 0; i_adc < numAdcs; ++i_adc)
-			{
-				output.write((char*)(bb.dataBeginADCs() + i_adc), sizeof(ToyFragment::adc_t));
+			if (binary_mode_) {
+				std::ofstream output(output_file_name_, std::ios::out | std::ios::app | std::ios::binary);
+				for (uint32_t i_adc = 0; i_adc < numAdcs; ++i_adc)
+				{
+					output.write((char*)(bb.dataBeginADCs() + i_adc), sizeof(ToyFragment::adc_t));
+				}
+				output.close();
 			}
-			output.close();
+			else {
+				std::ofstream output(output_file_name_, std::ios::out | std::ios::app);
+				output << fragmentTypeToString(static_cast<demo::detail::FragmentType>(frag.type())) << "\t" << frag.fragmentID();
+
+				for (uint32_t i_adc = 0; i_adc < numAdcs; ++i_adc)
+				{
+					output << "\t" << std::to_string(*(bb.dataBeginADCs() + i_adc));
+				}
+				output << std::endl;
+				output.close();
+				
+			}
 		}
 
 		if (num_adcs_to_print_ >= 0)
