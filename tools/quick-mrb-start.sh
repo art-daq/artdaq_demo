@@ -434,7 +434,9 @@ if [ "x${opt_run_demo-}" != "x" ]; then
 
 	toolsdir=${ARTDAQ_DEMO_DIR}/tools
 
+	set +u
 	. ./run_demo.sh $Base $toolsdir
+	set -u
 fi
 
 
