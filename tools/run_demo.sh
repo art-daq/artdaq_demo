@@ -20,6 +20,25 @@ if [[ ! -e $daqintdir ]]; then
     exit 1
 fi
 
+function wait_for_state() {
+    local stateName=$1
+
+    cd ${daqintdir}
+    source ./mock_ups_setup.sh
+    export DAQINTERFACE_USER_SOURCEFILE=$PWD/user_sourcefile_example
+    source $ARTDAQ_DAQINTERFACE_DIR/source_me > /dev/null
+
+    while [[ "1" ]]; do
+      sleep 1
+
+      res=$( status.sh  | tail -1 | tr "'" " " | awk '{print $2}' )
+
+      if [[ "$res" == "$stateName" ]]; then
+          break
+      fi
+    done
+}
+
 # And now, actually run DAQInterface as described in
 # https://cdcvs.fnal.gov/redmine/projects/artdaq-utilities/wiki/Artdaq-daqinterface
 
@@ -28,15 +47,24 @@ fi
 	-c 'export DAQINTERFACE_USER_SOURCEFILE=$PWD/user_sourcefile_example' \
 	-c 'source $ARTDAQ_DAQINTERFACE_DIR/source_me' \
 	-c 'DAQInterface'
-    sleep 2
+
+    sleep 3
+    echo ""
+    echo "Waiting for DAQInterface to reached the 'stopped' state before continuing..."
+    wait_for_state "stopped"
+    echo "Done waiting."
 
     $toolsdir/xt_cmd.sh $daqintdir --geom 132 \
         -c 'source mock_ups_setup.sh' \
 	-c 'export DAQINTERFACE_USER_SOURCEFILE=$PWD/user_sourcefile_example' \
 	-c 'source $ARTDAQ_DAQINTERFACE_DIR/source_me' \
-	-c 'just_do_it.sh $PWD/boot.txt 20'
+	-c 'just_do_it.sh $PWD/boot.txt 200'
 
-     sleep 14;
+    sleep 8;
+    echo ""
+    echo "Waiting for the run to start before starting online monitor apps..."
+    wait_for_state "running"
+    echo "Done waiting."
 
     xrdbproc=$( which xrdb )
 
