@@ -4,15 +4,19 @@
 # This script basically follows the instructions found in https://cdcvs.fnal.gov/redmine/projects/artdaq-utilities/wiki/Artdaq-daqinterface
 
 if [ $# -lt 2 ];then
- echo "USAGE: $0 base_directory tools_directory"
+ echo "USAGE: $0 base_directory tools_directory [flags to pass to just_do_it.sh]"
  exit
 fi
 basedir=$1
 toolsdir=$2
+shift;shift;
+daqintdir=$basedir/DAQInterface
+jdibootfile=$daqintdir/boot.txt
+jdiduration=200
+jdiopts=$@;
 
 cd $basedir
 
-daqintdir=$basedir/DAQInterface
 
 if [[ ! -e $daqintdir ]]; then
     echo "Expected DAQInterface script directory $daqintdir doesn't appear to exist; if you haven't installed DAQInterface please see https://cdcvs.fnal.gov/redmine/projects/artdaq-utilities/wiki/Artdaq-daqinterface for instructions on how to do so" >&2
@@ -74,7 +78,7 @@ function wait_for_state() {
         -c 'source mock_ups_setup.sh' \
 	-c 'export DAQINTERFACE_USER_SOURCEFILE=$PWD/user_sourcefile_example' \
 	-c 'source $ARTDAQ_DAQINTERFACE_DIR/source_me' \
-	-c 'just_do_it.sh $PWD/boot.txt 200'
+	-c "just_do_it.sh $jdiopts $jdibootfile $jdiduration"
 
     sleep 8;
     echo ""
