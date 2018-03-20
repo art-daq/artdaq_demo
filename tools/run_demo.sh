@@ -23,6 +23,16 @@ fi
 function wait_for_state() {
     local stateName=$1
 
+    # 20-Mar-2018, KAB
+    # The DAQInterface setup uses a dynamic way to determine which PORT to use for communication.
+    # This means that we need to allow sufficient time between when DAQInterface is started and
+    # when we run 'source_me' so that they agree on the port that should be used.
+    # The way that we work around this here is to catch what appears to be a port mis-match
+    # (the status.sh call returns an empty string), wait a bit, and then re-run source_me in the
+    # hope that it will pick up the correct port.
+    # An important piece of this is the un-setting of the DAQINTERFACE_STANDARD_SOURCEFILE_SOURCED
+    # env var so that source_me will go through the process of re-determining which port to use.
+
     cd ${daqintdir}
     source ./mock_ups_setup.sh
     export DAQINTERFACE_USER_SOURCEFILE=$PWD/user_sourcefile_example
@@ -31,7 +41,13 @@ function wait_for_state() {
     while [[ "1" ]]; do
       sleep 1
 
-      res=$( status.sh  | tail -1 | tr "'" " " | awk '{print $2}' )
+      res=$( status.sh 2>/dev/null | tail -1 | tr "'" " " | awk '{print $2}' )
+
+      if [[ "$res" == "" ]]; then
+          sleep 2
+          unset DAQINTERFACE_STANDARD_SOURCEFILE_SOURCED
+          source $ARTDAQ_DAQINTERFACE_DIR/source_me > /dev/null
+      fi
 
       if [[ "$res" == "$stateName" ]]; then
           break
