@@ -107,10 +107,6 @@ add_subdirectory(test)
 # tools
 add_subdirectory(tools)
 
-# examples
-FILE(COPY examples DESTINATION .)
-INSTALL(DIRECTORY examples DESTINATION ${product}/${version})
-
 # doc - Documentation
 add_subdirectory(doc)
 
