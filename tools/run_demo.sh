@@ -71,7 +71,7 @@ while [ -n "${1-}" ];do
             -toolsdir)  eval $reqarg; toolsdir=$1; shift;;
 			-om)        do_om=1;;
 			-om_fhicl)  eval $reqarg; om_fhicl=$1; shift;;
-            *)          aa=`echo "$1" | sed -e"s/'/'\"'\"'/g"` args="$args '$aa'"; shift
+            *)          aa=`echo "-$op" | sed -e"s/'/'\"'\"'/g"` args="$args '$aa'";
         esac
     else
         aa=`echo "$1" | sed -e"s/'/'\"'\"'/g"` args="$args '$aa'"; shift
@@ -80,7 +80,7 @@ done
 eval "set -- $args \"\$@\""; unset args aa
 
 test -n "${do_help-}" && echo "$USAGE" && exit
-
+#echo "Remaining args: $@"
 
 
 validate_basedir
@@ -167,7 +167,7 @@ function wait_for_state() {
         -c 'source mock_ups_setup.sh' \
 	-c 'export DAQINTERFACE_USER_SOURCEFILE=$PWD/user_sourcefile_example' \
 	-c 'source $ARTDAQ_DAQINTERFACE_DIR/source_me' \
-	-c "just_do_it.sh $@ $jdibootfile $jdiduration"
+	-c "just_do_it.sh $* $jdibootfile $jdiduration"
 
 	if [ $do_om -eq 1 ]; then
     sleep 8;
