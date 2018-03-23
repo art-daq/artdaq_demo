@@ -70,6 +70,7 @@ while [ -n "${1-}" ];do
             -basedir)   eval $reqarg; basedir=$1; shift;;
             -toolsdir)  eval $reqarg; toolsdir=$1; shift;;
 			-om)        do_om=1;;
+			-om_fhicl)  eval $reqarg; om_fhicl=$1; shift;;
             *)          aa=`echo "$1" | sed -e"s/'/'\"'\"'/g"` args="$args '$aa'"; shift
         esac
     else
