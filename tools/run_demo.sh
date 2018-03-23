@@ -3,26 +3,114 @@
 # JCF, Oct-5-2017
 # This script basically follows the instructions found in https://cdcvs.fnal.gov/redmine/projects/artdaq-utilities/wiki/Artdaq-daqinterface
 
-if [ $# -lt 2 ];then
- echo "USAGE: $0 base_directory tools_directory [flags to pass to just_do_it.sh]"
- exit
+get_this_dir() 
+{
+    reldir=`dirname ${0}`
+    ssi_mdt_dir=`cd ${reldir} && pwd -P`
+}
+
+validate_basedir()
+{
+	valid_basedir=0
+	if [ -d $basedir/artdaq-utilities-daqinterface ] || [ -d $ARTDAQ_DAQINTERFACE_DIR ]; then
+		if [ -d $basedir/DAQInterface ]; then
+			valid_basedir=1
+		fi
+	fi
+}
+
+validate_toolsdir()
+{
+	valid_toolsdir=0
+	if [ -f $toolsdir/fcl/TransferInputShmem.fcl ]; then
+		valid_toolsdir=1
+	fi
+}
+
+get_this_dir
+basedir=$ssi_mdt_dir
+validate_basedir
+
+toolsdir="$basedir/srcs/artdaq_demo/tools"
+validate_toolsdir
+
+
+om_fhicl=TransferInputShmem
+
+env_opts_var=`basename $0 | sed 's/\.sh$//' | tr 'a-z-' 'A-Z_'`_OPTS
+USAGE="\
+   usage: `basename $0` [options] [just_do_it.sh options]
+examples: `basename $0` 
+          `basename $0` --om --om_fhicl TransferInputShmemWithDelay
+		  `basename $0` --om --config demo_largesystem --compfile $PWD/DAQInterface/comps.list --runduration 40
+--help        This help message
+--just_do_it_help Help message from just_do_it.sh
+--basedir	  Base directory ($basedir, valid=$valid_basedir)
+--toolsdir	  artdaq_demo/tools directory ($toolsdir, valid=$valid_toolsdir)
+--om          Run Online Monitoring
+--om_fhicl    Name of Fhicl file to use for online monitoring ($om_fhicl)
+"
+
+# Process script arguments and options
+eval env_opts=\${$env_opts_var-} # can be args too
+eval "set -- $env_opts \"\$@\""
+op1chr='rest=`expr "$op" : "[^-]\(.*\)"`   && set -- "-$rest" "$@"'
+op1arg='rest=`expr "$op" : "[^-]\(.*\)"`   && set --  "$rest" "$@"'
+reqarg="$op1arg;"'test -z "${1+1}" &&echo opt -$op requires arg. &&echo "$USAGE" &&exit'
+args= do_help= do_jdi_help= do_om=0;
+while [ -n "${1-}" ];do
+    if expr "x${1-}" : 'x-' >/dev/null;then
+        op=`expr "x$1" : 'x-\(.*\)'`; shift   # done with $1
+        leq=`expr "x$op" : 'x-[^=]*\(=\)'` lev=`expr "x$op" : 'x-[^=]*=\(.*\)'`
+        test -n "$leq"&&eval "set -- \"\$lev\" \"\$@\""&&op=`expr "x$op" : 'x\([^=]*\)'`
+        case "$op" in
+            \?*|h*)     eval $op1chr; do_help=1;;
+            -help)      eval $op1arg; do_help=1;;
+			-just_do_it_help) eval $op1arg; do_jdi_help=1;;
+            -basedir)   eval $reqarg; basedir=$1; shift;;
+            -toolsdir)  eval $reqarg; toolsdir=$1; shift;;
+			-om)        do_om=1;;
+            *)          aa=`echo "$1" | sed -e"s/'/'\"'\"'/g"` args="$args '$aa'"; shift
+        esac
+    else
+        aa=`echo "$1" | sed -e"s/'/'\"'\"'/g"` args="$args '$aa'"; shift
+    fi
+done
+eval "set -- $args \"\$@\""; unset args aa
+
+test -n "${do_help-}" && echo "$USAGE" && exit
+
+
+
+validate_basedir
+validate_toolsdir
+
+if [ $valid_basedir -eq 0 ]; then
+	echo "Provided base directroy is not valid! Must contain DAQInterface directory, and artdaq-utilities-daqinterface directory if \$ARTDAQ_DAQINTERFACE_DIR is not set"
+	return 1
+	exit 1
 fi
-basedir=$1
-toolsdir=$2
-shift;shift;
+if [ $valid_toolsdir -eq 0 ] && [ $do_om -eq 1 ]; then
+	echo "Provided tools directory is not valid!"
+	return 2
+	exit 2
+fi
+
 daqintdir=$basedir/DAQInterface
 jdibootfile=$daqintdir/boot.txt
 jdiduration=200
-jdiopts=$@;
-
 cd $basedir
 
 
-if [[ ! -e $daqintdir ]]; then
-    echo "Expected DAQInterface script directory $daqintdir doesn't appear to exist; if you haven't installed DAQInterface please see https://cdcvs.fnal.gov/redmine/projects/artdaq-utilities/wiki/Artdaq-daqinterface for instructions on how to do so" >&2
-    return 1
-    exit 1
+if [ -n "${do_jdi_help-}" ]; then
+    cd ${daqintdir}
+    source ./mock_ups_setup.sh	
+	export DAQINTERFACE_USER_SOURCEFILE=$PWD/user_sourcefile_example
+	source $ARTDAQ_DAQINTERFACE_DIR/source_me
+	just_do_it.sh --help
+	exit
 fi
+
 
 function wait_for_state() {
     local stateName=$1
@@ -78,8 +166,9 @@ function wait_for_state() {
         -c 'source mock_ups_setup.sh' \
 	-c 'export DAQINTERFACE_USER_SOURCEFILE=$PWD/user_sourcefile_example' \
 	-c 'source $ARTDAQ_DAQINTERFACE_DIR/source_me' \
-	-c "just_do_it.sh $jdiopts $jdibootfile $jdiduration"
+	-c "just_do_it.sh $@ $jdibootfile $jdiduration"
 
+	if [ $do_om -eq 1 ]; then
     sleep 8;
     echo ""
     echo "Waiting for the run to start before starting online monitor apps..."
@@ -97,18 +186,19 @@ function wait_for_state() {
 
     $toolsdir/xt_cmd.sh $basedir --geom '150x33+'$xloc'+0 -sl 2500' \
         -c '. ./setupARTDAQDEMO' \
-        -c 'art -c '$toolsdir'/fcl/TransferInputShmem.fcl'
+        -c 'art -c '$toolsdir'/fcl/'$om_fhicl'.fcl'
 
     sleep 4;
 
     $toolsdir/xt_cmd.sh $basedir --geom '100x33+0+0 -sl 2500' \
         -c '. ./setupARTDAQDEMO' \
-    	-c 'rm -f '$toolsdir'/fcl/TransferInputShmem2.fcl' \
-        -c 'cp -p '$toolsdir'/fcl/TransferInputShmem.fcl '$toolsdir'/fcl/TransferInputShmem2.fcl' \
-    	-c 'sed -r -i "s/.*modulus.*[0-9]+.*/modulus: 100/" '$toolsdir'/fcl/TransferInputShmem2.fcl' \
-    	-c 'sed -r -i "/end_paths:/s/a3/a1/" '$toolsdir'/fcl/TransferInputShmem2.fcl' \
-    	-c 'sed -r -i "/shm_key:/s/.*/shm_key: 0x40471453/" '$toolsdir'/fcl/TransferInputShmem2.fcl' \
-    	-c 'sed -r -i "s/shmem1/shmem2/" '$toolsdir'/fcl/TransferInputShmem2.fcl' \
-		-c 'sed -r -i "s/destination_rank: 6/destination_rank: 7/" '$toolsdir'/fcl/TransferInputShmem2.fcl' \
-        -c 'art -c '$toolsdir'/fcl/TransferInputShmem2.fcl'
+    	-c 'rm -f '$toolsdir'/fcl/'$om_fhicl'2.fcl' \
+        -c 'cp -p '$toolsdir'/fcl/'$om_fhicl'.fcl '$toolsdir'/fcl/'$om_fhicl'2.fcl' \
+    	-c 'sed -r -i "s/.*modulus.*[0-9]+.*/modulus: 100/" '$toolsdir'/fcl/'$om_fhicl'2.fcl' \
+    	-c 'sed -r -i "/end_paths:/s/a3/a1/" '$toolsdir'/fcl/'$om_fhicl'2.fcl' \
+    	-c 'sed -r -i "/shm_key:/s/.*/shm_key: 0x40471453/" '$toolsdir'/fcl/'$om_fhicl'2.fcl' \
+    	-c 'sed -r -i "s/shmem1/shmem2/" '$toolsdir'/fcl/'$om_fhicl'2.fcl' \
+		-c 'sed -r -i "s/destination_rank: 6/destination_rank: 7/" '$toolsdir'/fcl/'$om_fhicl'2.fcl' \
+        -c 'art -c '$toolsdir'/fcl/'$om_fhicl'2.fcl'
 
+	fi
