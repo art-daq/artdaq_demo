@@ -434,10 +434,8 @@ wget https://cdcvs.fnal.gov/redmine/projects/artdaq-demo/repository/revisions/de
 if [ "x${opt_run_demo-}" != "x" ]; then
 	echo doing the demo
 
-	toolsdir=${ARTDAQ_DEMO_DIR}/tools
-
 	set +u
-	. ./run_demo.sh $Base $toolsdir
+	. ./run_demo.sh
 	set -u
 fi
 
