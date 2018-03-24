@@ -47,7 +47,7 @@ examples: `basename $0`
 --just_do_it_help Help message from just_do_it.sh
 --basedir	  Base directory ($basedir, valid=$valid_basedir)
 --toolsdir	  artdaq_demo/tools directory ($toolsdir, valid=$valid_toolsdir)
---om          Run Online Monitoring
+--no_om       Do *NOT* run Online Monitoring
 --om_fhicl    Name of Fhicl file to use for online monitoring ($om_fhicl)
 "
 
@@ -57,7 +57,7 @@ eval "set -- $env_opts \"\$@\""
 op1chr='rest=`expr "$op" : "[^-]\(.*\)"`   && set -- "-$rest" "$@"'
 op1arg='rest=`expr "$op" : "[^-]\(.*\)"`   && set --  "$rest" "$@"'
 reqarg="$op1arg;"'test -z "${1+1}" &&echo opt -$op requires arg. &&echo "$USAGE" &&exit'
-args= do_help= do_jdi_help= do_om=0;
+args= do_help= do_jdi_help= do_om=1;
 while [ -n "${1-}" ];do
     if expr "x${1-}" : 'x-' >/dev/null;then
         op=`expr "x$1" : 'x-\(.*\)'`; shift   # done with $1
@@ -69,7 +69,7 @@ while [ -n "${1-}" ];do
 			-just_do_it_help) eval $op1arg; do_jdi_help=1;;
             -basedir)   eval $reqarg; basedir=$1; shift;;
             -toolsdir)  eval $reqarg; toolsdir=$1; shift;;
-			-om)        do_om=1;;
+			-no_om)        do_om=0;;
 			-om_fhicl)  eval $reqarg; om_fhicl=$1; shift;;
             *)          aa=`echo "-$op" | sed -e"s/'/'\"'\"'/g"` args="$args '$aa'";
         esac
