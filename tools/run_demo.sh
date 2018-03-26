@@ -89,7 +89,7 @@ validate_basedir
 validate_toolsdir
 
 if [ $valid_basedir -eq 0 ]; then
-	echo "Provided base directroy is not valid! Must contain DAQInterface directory, and artdaq-utilities-daqinterface directory if \$ARTDAQ_DAQINTERFACE_DIR is not set"
+	echo "Provided base directory is not valid! Must contain DAQInterface directory, and artdaq-utilities-daqinterface directory if \$ARTDAQ_DAQINTERFACE_DIR is not set"
 	return 1
 	exit 1
 fi
