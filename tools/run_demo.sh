@@ -49,6 +49,7 @@ examples: `basename $0`
 --toolsdir	  artdaq_demo/tools directory ($toolsdir, valid=$valid_toolsdir)
 --no_om       Do *NOT* run Online Monitoring
 --om_fhicl    Name of Fhicl file to use for online monitoring ($om_fhicl)
+--partition=<N> set a partition number -- to allow multiple demos
 "
 
 # Process script arguments and options
@@ -66,11 +67,12 @@ while [ -n "${1-}" ];do
         case "$op" in
             \?*|h*)     eval $op1chr; do_help=1;;
             -help)      eval $op1arg; do_help=1;;
-			-just_do_it_help) eval $op1arg; do_jdi_help=1;;
+	    -just_do_it_help) eval $op1arg; do_jdi_help=1;;
             -basedir)   eval $reqarg; basedir=$1; shift;;
             -toolsdir)  eval $reqarg; toolsdir=$1; shift;;
-			-no_om)        do_om=0;;
-			-om_fhicl)  eval $reqarg; om_fhicl=$1; shift;;
+	    -no_om)        do_om=0;;
+	    -om_fhicl)  eval $reqarg; om_fhicl=$1; shift;;
+            -partition) eval $reqarg; export ARTDAQ_PARTITION_NUMBER=$1; shift;;
             *)          aa=`echo "-$op" | sed -e"s/'/'\"'\"'/g"` args="$args '$aa'";
         esac
     else
