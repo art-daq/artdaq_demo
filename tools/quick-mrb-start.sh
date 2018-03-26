@@ -435,7 +435,7 @@ if [ "x${opt_run_demo-}" != "x" ]; then
 	echo doing the demo
 
 	set +u
-	. ./run_demo.sh
+	. ./run_demo.sh --basedir $Base
 	set -u
 fi
 
