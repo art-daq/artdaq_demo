@@ -435,7 +435,7 @@ if [ "x${opt_run_demo-}" != "x" ]; then
 	echo doing the demo
 
 	set +u
-	. ./run_demo.sh --basedir $Base
+	. ./run_demo.sh --basedir $Base --toolsdir ${Base}/srcs/artdaq_demo/tools
 	set -u
 fi
 
@@ -444,4 +444,3 @@ endtime=`date`
 
 echo "Build start time: $starttime"
 echo "Build end time:   $endtime"
-
