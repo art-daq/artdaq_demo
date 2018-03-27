@@ -94,9 +94,18 @@ if [ $valid_basedir -eq 0 ]; then
 	exit 1
 fi
 if [ $valid_toolsdir -eq 0 ] && [ $do_om -eq 1 ]; then
-	echo "Provided tools directory (${toolsdir}) is not valid!"
-	return 2
-	exit 2
+	toolsdir="$basedir/srcs/artdaq_demo/tools"
+	validate_toolsdir
+	if [ $valid_toolsdir -eq 0 ]; then
+		toolsdir=$ARTDAQ_DEMO_DIR
+		validate_toolsdir
+		
+		if [ $valid_toolsdir -eq 0 ]; then
+			echo "Provided tools directory (${toolsdir}) is not valid!"
+			return 2
+			exit 2
+		fi
+	fi
 fi
 
 daqintdir=$basedir/DAQInterface
@@ -153,7 +162,7 @@ function wait_for_state() {
 # And now, actually run DAQInterface as described in
 # https://cdcvs.fnal.gov/redmine/projects/artdaq-utilities/wiki/Artdaq-daqinterface
 
-    $toolsdir/xt_cmd.sh $daqintdir --geom '132x33 -sl 2500' \
+    xt_cmd.sh $daqintdir --geom '132x33 -sl 2500' \
         -c 'source mock_ups_setup.sh' \
 	-c 'export DAQINTERFACE_USER_SOURCEFILE=$PWD/user_sourcefile_example' \
 	-c 'source $ARTDAQ_DAQINTERFACE_DIR/source_me' \
@@ -165,7 +174,7 @@ function wait_for_state() {
     wait_for_state "stopped"
     echo "Done waiting."
 
-    $toolsdir/xt_cmd.sh $daqintdir --geom 132 \
+    xt_cmd.sh $daqintdir --geom 132 \
         -c 'source mock_ups_setup.sh' \
 	-c 'export DAQINTERFACE_USER_SOURCEFILE=$PWD/user_sourcefile_example' \
 	-c 'source $ARTDAQ_DAQINTERFACE_DIR/source_me' \
@@ -187,13 +196,13 @@ function wait_for_state() {
     	xloc=800
     fi
 
-    $toolsdir/xt_cmd.sh $basedir --geom '150x33+'$xloc'+0 -sl 2500' \
+    xt_cmd.sh $basedir --geom '150x33+'$xloc'+0 -sl 2500' \
         -c '. ./setupARTDAQDEMO' \
         -c 'art -c '$toolsdir'/fcl/'$om_fhicl'.fcl'
 
     sleep 4;
 
-    $toolsdir/xt_cmd.sh $basedir --geom '100x33+0+0 -sl 2500' \
+    xt_cmd.sh $basedir --geom '100x33+0+0 -sl 2500' \
         -c '. ./setupARTDAQDEMO' \
     	-c 'rm -f '$toolsdir'/fcl/'$om_fhicl'2.fcl' \
         -c 'cp -p '$toolsdir'/fcl/'$om_fhicl'.fcl '$toolsdir'/fcl/'$om_fhicl'2.fcl' \
