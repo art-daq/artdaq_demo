@@ -1,3 +1,4 @@
+#define TRACE_NAME "NthEventPolicy"
 #include "artdaq/Application/Routing/RoutingMasterPolicy.hh"
 #include "artdaq/Application/Routing/PolicyMacros.hh"
 #include "fhiclcpp/ParameterSet.h"
@@ -58,34 +59,34 @@ namespace artdaq
 		tokens->clear();
 
 		detail::RoutingPacket output;
-		TLOG_ARB(5, "NthEvent_policy") << "table[nth_rank_]=" << std::to_string(table[nth_rank_])
+		TLOG(5) << "table[nth_rank_]=" << std::to_string(table[nth_rank_])
 			<< ", Next nth=" << std::to_string(((next_sequence_id_ / nth_) + 1) * nth_)
-			<< ", max seq=" << std::to_string(next_sequence_id_ + table.size() - 1) << TLOG_ENDL;
+			<< ", max seq=" << std::to_string(next_sequence_id_ + table.size() - 1) ;
 		auto endCondition = table.size() < GetReceiverCount() || (table[nth_rank_] <= 0 && (next_sequence_id_ % nth_ == 0 || ((next_sequence_id_ / nth_) + 1) * nth_ < next_sequence_id_ + table.size() - 1));
 		while (!endCondition)
 		{
 			for (auto r : table)
 			{
-				TLOG_ARB(5, "NthEvent_policy") << "nth_=" << std::to_string(nth_)
+				TLOG(5) << "nth_=" << std::to_string(nth_)
 					<< ", nth_rank=" << std::to_string(nth_rank_)
 					<< ", r=" << std::to_string(r.first)
-					<< ", next_sequence_id=" << std::to_string(next_sequence_id_) << TLOG_ENDL;
+					<< ", next_sequence_id=" << std::to_string(next_sequence_id_) ;
 				if (next_sequence_id_ % nth_ == 0)
 				{
-					TLOG_ARB(5, "NthEvent_policy") << "Diverting event " << std::to_string(next_sequence_id_) << " to EVB " << nth_rank_ << TLOG_ENDL;
+					TLOG(5) << "Diverting event " << std::to_string(next_sequence_id_) << " to EVB " << nth_rank_ ;
 					output.emplace_back(detail::RoutingPacketEntry(next_sequence_id_++, nth_rank_));
 					table[nth_rank_]--;
 				}
 				if (r.first != nth_rank_) {
-					TLOG_ARB(5, "NthEvent_policy") << "Sending event " << std::to_string(next_sequence_id_) << " to EVB " << r.first << TLOG_ENDL;
+					TLOG(5) << "Sending event " << std::to_string(next_sequence_id_) << " to EVB " << r.first ;
 					output.emplace_back(detail::RoutingPacketEntry(next_sequence_id_++, r.first));
 					if (!endCondition) endCondition = r.second == 1;
 					table[r.first]--;
 				}
 			}
-			TLOG_ARB(5, "NthEvent_policy") << "table[nth_rank_]=" << std::to_string(table[nth_rank_])
+			TLOG(5) << "table[nth_rank_]=" << std::to_string(table[nth_rank_])
 				<< ", Next nth=" << std::to_string(((next_sequence_id_ / nth_) + 1) * nth_)
-				<< ", max seq=" << std::to_string(next_sequence_id_ + table.size() - 1) << TLOG_ENDL;
+				<< ", max seq=" << std::to_string(next_sequence_id_ + table.size() - 1) ;
 			endCondition = endCondition || (table[nth_rank_] <= 0 && (next_sequence_id_ % nth_ == 0 || (next_sequence_id_ / nth_) * nth_ + nth_ < next_sequence_id_ + table.size() - 1));
 		}
 

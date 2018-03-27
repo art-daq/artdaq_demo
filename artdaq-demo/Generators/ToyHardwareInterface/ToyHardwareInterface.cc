@@ -209,7 +209,7 @@ void ToyHardwareInterface::FillBuffer(char* buffer, size_t* bytes_read)
 
 	if (send_calls_ == 0)
 	  {  start_time_ = std::chrono::steady_clock::now();
-	    TRACE( 50, "ToyHardwareInterface::FillBuffer has set the start_time_" );
+	    TLOG(50) << "FillBuffer has set the start_time_";
 	  }
 
 	if (usecs_between_sends_ != 0)
@@ -226,7 +226,7 @@ void ToyHardwareInterface::FillBuffer(char* buffer, size_t* bytes_read)
 			if (delta > 0)
 				usleep(delta);
 
-			TLOG_ARB(15, "ToyHardwareInterface") << "FillBuffer send_calls=" << std::to_string(send_calls_) << " usecs_since_start=" << std::to_string(usecs_since_start) << " delta=" << std::to_string(delta) << TLOG_ENDL;
+			TLOG(15) << "FillBuffer send_calls=" << std::to_string(send_calls_) << " usecs_since_start=" << std::to_string(usecs_since_start) << " delta=" << std::to_string(delta) ;
 
 #pragma GCC diagnostic pop
 		}

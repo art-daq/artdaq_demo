@@ -39,8 +39,7 @@ demo::ToySimulator::ToySimulator(fhicl::ParameterSet const& ps)
 
 	metadata_.board_serial_number = hardware_interface_->SerialNumber();
 	metadata_.num_adc_bits = hardware_interface_->NumADCBits();
-	TRACE( TLVL_INFO, "ToySimulator ctor metadata_.unused=0x%zu sizeof(metadata_)=%zd"
-	      , metadata_.unused, sizeof(metadata_) );
+	TLOG(TLVL_INFO) << "Constructor: metadata_.unused = 0x" << std::hex << metadata_.unused << " sizeof(metadata_) = " << std::dec << sizeof(metadata_);
 
 	switch (hardware_interface_->BoardType())
 	{
@@ -111,8 +110,8 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 	if (distribution_type_ != ToyHardwareInterface::DistributionType::uninitialized)
 		memcpy(frags.back()->dataBeginBytes(), readout_buffer_, bytes_read);
 
-	TLOG_ARB(50, "ToySimulator") << "ToySimulator::getNext_ after memcpy " << std::to_string(bytes_read)
-		<< " bytes and std::move dataSizeBytes()=" << std::to_string(frags.back()->sizeBytes()) << " metabytes=" << std::to_string(sizeof(metadata_)) << TLOG_ENDL;
+	TLOG(50) << "getNext_ after memcpy " << std::to_string(bytes_read)
+		<< " bytes and std::move dataSizeBytes()=" << std::to_string(frags.back()->sizeBytes()) << " metabytes=" << std::to_string(sizeof(metadata_)) ;
 
 	if (metricMan != nullptr)
 	{
