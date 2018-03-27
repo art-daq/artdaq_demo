@@ -22,8 +22,16 @@ validate_basedir()
 validate_toolsdir()
 {
 	valid_toolsdir=0
-	if [ -f $toolsdir/fcl/TransferInputShmem.fcl ]; then
+	if [ -f $toolsdir/xt_cmd.sh ]; then
 		valid_toolsdir=1
+	fi
+}
+
+validate_fhicldir()
+{
+	valid_fhicldir=0
+	if [ -f $fhicldir/TransferInputShmem.fcl ]; then
+		valid_fhicldir=1
 	fi
 }
 
@@ -33,6 +41,9 @@ validate_basedir
 
 toolsdir="$basedir/srcs/artdaq_demo/tools"
 validate_toolsdir
+
+fhicldir="$toolsdir/fcl"
+validate_fhicldir
 
 
 om_fhicl=TransferInputShmem
@@ -47,6 +58,7 @@ examples: `basename $0`
 --just_do_it_help Help message from just_do_it.sh
 --basedir	  Base directory ($basedir, valid=$valid_basedir)
 --toolsdir	  artdaq_demo/tools directory ($toolsdir, valid=$valid_toolsdir)
+--fhicldir    Directory where Online Monitor FHiCL files reside (TransferInputShmem.fcl, etc) ($fhicldir, valid=$valid_fhicldir)
 --no_om       Do *NOT* run Online Monitoring
 --om_fhicl    Name of Fhicl file to use for online monitoring ($om_fhicl)
 --partition=<N> set a partition number -- to allow multiple demos
@@ -87,21 +99,40 @@ test -n "${do_help-}" && echo "$USAGE" && exit
 
 validate_basedir
 validate_toolsdir
+validate_fhicldir
 
 if [ $valid_basedir -eq 0 ]; then
 	echo "Provided base directory (${basedir}) is not valid! Must contain DAQInterface directory, and artdaq-utilities-daqinterface directory if \$ARTDAQ_DAQINTERFACE_DIR is not set"
 	return 1
 	exit 1
 fi
-if [ $valid_toolsdir -eq 0 ] && [ $do_om -eq 1 ]; then
+
+toolsdir_save=$toolsdir
+if [ $valid_toolsdir -eq 0 ]; then
 	toolsdir="$basedir/srcs/artdaq_demo/tools"
 	validate_toolsdir
 	if [ $valid_toolsdir -eq 0 ]; then
-		toolsdir=$ARTDAQ_DEMO_DIR
+		toolsdir="$ARTDAQ_DEMO_FQ_DIR/bin"
 		validate_toolsdir
 		
 		if [ $valid_toolsdir -eq 0 ]; then
-			echo "Provided tools directory (${toolsdir}) is not valid!"
+			echo "Provided tools directory (${toolsdir_save}) is not valid!"
+			return 2
+			exit 2
+		fi
+	fi
+fi
+
+fhicldir_save=$fhicldir
+if [ $valid_fhicldir -eq 0 ]; then
+	fhicldir="$basedir/srcs/artdaq_demo/tools/fcl"
+	validate_fhicldir
+	if [ $valid_fhicldir -eq 0 ]; then
+		fhicldir="$ARTDAQ_DEMO_DIR/fcl"
+		validate_fhicldir
+		
+		if [ $valid_fhicldir -eq 0 ]; then
+			echo "Provided FHiCL directory (${fhicldir_save}) is not valid!"
 			return 2
 			exit 2
 		fi
@@ -162,7 +193,7 @@ function wait_for_state() {
 # And now, actually run DAQInterface as described in
 # https://cdcvs.fnal.gov/redmine/projects/artdaq-utilities/wiki/Artdaq-daqinterface
 
-    xt_cmd.sh $daqintdir --geom '132x33 -sl 2500' \
+    $toolsdir/xt_cmd.sh $daqintdir --geom '132x33 -sl 2500' \
         -c 'source mock_ups_setup.sh' \
 	-c 'export DAQINTERFACE_USER_SOURCEFILE=$PWD/user_sourcefile_example' \
 	-c 'source $ARTDAQ_DAQINTERFACE_DIR/source_me' \
@@ -174,7 +205,7 @@ function wait_for_state() {
     wait_for_state "stopped"
     echo "Done waiting."
 
-    xt_cmd.sh $daqintdir --geom 132 \
+    $toolsdir/xt_cmd.sh $daqintdir --geom 132 \
         -c 'source mock_ups_setup.sh' \
 	-c 'export DAQINTERFACE_USER_SOURCEFILE=$PWD/user_sourcefile_example' \
 	-c 'source $ARTDAQ_DAQINTERFACE_DIR/source_me' \
@@ -196,16 +227,16 @@ function wait_for_state() {
     	xloc=800
     fi
 
-    xt_cmd.sh $basedir --geom '150x33+'$xloc'+0 -sl 2500' \
+    $toolsdir/xt_cmd.sh $basedir --geom '150x33+'$xloc'+0 -sl 2500' \
         -c '. ./setupARTDAQDEMO' \
-        -c 'art -c '$toolsdir'/fcl/'$om_fhicl'.fcl'
+        -c 'art -c '$fhicldir'/'$om_fhicl'.fcl'
 
     sleep 4;
 
-    xt_cmd.sh $basedir --geom '100x33+0+0 -sl 2500' \
+    $toolsdir/xt_cmd.sh $basedir --geom '100x33+0+0 -sl 2500' \
         -c '. ./setupARTDAQDEMO' \
     	-c 'rm -f /tmp/'$om_fhicl'2.fcl' \
-        -c 'cp -p '$toolsdir'/fcl/'$om_fhicl'.fcl /tmp/'$om_fhicl'2.fcl' \
+        -c 'cp -p '$fhicldir'/'$om_fhicl'.fcl /tmp/'$om_fhicl'2.fcl' \
     	-c 'sed -r -i "s/.*modulus.*[0-9]+.*/modulus: 100/" /tmp/'$om_fhicl'2.fcl' \
     	-c 'sed -r -i "/end_paths:/s/a3/a1/" /tmp/'$om_fhicl'2.fcl' \
     	-c 'sed -r -i "/shm_key:/s/.*/shm_key: 0x40471453/" /tmp/'$om_fhicl'2.fcl' \
