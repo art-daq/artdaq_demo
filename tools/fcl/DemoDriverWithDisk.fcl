@@ -32,7 +32,7 @@ event_builder: {
   use_art: true
   print_event_store_stats: false
   verbose: true
-  end_of_data_graceful_shutdown_us: 20000000
+  end_of_data_wait_s: 60
 }
 
 ######################################################################
