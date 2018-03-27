@@ -204,13 +204,13 @@ function wait_for_state() {
 
     xt_cmd.sh $basedir --geom '100x33+0+0 -sl 2500' \
         -c '. ./setupARTDAQDEMO' \
-    	-c 'rm -f '$toolsdir'/fcl/'$om_fhicl'2.fcl' \
-        -c 'cp -p '$toolsdir'/fcl/'$om_fhicl'.fcl '$toolsdir'/fcl/'$om_fhicl'2.fcl' \
-    	-c 'sed -r -i "s/.*modulus.*[0-9]+.*/modulus: 100/" '$toolsdir'/fcl/'$om_fhicl'2.fcl' \
-    	-c 'sed -r -i "/end_paths:/s/a3/a1/" '$toolsdir'/fcl/'$om_fhicl'2.fcl' \
-    	-c 'sed -r -i "/shm_key:/s/.*/shm_key: 0x40471453/" '$toolsdir'/fcl/'$om_fhicl'2.fcl' \
-    	-c 'sed -r -i "s/shmem1/shmem2/" '$toolsdir'/fcl/'$om_fhicl'2.fcl' \
-		-c 'sed -r -i "s/destination_rank: 6/destination_rank: 7/" '$toolsdir'/fcl/'$om_fhicl'2.fcl' \
-        -c 'art -c '$toolsdir'/fcl/'$om_fhicl'2.fcl'
+    	-c 'rm -f /tmp/'$om_fhicl'2.fcl' \
+        -c 'cp -p '$toolsdir'/fcl/'$om_fhicl'.fcl /tmp/'$om_fhicl'2.fcl' \
+    	-c 'sed -r -i "s/.*modulus.*[0-9]+.*/modulus: 100/" /tmp/'$om_fhicl'2.fcl' \
+    	-c 'sed -r -i "/end_paths:/s/a3/a1/" /tmp/'$om_fhicl'2.fcl' \
+    	-c 'sed -r -i "/shm_key:/s/.*/shm_key: 0x40471453/" /tmp/'$om_fhicl'2.fcl' \
+    	-c 'sed -r -i "s/shmem1/shmem2/"  /tmp/'$om_fhicl'2.fcl' \
+		-c 'sed -r -i "s/destination_rank: 6/destination_rank: 7/" /tmp/'$om_fhicl'2.fcl' \
+        -c 'art -c  /tmp/'$om_fhicl'2.fcl'
 
 	fi
