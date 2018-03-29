@@ -425,6 +425,7 @@ mkdir -p $Base/daqlogs
 mkdir -p $Base/daqdata
 
 sed -i -r 's!^\s*log_directory.*!log_directory: '$logdir'!' settings_example
+sed -i -r 's!^\s*data_directory_override.*!data_directory_override: '$datadir'!' settings_example
 
 sed -i -r 's!^\s*DAQ setup script:.*!DAQ setup script: '$Base'/setupARTDAQDEMO!' boot.txt
 
