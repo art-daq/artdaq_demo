@@ -32,7 +32,7 @@ event_builder: {
   use_art: true
   print_event_store_stats: false
   verbose: true
-  end_of_data_wait_s: 60
+  expected_art_event_processing_time_us: 2000000
 }
 
 ######################################################################
