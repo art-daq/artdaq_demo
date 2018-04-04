@@ -92,6 +92,14 @@ else()
  set(CANVAS_LIB_LIST canvas)
 endif(CANVAS_MULTILIB)
 
+# as of art v2_11_00, messagefacility has a single library
+check_ups_version(messagefacility $ENV{MESSAGEFACILITY_VERSION} v2_02_00 PRODUCT_MATCHES_VAR ONE_MF_LIBRARY)
+if(ONE_MF_LIBRARY)
+    set( MESSAGEFACILITY_LIBS MF_MessageLogger)
+else()
+    set( MESSAGEFACILITY_LIBS MF_MessageLogger MF_Utilities)
+endif()
+
 # macros for art_dictionary and simple_plugin
 include(ArtDictionary)
 include(ArtMake)

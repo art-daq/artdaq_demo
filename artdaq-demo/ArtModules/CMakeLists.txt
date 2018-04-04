@@ -66,8 +66,7 @@ simple_plugin(WFViewer "module"
   ${CETLIB_EXCEPT})
 
 simple_plugin(CheckIntegrity "module"
-              ${MF_MESSAGELOGGER}				
-	      ${MF_UTILITIES}
+  ${MESSAGEFACILITY_LIBS}
   ${CETLIB_EXCEPT}
 )
 
