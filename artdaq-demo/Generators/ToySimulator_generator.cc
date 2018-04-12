@@ -127,6 +127,7 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 void demo::ToySimulator::start()
 {
 	hardware_interface_->StartDatataking();
+	timestamp_ = 0;
 }
 
 void demo::ToySimulator::stop()
