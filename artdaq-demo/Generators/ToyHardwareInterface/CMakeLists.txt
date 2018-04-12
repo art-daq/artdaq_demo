@@ -5,6 +5,7 @@ art_make(
         ${CETLIB}
         ${CETLIB_EXCEPT}
   ${MF_MESSAGELOGGER}
+  artdaq_DAQdata
 	artdaq-core_Data
 	artdaq-core-demo_Overlays
 	${Boost_SYSTEM_LIBRARY}

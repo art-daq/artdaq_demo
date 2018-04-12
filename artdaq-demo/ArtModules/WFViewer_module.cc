@@ -11,7 +11,7 @@
 #include "artdaq-core-demo/Overlays/FragmentType.hh"
 #include "artdaq-core-demo/Overlays/ToyFragment.hh"
 
-#include "cetlib/exception.h"
+#include "cetlib_except/exception.h"
 
 #include <TFile.h>
 #include <TRootCanvas.h>

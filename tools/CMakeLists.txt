@@ -13,7 +13,8 @@ generateAggregatorMain.rb generateAggregator.rb
 generateRoutingMasterMain.rb
 generateBoardReaderMain.rb RunDriver.rb
 makeConfigs.rb
-multi_udp_send_artdaq.py)
+multi_udp_send_artdaq.py 
+run_demo.sh xt_cmd.sh)
 
 
 #art_make_exec(demo_driver

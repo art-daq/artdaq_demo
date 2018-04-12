@@ -1,9 +1,0 @@
-requestBasedDataFlow:
-
-Demonstrates the Data Request capabilities of the CommandableFragmentGenerator
-class. This example consists of a "DAQ" BoardReader reading out at a 
-high rate, a "DCS" BoardReader which reads out very slowly,
-but sends data for each event the "DAQ" BoardReader generates, and
-a "CRV" BoardReader which samples uncorrelated data based
-on the Fragment timestamps, providing the events that occurred within
-a given time window around the "DAQ" events.

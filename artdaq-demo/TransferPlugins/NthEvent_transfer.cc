@@ -44,8 +44,7 @@ namespace artdaq
 		 * \return CopyStatus (either kSuccess, kTimeout, kErrorNotRequiringException or an exception)
 		 */
 		TransferInterface::CopyStatus
-		copyFragment(artdaq::Fragment& fragment,
-					 size_t send_timeout_usec = std::numeric_limits<size_t>::max()) override;
+			copyFragment(artdaq::Fragment& fragment, size_t send_timeout_usec) override;
 
 		/**
 		 * \brief Copy a fragment, using the reliable channel. moveFragment assumes ownership of the fragment
@@ -54,8 +53,7 @@ namespace artdaq
 		 * \return CopyStatus (either kSuccess, kTimeout, kErrorNotRequiringException or an exception)
 		 */
 		TransferInterface::CopyStatus
-		moveFragment(artdaq::Fragment&& fragment,
-					 size_t send_timeout_usec = std::numeric_limits<size_t>::max()) override;
+			moveFragment(artdaq::Fragment&& fragment) override;
 
 		/**
 		 * \brief Receive a fragment from the transfer plugin
@@ -64,7 +62,7 @@ namespace artdaq
 		 * \return Rank of sender or RECV_TIMEOUT
 		 */
 		int receiveFragment(artdaq::Fragment& fragment,
-							size_t receiveTimeout) override
+			size_t receiveTimeout) override
 		{
 			// nth-event discarding is done at the send side. Pass receive calls through to underlying transfer
 			return physical_transfer_->receiveFragment(fragment, receiveTimeout);
@@ -96,40 +94,40 @@ namespace artdaq
 	   * \brief Get the source rank from the physical transfer
 	   * \return The source rank from the physical transfer
 	   */
-	  int source_rank() const { return physical_transfer_->source_rank(); }
+		int source_rank() const override { return physical_transfer_->source_rank(); }
 
 		/**
 	   * \brief Get the destination rank from the physical transfer
 	   * \return The destination rank from the physical transfer
 	   */
-	  int destination_rank() const { return physical_transfer_->destination_rank(); }
+		int destination_rank() const override { return physical_transfer_->destination_rank(); }
 
 
 	private:
 
-	  bool pass(const artdaq::Fragment& ) const;
+		bool pass(const artdaq::Fragment&) const;
 
-	  std::unique_ptr<TransferInterface> physical_transfer_;
-	  size_t nth_;
-	  size_t offset_;  
+		std::unique_ptr<TransferInterface> physical_transfer_;
+		size_t nth_;
+		size_t offset_;
 	};
 
 	NthEventTransfer::NthEventTransfer(fhicl::ParameterSet const& pset, artdaq::TransferInterface::Role role) :
-																											  TransferInterface(pset, role)
-																											  , nth_(pset.get<size_t>("nth")),
-														  offset_(pset.get<size_t>("offset",0))
+		TransferInterface(pset, role)
+		, nth_(pset.get<size_t>("nth")),
+		offset_(pset.get<size_t>("offset", 0))
 	{
-	  if (pset.has_key("source_rank") || pset.has_key("destination_rank")) {
-		throw cet::exception("NthEvent") << "The parameters \"source_rank\" and \"destination_rank\" must be explicitly defined in the body of the physical_transfer_plugin table, and not outside of it";
-	  }
-
-
-			if (offset_ >= nth_) {
-		  throw cet::exception("NthEvent") << "Offset value of " << offset_ << 
-			" must not be larger than the modulus value of " << nth_;
+		if (pset.has_key("source_rank") || pset.has_key("destination_rank")) {
+			throw cet::exception("NthEvent") << "The parameters \"source_rank\" and \"destination_rank\" must be explicitly defined in the body of the physical_transfer_plugin table, and not outside of it";
 		}
-	  
-		if(nth_ == 0)
+
+
+		if (offset_ >= nth_) {
+			throw cet::exception("NthEvent") << "Offset value of " << offset_ <<
+				" must not be larger than the modulus value of " << nth_;
+		}
+
+		if (nth_ == 0)
 		{
 			mf::LogWarning("NthEventTransfer") << "0 was passed as the nth parameter to NthEventTransfer. Will change to 1 (0 is undefined behavior)";
 			nth_ = 1;
@@ -140,11 +138,11 @@ namespace artdaq
 
 
 	TransferInterface::CopyStatus
-	NthEventTransfer::copyFragment(artdaq::Fragment& fragment,
-								   size_t send_timeout_usec)
+		NthEventTransfer::copyFragment(artdaq::Fragment& fragment,
+			size_t send_timeout_usec)
 	{
-	  
-			if (!pass(fragment))
+
+		if (!pass(fragment))
 		{
 			// Do not transfer but return success. Fragment is discarded
 			return TransferInterface::CopyStatus::kSuccess;
@@ -155,31 +153,31 @@ namespace artdaq
 	}
 
 	TransferInterface::CopyStatus
-	NthEventTransfer::moveFragment(artdaq::Fragment&& fragment,
-								   size_t send_timeout_usec)
+		NthEventTransfer::moveFragment(artdaq::Fragment&& fragment)
 	{
-			if (!pass(fragment))
+		if (!pass(fragment))
 		{
 			// Do not transfer but return success. Fragment is discarded
 			return TransferInterface::CopyStatus::kSuccess;
 		}
 
 		// This is the nth Fragment, transfer
-		return physical_transfer_->moveFragment(std::move(fragment), send_timeout_usec);
+		return physical_transfer_->moveFragment(std::move(fragment));
 	}
 
-		bool
-	NthEventTransfer::pass(const artdaq::Fragment& fragment) const 
+	bool
+		NthEventTransfer::pass(const artdaq::Fragment& fragment) const
 	{
-	  bool passed = false;
+		bool passed = false;
 
-	  if (fragment.type() == artdaq::Fragment::DataFragmentType) {
-		passed = (fragment.sequenceID() + nth_ - offset_) % nth_ == 0 ? true: false;
-	  } else {
-		passed = true;
-	  }
- 
-	  return passed;
+		if (fragment.type() == artdaq::Fragment::DataFragmentType) {
+			passed = (fragment.sequenceID() + nth_ - offset_) % nth_ == 0 ? true : false;
+		}
+		else {
+			passed = true;
+		}
+
+		return passed;
 	}
 }
 
