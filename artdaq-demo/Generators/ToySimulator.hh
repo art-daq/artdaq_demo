@@ -44,6 +44,7 @@ namespace demo
 		 * The ToySimulator FragmentGenerator accepts the following configuration paramters:
 		 * "timestamp_scale_factor" (Default: 1): How much to increment the timestamp Fragment Header field for each event
 		 * "distribution_type" (REQUIRED): Which type of distribution to use when generating data. See ToyHardwareInterface for more information
+		 * "rollover_subrun_interval" (Default: 0): If this ToySimulator has fragment_id 0, will cause the system to rollover subruns every N events. 0 (default) disables.
 		 */
 		explicit ToySimulator(fhicl::ParameterSet const& ps);
 
@@ -90,6 +91,7 @@ namespace demo
 		std::unique_ptr<ToyHardwareInterface> hardware_interface_;
 		artdaq::Fragment::timestamp_t timestamp_;
 		int timestampScale_;
+		int rollover_subrun_interval_;
 
 		ToyFragment::Metadata metadata_;
 
