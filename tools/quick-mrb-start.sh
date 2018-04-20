@@ -325,11 +325,13 @@ fi
 source $Base/products/setup
 
 export PRODUCTS=$PRODUCTS_SET
+setup artdaq_mpich_plugin v1_00_00 -q ${equalifier}:${squalifier}:${build_type}
+
 setup mrb
 source $Base/localProducts_artdaq_demo_${demo_version}_${equalifier}_${squalifier}_${build_type}/setup
+# 20-Apr-2018, KAB: note that mrbSetEnv must be called *after* any specal product setups,
+# otherwise the mrb-specific env vars for the software packages in "srcs" may get clobbered.
 source mrbSetEnv
-
-setup artdaq_mpich_plugin v1_00_00 -q ${equalifier}:${squalifier}:${build_type}
 
 export ARTDAQDEMO_REPO=$ARTDAQ_DEMO_DIR
 export ARTDAQDEMO_BUILD=$MRB_BUILDDIR/artdaq_demo
