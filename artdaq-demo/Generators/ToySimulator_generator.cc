@@ -30,7 +30,8 @@ demo::ToySimulator::ToySimulator(fhicl::ParameterSet const& ps)
 	, hardware_interface_(new ToyHardwareInterface(ps))
 	, timestamp_(0)
 	, timestampScale_(ps.get<int>("timestamp_scale_factor", 1))
-	, metadata_({0,0,0})
+	, rollover_subrun_interval_(ps.get<int>("rollover_subrun_interval", 0))
+	, metadata_({ 0,0,0 })
 	, readout_buffer_(nullptr)
 	, fragment_type_(static_cast<decltype(fragment_type_)>(artdaq::Fragment::InvalidFragmentType))
 	, distribution_type_(static_cast<ToyHardwareInterface::DistributionType>(ps.get<int>("distribution_type")))
@@ -111,7 +112,7 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 		memcpy(frags.back()->dataBeginBytes(), readout_buffer_, bytes_read);
 
 	TLOG(50) << "getNext_ after memcpy " << std::to_string(bytes_read)
-		<< " bytes and std::move dataSizeBytes()=" << std::to_string(frags.back()->sizeBytes()) << " metabytes=" << std::to_string(sizeof(metadata_)) ;
+		<< " bytes and std::move dataSizeBytes()=" << std::to_string(frags.back()->sizeBytes()) << " metabytes=" << std::to_string(sizeof(metadata_));
 
 	if (metricMan != nullptr)
 	{
@@ -120,6 +121,16 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 
 	ev_counter_inc();
 	timestamp_ += timestampScale_;
+
+	if (rollover_subrun_interval_ > 0 && ev_counter() % rollover_subrun_interval_ == 0 && fragment_id() == 0)
+	{
+		artdaq::FragmentPtr endOfSubrunFrag(new artdaq::Fragment(static_cast<size_t>(ceil(sizeof(my_rank) / static_cast<double>(sizeof(artdaq::Fragment::value_type))))));
+		endOfSubrunFrag->setSystemType(artdaq::Fragment::EndOfSubrunFragmentType);
+		endOfSubrunFrag->setSequenceID(ev_counter());
+		*endOfSubrunFrag->dataBegin() = my_rank;
+		frags.emplace_back(std::move(endOfSubrunFrag));
+	}
+
 
 	return true;
 }
