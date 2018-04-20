@@ -176,7 +176,11 @@ function wait_for_state() {
     while [[ "1" ]]; do
       sleep 1
 
-      res=$( status.sh 2>/dev/null | tail -1 | tr "'" " " | awk '{print $2}' )
+      # 19-Apr-2018, KAB: removed the redirection of stderr for the status.sh call
+      # so that we will see problems like 'unable to find installed package' when
+      # we install the demo on one node in a cluster and try to run it on another
+      # node that has a different set of external disks mounted.
+      res=$( status.sh | tail -1 | tr "'" " " | awk '{print $2}' )
 
       if [[ "$res" == "" ]]; then
           sleep 2
