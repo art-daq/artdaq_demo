@@ -7,7 +7,7 @@ simple_plugin(ToySimulator "generator"
   artdaq-core_Utilities
   artdaq-core_Data
   artdaq-utilities_Plugins
-  ${CANVAS_LIB_LIST}
+  canvas
   ${FHICLCPP}
   ${MESSAGEFACILITY_LIBS}
   ${CETLIB}
@@ -34,7 +34,7 @@ simple_plugin(UDPReceiver "generator"
     artdaq-core_Utilities
     artdaq-core_Data
   ${Boost_SYSTEM_LIBRARY}
-  ${CANVAS_LIB_LIST}
+  canvas
     ${FHICLCPP}
   ${MESSAGEFACILITY_LIBS}
     ${CETLIB}

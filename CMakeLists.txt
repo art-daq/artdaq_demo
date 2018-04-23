@@ -59,7 +59,7 @@ find_ups_boost( v1_50_0 filesystem
                         program_options
                         unit_test_framework
  )
- 
+
 string(REGEX MATCHALL "[0-9][0-9]?[0-9]?" ART_VERSION_LIST "$ENV{ART_VERSION}")
 list(GET ART_VERSION_LIST 0 ART_MAJOR_VERSION)
 list(GET ART_VERSION_LIST 1 ART_MINOR_VERSION)
@@ -84,13 +84,6 @@ list(GET CANVAS_VERSION_LIST 2 CANVAS_PATCH_VERSION)
 
 message("-DCANVAS_HEX_VERSION=0x${CANVAS_MAJOR_VERSION}${CANVAS_MINOR_VERSION}${CANVAS_PATCH_VERSION}")
 add_definitions(-DCANVAS_HEX_VERSION=0x${CANVAS_MAJOR_VERSION}${CANVAS_MINOR_VERSION}${CANVAS_PATCH_VERSION})
-
-check_ups_version(canvas "$ENV{CANVAS_VERSION}" v1_06_00 PRODUCT_OLDER_VAR CANVAS_MULTILIB)
-if(CANVAS_MULTILIB)
-  set(CANVAS_LIB_LIST canvas_Utilities canvas_Persistency_Provenance)
-else()
- set(CANVAS_LIB_LIST canvas)
-endif(CANVAS_MULTILIB)
 
 # as of art v2_11_00, messagefacility has a single library
 check_ups_version(messagefacility $ENV{MESSAGEFACILITY_VERSION} v2_02_00 PRODUCT_MATCHES_VAR ONE_MF_LIBRARY)
