@@ -103,6 +103,12 @@ namespace artdaq
 		int destination_rank() const override { return physical_transfer_->destination_rank(); }
 
 
+		/**
+		* \brief Determine whether the TransferInterface plugin is able to send/receive data
+		* \return True if the TransferInterface plugin is currently able to send/receive data
+		*/
+		bool isRunning() override { return physical_transfer_->isRunning(); }
+
 	private:
 
 		bool pass(const artdaq::Fragment&) const;
