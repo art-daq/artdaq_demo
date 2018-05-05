@@ -33,7 +33,7 @@ prompted for this location.
 --tag         Install a specific tag of artdaq_demo
 --logdir      Set <dir> as the destination for log files
 --datadir     Set <dir> as the destination for data files
--e, -s        Use specific qualifiers when building ARTDAQ
+-e, -s, -c    Use specific qualifiers when building ARTDAQ
 -v            Be more verbose
 -x            set -x this script
 -w            Check out repositories read/write
@@ -60,6 +60,7 @@ while [ -n "${1-}" ];do
 			x*)         eval $op1chr; set -x;;
 			s*)         eval $op1arg; squalifier=$1; shift;;
 			e*)         eval $op1arg; equalifier=$1; shift;;
+            c*)         eval $op1arg; cqualifier=$1; shift;;
 			w*)         eval $op1chr; opt_w=`expr $opt_w + 1`;;
 			-run-demo)  opt_run_demo=--run-demo;;
 			-debug)     opt_debug=--debug;;
@@ -224,6 +225,8 @@ defaultE=`echo $defaultQuals|cut -f1 -d:`
 defaultS=`echo $defaultQuals|cut -f2 -d:`
 if [ -n "${equalifier-}" ]; then 
 	equalifier="e${equalifier}";
+elif [ -n "${cqualifier-}" ]; then
+    equalifier="c${cqualifier-}";
 else
 	equalifier=$defaultE
 fi
