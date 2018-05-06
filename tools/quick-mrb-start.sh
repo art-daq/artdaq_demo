@@ -221,6 +221,10 @@ fi
 artdaq_version=`grep "^artdaq " $Base/download/product_deps | awk '{print $2}'`
 coredemo_version=`grep "^artdaq_core_demo " $Base/download/product_deps | awk '{print $2}'`
 defaultQuals=`grep "defaultqual" $Base/download/product_deps|awk '{print $2}'`
+
+https://cdcvs.fnal.gov/redmine/projects/artdaq-utilities/repository/mpich-plugin/revisions/master/raw/ups/product_deps
+mpich_plugin_version=`grep "parent artdaq_mpich_plugin" $Base/download/product_deps.1|awk '{print $3}'`
+
 defaultE=`echo $defaultQuals|cut -f1 -d:`
 defaultS=`echo $defaultQuals|cut -f2 -d:`
 if [ -n "${equalifier-}" ]; then 
@@ -328,7 +332,7 @@ fi
 source $Base/products/setup
 
 export PRODUCTS=$PRODUCTS_SET
-setup artdaq_mpich_plugin v1_00_00 -q ${equalifier}:${squalifier}:${build_type}
+setup artdaq_mpich_plugin ${mpich_plugin_version} -q ${equalifier}:${squalifier}:${build_type}
 
 setup mrb
 source $Base/localProducts_artdaq_demo_${demo_version}_${equalifier}_${squalifier}_${build_type}/setup
