@@ -222,9 +222,6 @@ artdaq_version=`grep "^artdaq " $Base/download/product_deps | awk '{print $2}'`
 coredemo_version=`grep "^artdaq_core_demo " $Base/download/product_deps | awk '{print $2}'`
 defaultQuals=`grep "defaultqual" $Base/download/product_deps|awk '{print $2}'`
 
-https://cdcvs.fnal.gov/redmine/projects/artdaq-utilities/repository/mpich-plugin/revisions/master/raw/ups/product_deps
-mpich_plugin_version=`grep "parent artdaq_mpich_plugin" $Base/download/product_deps.1|awk '{print $3}'`
-
 defaultE=`echo $defaultQuals|cut -f1 -d:`
 defaultS=`echo $defaultQuals|cut -f2 -d:`
 if [ -n "${equalifier-}" ]; then 
@@ -332,7 +329,6 @@ fi
 source $Base/products/setup
 
 export PRODUCTS=$PRODUCTS_SET
-setup artdaq_mpich_plugin ${mpich_plugin_version} -q ${equalifier}:${squalifier}:${build_type}
 
 setup mrb
 source $Base/localProducts_artdaq_demo_${demo_version}_${equalifier}_${squalifier}_${build_type}/setup
@@ -340,6 +336,9 @@ source $Base/localProducts_artdaq_demo_${demo_version}_${equalifier}_${squalifie
 # otherwise the mrb-specific env vars for the software packages in "srcs" may get clobbered.
 source mrbSetEnv
 
+if [[ "x$ARTDAQ_MPICH_PLUGIN_DIR" == "x" ]]; then
+  source setupMpichPlugin.sh -q ${equalifier}:${squalifier}:${build_type}
+fi
 export ARTDAQDEMO_REPO=$ARTDAQ_DEMO_DIR
 export ARTDAQDEMO_BUILD=$MRB_BUILDDIR/artdaq_demo
 #export ARTDAQDEMO_BASE_PORT=52200
