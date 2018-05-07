@@ -334,7 +334,7 @@ source $Base/localProducts_artdaq_demo_${demo_version}_${equalifier}_${squalifie
 # otherwise the mrb-specific env vars for the software packages in "srcs" may get clobbered.
 source mrbSetEnv
 
-if [[ "x$ARTDAQ_MPICH_PLUGIN_DIR" == "x" ]]; then
+if [[ "x\${ARTDAQ_MPICH_PLUGIN_DIR:-}" == "x" ]]; then
 	quals=${equalifier}:${squalifier}:${build_type}
 	for plugin_version in `ups list -aK+ artdaq_mpich_plugin -q $quals|awk '{print $2}'`;do
 		if [ `ups depend artdaq_mpich_plugin $plugin_version -q $quals|grep -c "artdaq $ARTDAQ_VERSION"` -gt 0 ]; then
