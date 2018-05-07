@@ -242,8 +242,6 @@ else
 	build_type="prof"
 fi
 
-
-
 wget http://scisoft.fnal.gov/scisoft/bundles/tools/pullProducts
 chmod +x pullProducts
 ./pullProducts $Base/products ${os} artdaq_demo-${demo_version} ${squalifier}-${equalifier} ${build_type}
@@ -337,7 +335,13 @@ source $Base/localProducts_artdaq_demo_${demo_version}_${equalifier}_${squalifie
 source mrbSetEnv
 
 if [[ "x$ARTDAQ_MPICH_PLUGIN_DIR" == "x" ]]; then
-  source setupMpichPlugin.sh -q ${equalifier}:${squalifier}:${build_type}
+	quals=${equalifier}:${squalifier}:${build_type}
+	for plugin_version in `ups list -aK+ artdaq_mpich_plugin -q $quals|awk '{print $2}'`;do
+		if [ `ups depend artdaq_mpich_plugin $plugin_version -q $quals|grep -c "artdaq $ARTDAQ_VERSION"` -gt 0 ]; then
+			setup artdaq_mpich_plugin $plugin_version -q $quals
+			break;
+		fi
+	done
 fi
 export ARTDAQDEMO_REPO=$ARTDAQ_DEMO_DIR
 export ARTDAQDEMO_BUILD=$MRB_BUILDDIR/artdaq_demo
