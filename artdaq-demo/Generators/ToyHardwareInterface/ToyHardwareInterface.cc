@@ -226,7 +226,7 @@ void ToyHardwareInterface::FillBuffer(char* buffer, size_t* bytes_read)
 			if (delta > 0)
 				usleep(delta);
 
-			TLOG(15) << "FillBuffer send_calls=" << std::to_string(send_calls_) << " usecs_since_start=" << std::to_string(usecs_since_start) << " delta=" << std::to_string(delta) ;
+			TLOG(15) << "FillBuffer send_calls=" << send_calls_ << " usecs_since_start=" << usecs_since_start << " delta=" << delta ;
 
 #pragma GCC diagnostic pop
 		}
