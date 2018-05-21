@@ -335,12 +335,22 @@ source $Base/localProducts_artdaq_demo_${demo_version}_${equalifier}_${squalifie
 source mrbSetEnv
 
 if [[ "x\${ARTDAQ_MPICH_PLUGIN_DIR:-}" == "x" ]]; then
+
+        echo
+        echo DISREGARD ALL Version conflict ERROR MESSAGES BELOW 
+        echo
+
 	for plugin_version in \`ups list -aK+ artdaq_mpich_plugin -q ${equalifier}:${squalifier}:eth:${build_type}|awk '{print \$2}'|sed 's/\"//g'\`;do
 		if [ \`ups depend artdaq_mpich_plugin \$plugin_version -q ${equalifier}:${squalifier}:eth:${build_type}|grep -c "artdaq \$ARTDAQ_VERSION"\` -gt 0 ]; then
 			setup artdaq_mpich_plugin \$plugin_version -q ${equalifier}:${squalifier}:eth:${build_type}
 			break;
 		fi
 	done
+      
+        echo
+        echo DISREGARD ALL Version conflict ERROR MESSAGES ABOVE
+        echo
+
 fi
 export ARTDAQDEMO_REPO=$ARTDAQ_DEMO_DIR
 export ARTDAQDEMO_BUILD=$MRB_BUILDDIR/artdaq_demo
