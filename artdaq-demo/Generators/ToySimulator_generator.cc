@@ -111,8 +111,8 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 	if (distribution_type_ != ToyHardwareInterface::DistributionType::uninitialized)
 		memcpy(frags.back()->dataBeginBytes(), readout_buffer_, bytes_read);
 
-	TLOG(50) << "getNext_ after memcpy " << std::to_string(bytes_read)
-		<< " bytes and std::move dataSizeBytes()=" << std::to_string(frags.back()->sizeBytes()) << " metabytes=" << std::to_string(sizeof(metadata_));
+	TLOG(50) << "getNext_ after memcpy " << bytes_read
+		<< " bytes and std::move dataSizeBytes()=" << frags.back()->sizeBytes() << " metabytes=" << sizeof(metadata_);
 
 	if (metricMan != nullptr)
 	{

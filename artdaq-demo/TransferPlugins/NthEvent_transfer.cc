@@ -49,7 +49,6 @@ namespace artdaq
 		/**
 		 * \brief Copy a fragment, using the reliable channel. moveFragment assumes ownership of the fragment
 		 * \param fragment Fragment to copy
-		 * \param send_timeout_usec Timeout before aborting
 		 * \return CopyStatus (either kSuccess, kTimeout, kErrorNotRequiringException or an exception)
 		 */
 		TransferInterface::CopyStatus

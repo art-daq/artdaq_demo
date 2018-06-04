@@ -33,7 +33,7 @@ prompted for this location.
 --tag         Install a specific tag of artdaq_demo
 --logdir      Set <dir> as the destination for log files
 --datadir     Set <dir> as the destination for data files
--e, -s        Use specific qualifiers when building ARTDAQ
+-e, -s, -c    Use specific qualifiers when building ARTDAQ
 -v            Be more verbose
 -x            set -x this script
 -w            Check out repositories read/write
@@ -60,6 +60,7 @@ while [ -n "${1-}" ];do
 			x*)         eval $op1chr; set -x;;
 			s*)         eval $op1arg; squalifier=$1; shift;;
 			e*)         eval $op1arg; equalifier=$1; shift;;
+            c*)         eval $op1arg; cqualifier=$1; shift;;
 			w*)         eval $op1chr; opt_w=`expr $opt_w + 1`;;
 			-run-demo)  opt_run_demo=--run-demo;;
 			-debug)     opt_debug=--debug;;
@@ -220,10 +221,13 @@ fi
 artdaq_version=`grep "^artdaq " $Base/download/product_deps | awk '{print $2}'`
 coredemo_version=`grep "^artdaq_core_demo " $Base/download/product_deps | awk '{print $2}'`
 defaultQuals=`grep "defaultqual" $Base/download/product_deps|awk '{print $2}'`
+
 defaultE=`echo $defaultQuals|cut -f1 -d:`
 defaultS=`echo $defaultQuals|cut -f2 -d:`
 if [ -n "${equalifier-}" ]; then 
 	equalifier="e${equalifier}";
+elif [ -n "${cqualifier-}" ]; then
+    equalifier="c${cqualifier-}";
 else
 	equalifier=$defaultE
 fi
@@ -237,8 +241,6 @@ if [[ -n "${opt_debug:-}" ]] ; then
 else
 	build_type="prof"
 fi
-
-
 
 wget http://scisoft.fnal.gov/scisoft/bundles/tools/pullProducts
 chmod +x pullProducts
@@ -319,19 +321,27 @@ echo # This script is intended to be sourced.
 sh -c "[ \`ps \$\$ | grep bash | wc -l\` -gt 0 ] || { echo 'Please switch to the bash shell before running the artdaq-demo.'; exit; }" || exit
 
 if [[ -e /cvmfs/fermilab.opensciencegrid.org/products/artdaq ]]; then
-	. /cvmfs/fermilab.opensciencegrid.org/products/artdaq/setup
+  . /cvmfs/fermilab.opensciencegrid.org/products/artdaq/setup
 fi
 
 source $Base/products/setup
 
 export PRODUCTS=$PRODUCTS_SET
-setup artdaq_mpich_plugin v1_00_00 -q ${equalifier}:${squalifier}:${build_type}
 
 setup mrb
 source $Base/localProducts_artdaq_demo_${demo_version}_${equalifier}_${squalifier}_${build_type}/setup
-# 20-Apr-2018, KAB: note that mrbSetEnv must be called *after* any specal product setups,
-# otherwise the mrb-specific env vars for the software packages in "srcs" may get clobbered.
 source mrbSetEnv
+
+if [[ "x\${ARTDAQ_MPICH_PLUGIN_DIR:-}" == "x" ]]; then
+  for plugin_version in \`ups list -aK+ artdaq_mpich_plugin -q ${equalifier}:${squalifier}:eth:${build_type}|awk '{print \$2}'|sed 's/\"//g'\`;do
+    if [ \`ups depend artdaq_mpich_plugin \$plugin_version -q ${equalifier}:${squalifier}:eth:${build_type} 2>/dev/null|grep -c "artdaq \$ARTDAQ_VERSION"\` -gt 0 ]; then
+      setup artdaq_mpich_plugin \$plugin_version -q ${equalifier}:${squalifier}:eth:${build_type}
+      break;
+    fi
+  done
+fi
+
+export TRACE_NAME=TRACE
 
 export ARTDAQDEMO_REPO=$ARTDAQ_DEMO_DIR
 export ARTDAQDEMO_BUILD=$MRB_BUILDDIR/artdaq_demo
@@ -343,6 +353,15 @@ export ARTDAQDEMO_DATA_DIR=${datadir}
 export ARTDAQDEMO_LOG_DIR=${logdir}
 
 export FHICL_FILE_PATH=.:\$ARTDAQ_DEMO_DIR/tools/snippets:\$ARTDAQ_DEMO_DIR/tools/fcl:\$FHICL_FILE_PATH
+
+# 03-Jun-2018, KAB: added second call to mrbSetEnv to ensure that the code that is built
+# from the srcs area in the mrb environment is what is found first in the PATH.
+if [ \`echo \$ARTDAQ_DIR|grep -c "$Base"\` -eq 0 ]; then
+  echo ""
+  echo ">>> Setting up the MRB environment again to ensure that MRB-based executables and libraries are used during running. <<<"
+  echo ""
+  source mrbSetEnv
+fi
 
 alias toy1toy2EventDump="art -c $ARTDAQ_DEMO_DIR/artdaq-demo/ArtModules/fcl/toy1toy2Dump.fcl"
 alias rawEventDump="art -c $ARTDAQ_DIR/artdaq/ArtModules/fcl/rawEventDump.fcl"

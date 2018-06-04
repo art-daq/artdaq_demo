@@ -59,34 +59,34 @@ namespace artdaq
 		tokens->clear();
 
 		detail::RoutingPacket output;
-		TLOG(5) << "table[nth_rank_]=" << std::to_string(table[nth_rank_])
-			<< ", Next nth=" << std::to_string(((next_sequence_id_ / nth_) + 1) * nth_)
-			<< ", max seq=" << std::to_string(next_sequence_id_ + table.size() - 1) ;
+		TLOG(5) << "table[nth_rank_]=" << (table[nth_rank_])
+			<< ", Next nth=" << (((next_sequence_id_ / nth_) + 1) * nth_)
+			<< ", max seq=" << (next_sequence_id_ + table.size() - 1) ;
 		auto endCondition = table.size() < GetReceiverCount() || (table[nth_rank_] <= 0 && (next_sequence_id_ % nth_ == 0 || ((next_sequence_id_ / nth_) + 1) * nth_ < next_sequence_id_ + table.size() - 1));
 		while (!endCondition)
 		{
 			for (auto r : table)
 			{
-				TLOG(5) << "nth_=" << std::to_string(nth_)
-					<< ", nth_rank=" << std::to_string(nth_rank_)
-					<< ", r=" << std::to_string(r.first)
-					<< ", next_sequence_id=" << std::to_string(next_sequence_id_) ;
+				TLOG(5) << "nth_=" << nth_
+					<< ", nth_rank=" << nth_rank_
+					<< ", r=" << r.first
+					<< ", next_sequence_id=" << next_sequence_id_;
 				if (next_sequence_id_ % nth_ == 0)
 				{
-					TLOG(5) << "Diverting event " << std::to_string(next_sequence_id_) << " to EVB " << nth_rank_ ;
+					TLOG(5) << "Diverting event " << next_sequence_id_ << " to EVB " << nth_rank_ ;
 					output.emplace_back(detail::RoutingPacketEntry(next_sequence_id_++, nth_rank_));
 					table[nth_rank_]--;
 				}
 				if (r.first != nth_rank_) {
-					TLOG(5) << "Sending event " << std::to_string(next_sequence_id_) << " to EVB " << r.first ;
+					TLOG(5) << "Sending event " << next_sequence_id_ << " to EVB " << r.first ;
 					output.emplace_back(detail::RoutingPacketEntry(next_sequence_id_++, r.first));
 					if (!endCondition) endCondition = r.second == 1;
 					table[r.first]--;
 				}
 			}
-			TLOG(5) << "table[nth_rank_]=" << std::to_string(table[nth_rank_])
-				<< ", Next nth=" << std::to_string(((next_sequence_id_ / nth_) + 1) * nth_)
-				<< ", max seq=" << std::to_string(next_sequence_id_ + table.size() - 1) ;
+			TLOG(5) << "table[nth_rank_]=" << table[nth_rank_]
+				<< ", Next nth=" << (((next_sequence_id_ / nth_) + 1) * nth_)
+				<< ", max seq=" << (next_sequence_id_ + table.size() - 1) ;
 			endCondition = endCondition || (table[nth_rank_] <= 0 && (next_sequence_id_ % nth_ == 0 || (next_sequence_id_ / nth_) * nth_ + nth_ < next_sequence_id_ + table.size() - 1));
 		}
 
