@@ -321,7 +321,7 @@ echo # This script is intended to be sourced.
 sh -c "[ \`ps \$\$ | grep bash | wc -l\` -gt 0 ] || { echo 'Please switch to the bash shell before running the artdaq-demo.'; exit; }" || exit
 
 if [[ -e /cvmfs/fermilab.opensciencegrid.org/products/artdaq ]]; then
-	. /cvmfs/fermilab.opensciencegrid.org/products/artdaq/setup
+  . /cvmfs/fermilab.opensciencegrid.org/products/artdaq/setup
 fi
 
 source $Base/products/setup
@@ -330,28 +330,19 @@ export PRODUCTS=$PRODUCTS_SET
 
 setup mrb
 source $Base/localProducts_artdaq_demo_${demo_version}_${equalifier}_${squalifier}_${build_type}/setup
-# 20-Apr-2018, KAB: note that mrbSetEnv must be called *after* any specal product setups,
-# otherwise the mrb-specific env vars for the software packages in "srcs" may get clobbered.
 source mrbSetEnv
 
 if [[ "x\${ARTDAQ_MPICH_PLUGIN_DIR:-}" == "x" ]]; then
-
-        echo
-        echo DISREGARD ALL Version conflict ERROR MESSAGES BELOW 
-        echo
-
-	for plugin_version in \`ups list -aK+ artdaq_mpich_plugin -q ${equalifier}:${squalifier}:eth:${build_type}|awk '{print \$2}'|sed 's/\"//g'\`;do
-		if [ \`ups depend artdaq_mpich_plugin \$plugin_version -q ${equalifier}:${squalifier}:eth:${build_type}|grep -c "artdaq \$ARTDAQ_VERSION"\` -gt 0 ]; then
-			setup artdaq_mpich_plugin \$plugin_version -q ${equalifier}:${squalifier}:eth:${build_type}
-			break;
-		fi
-	done
-      
-        echo
-        echo DISREGARD ALL Version conflict ERROR MESSAGES ABOVE
-        echo
-
+  for plugin_version in \`ups list -aK+ artdaq_mpich_plugin -q ${equalifier}:${squalifier}:eth:${build_type}|awk '{print \$2}'|sed 's/\"//g'\`;do
+    if [ \`ups depend artdaq_mpich_plugin \$plugin_version -q ${equalifier}:${squalifier}:eth:${build_type} 2>/dev/null|grep -c "artdaq \$ARTDAQ_VERSION"\` -gt 0 ]; then
+      setup artdaq_mpich_plugin \$plugin_version -q ${equalifier}:${squalifier}:eth:${build_type}
+      break;
+    fi
+  done
 fi
+
+export TRACE_NAME=TRACE
+
 export ARTDAQDEMO_REPO=$ARTDAQ_DEMO_DIR
 export ARTDAQDEMO_BUILD=$MRB_BUILDDIR/artdaq_demo
 #export ARTDAQDEMO_BASE_PORT=52200
@@ -362,6 +353,15 @@ export ARTDAQDEMO_DATA_DIR=${datadir}
 export ARTDAQDEMO_LOG_DIR=${logdir}
 
 export FHICL_FILE_PATH=.:\$ARTDAQ_DEMO_DIR/tools/snippets:\$ARTDAQ_DEMO_DIR/tools/fcl:\$FHICL_FILE_PATH
+
+# 03-Jun-2018, KAB: added second call to mrbSetEnv to ensure that the code that is built
+# from the srcs area in the mrb environment is what is found first in the PATH.
+if [ \`echo \$ARTDAQ_DIR|grep -c "$Base"\` -eq 0 ]; then
+  echo ""
+  echo ">>> Setting up the MRB environment again to ensure that MRB-based executables and libraries are used during running. <<<"
+  echo ""
+  source mrbSetEnv
+fi
 
 alias toy1toy2EventDump="art -c $ARTDAQ_DEMO_DIR/artdaq-demo/ArtModules/fcl/toy1toy2Dump.fcl"
 alias rawEventDump="art -c $ARTDAQ_DIR/artdaq/ArtModules/fcl/rawEventDump.fcl"
