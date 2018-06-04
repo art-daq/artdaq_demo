@@ -215,7 +215,7 @@ function wait_for_state() {
 	-c 'source $ARTDAQ_DAQINTERFACE_DIR/source_me' \
 	-c 'if [[ -n $DAQINTERFACE_MESSAGEFACILITY_FHICL ]]; then msgfacfile=$DAQINTERFACE_MESSAGEFACILITY_FHICL ; else msgfacfile=MessageFacility.fcl ; fi' \
 	-c 'if [[ -e $msgfacfile ]]; then sed -r -i  "s/(host\s*:\s*)\"\S+\"/\1\""$HOSTNAME"\"/g" $msgfacfile ; fi' \
-	-c "just_do_it.sh $* $jdibootfile $jdiduration"
+	-c "just_do_it.sh -v $* $jdibootfile $jdiduration"
 
 	if [ $do_om -eq 1 ]; then
     sleep 8;
