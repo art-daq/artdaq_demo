@@ -136,7 +136,7 @@ void demo::ToyDump::analyze(art::Event const& evt)
 		ToyFragment bb(frag);
 
 		TLOG(TLVL_INFO) << fragmentTypeToString(static_cast<demo::detail::FragmentType>(frag.type())) << " fragment " << frag.fragmentID()
-			<< " w/ seqID " << frag.sequenceID()
+			<< " w/ seqID " << frag.sequenceID() << " and timestamp " << frag.timestamp()
 			<< " has total ADC counts = " << bb.total_adc_values();
 
 		if (frag.hasMetadata())
