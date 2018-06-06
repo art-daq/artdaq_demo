@@ -32,6 +32,10 @@ e17:s67:prof   	   e17:s67:prof  	 e17:s67:prof
 e17:s67:debug  	   e17:s67:debug 	 e17:s67:debug
 e15:s67:prof   	   e15:s67:prof  	 e15:s67:prof
 e15:s67:debug  	   e15:s67:debug 	 e15:s67:debug
+c2:s65:prof  	   c2:s65:prof  	 c2:s65:prof
+c2:s65:debug  	   c2:s65:debug 	 c2:s65:debug
+e15:s65:prof   	   e15:s65:prof  	 e15:s65:prof
+e15:s65:debug  	   e15:s65:debug 	 e15:s65:debug
 c2:s64:prof  	   c2:s64:prof  	 c2:s64:prof
 c2:s64:debug  	   c2:s64:debug 	 c2:s64:debug
 e15:s64:prof   	   e15:s64:prof  	 e15:s64:prof
