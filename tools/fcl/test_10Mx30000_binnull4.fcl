@@ -2,8 +2,8 @@
 #  about the FHiCL language, please look at
 #  cdcvs.fnal.gov/redmine/documents/327 , the "FHiCL Quick Start Guide"
 
-#events_to_generate: 30000
-events_to_generate: 30
+events_to_generate: 30000
+#events_to_generate: 30
 run_number: 101
 transition_timeout: 30
 
@@ -16,8 +16,8 @@ fragment_receiver: {
    # Parameters defining and configuring the fragment generator to be used
    generator: ToySimulator 
    fragment_type: TOY2        # Make sure downstream modules know about this fragment_type!
-   nADCcounts: 524268         # nBytes = nADCcounts * 2 + 40, 1 MB
-   #nADCcounts: 5242860         # nBytes = nADCcounts * 2 + 40, 10 MB
+   #nADCcounts: 524268         # nBytes = nADCcounts * 2 + 40, 1 MB
+   nADCcounts: 5242860         # nBytes = nADCcounts * 2 + 40, 10 MB
    distribution_type: 4       # 0 is uniform, 1 is gaussian, 2 is monotonic, 3 is no initialization (fastest)
    #distribution_type: 2       # 0 is uniform, 1 is gaussian, 2 is monotonic, 3 is no initialization (fastest)
    throttle_usecs: 0
@@ -34,6 +34,8 @@ event_builder: {
   print_event_store_stats: false
   verbose: false
   events_expected_in_SimpleQueueReader: @local::events_to_generate
+  max_fragment_size_bytes: 0xb00000
+  buffer_count: 40
 }
 
 metrics: {
@@ -65,11 +67,11 @@ physics: {
 
 outputs: {
   binout: {
-    #module_type: BinaryFileOutput
-    module_type: RootOutput
-    #fileName: "/dev/null"
+    module_type: BinaryFileOutput
+    #module_type: RootOutput
+    fileName: "/dev/null"
     #fileName: "t.dat"
-    fileName: "t.root"
+    #fileName: "t.root"
     #directIO: false
   }
 }
