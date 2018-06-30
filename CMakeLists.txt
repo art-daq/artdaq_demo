@@ -34,10 +34,21 @@ cet_set_compiler_flags(DIAGS VIGILANT
  EXTRA_FLAGS -pedantic
  )
 
-#string(TOUPPER ${CMAKE_BUILD_TYPE} BTYPE_UC )
-#if( ${BTYPE_UC} MATCHES "DEBUG" )
-#  cet_add_compiler_flags(-fsanitize=address)
-#endif()
+string(TOUPPER ${CMAKE_BUILD_TYPE} BTYPE_UC )
+if( ${BTYPE_UC} MATCHES "DEBUG" )
+	if(DEFINED ENV{USE_ASAN})
+		if($ENV{USE_ASAN} GREATER 0)
+			message("!!! Address Sanitizer Activated!!!")
+			cet_add_compiler_flags(-fsanitize=address -lasan -Wno-unused-command-line-argument)
+		endif()
+	endif()
+	if(DEFINED ENV{USE_TSAN})
+		if($ENV{USE_TSAN} GREATER 0)
+			message("!!! Thread Sanitizer Activated!!!")
+			cet_add_compiler_flags(-fsanitize=thread -ltsan -Wno-unused-command-line-argument)
+		endif()
+	endif()
+endif()
 
 cet_report_compiler_flags()
 
