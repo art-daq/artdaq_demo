@@ -36,7 +36,7 @@ event_builder: {
   verbose: false
   events_expected_in_SimpleQueueReader: @local::events_to_generate
   max_fragment_size_bytes: 0xb00000
-  buffer_count: 20
+  buffer_count: 30
 }
 
 metrics: {
