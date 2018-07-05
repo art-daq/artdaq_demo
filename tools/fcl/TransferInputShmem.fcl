@@ -111,10 +111,24 @@ source:
   dispatcher_config: {
 	unique_label: "shmem1"
 	path: [ out ]
-	physics: {}
+	filter_paths: [ {name: pmod path: [ prescale ]}  ]
+	physics: {
+	filters: {
+
+   prescale: {
+
+   module_type: Prescaler
+
+   prescaleFactor: 1
+   prescaleOffset: 0
+   }
+   }
+ }
 	outputs: {
 	  out: {
 	    module_type: TransferOutput
+		
+           SelectEvents: [ pmod ] 
 		
   transfer_plugin: {
 
