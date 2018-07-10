@@ -66,6 +66,8 @@ simple_plugin(WFViewer "module"
   ${CETLIB_EXCEPT})
 
 simple_plugin(CheckIntegrity "module"
+              artdaq-core_Data
+			  artdaq-core-demo_Overlays
   ${MESSAGEFACILITY_LIBS}
   ${CETLIB_EXCEPT}
 )
