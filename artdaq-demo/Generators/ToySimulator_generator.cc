@@ -38,7 +38,7 @@ demo::ToySimulator::ToySimulator(fhicl::ParameterSet const& ps)
 {
 	hardware_interface_->AllocateReadoutBuffer(&readout_buffer_);
 
-	metadata_.board_serial_number = hardware_interface_->SerialNumber();
+	metadata_.board_serial_number = hardware_interface_->SerialNumber() & 0xFFFF;
 	metadata_.num_adc_bits = hardware_interface_->NumADCBits();
 	TLOG(TLVL_INFO) << "Constructor: metadata_.unused = 0x" << std::hex << metadata_.unused << " sizeof(metadata_) = " << std::dec << sizeof(metadata_);
 
@@ -110,6 +110,11 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 
 	if (distribution_type_ != ToyHardwareInterface::DistributionType::uninitialized)
 		memcpy(frags.back()->dataBeginBytes(), readout_buffer_, bytes_read);
+	else
+	{
+		// Must preserve the Header!
+		memcpy(frags.back()->dataBeginBytes(), readout_buffer_, sizeof(ToyFragment::Header));
+	}
 
 	TLOG(50) << "getNext_ after memcpy " << bytes_read
 		<< " bytes and std::move dataSizeBytes()=" << frags.back()->sizeBytes() << " metabytes=" << sizeof(metadata_);
