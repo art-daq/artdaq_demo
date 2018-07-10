@@ -146,6 +146,7 @@ void ToyHardwareInterface::FillBuffer(char* buffer, size_t* bytes_read)
 
 		header->event_size = *bytes_read / sizeof(demo::ToyFragment::Header::data_t);
 		header->trigger_number = 99;
+		header->distribution_type = static_cast<uint8_t>(distribution_type_);
 
 		// Generate nADCcounts ADC values ranging from 0 to max based on
 		// the desired distribution
