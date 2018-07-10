@@ -258,6 +258,11 @@ void demo::WFViewer::analyze(art::Event const& e)
 		}
 
 		artdaq::Fragment::fragment_id_t fragment_id = frag.fragmentID();
+		if (!id_to_index_.count(fragment_id))
+		{
+			cerr << "Warning in WFViewer: unexpected Fragment with fragment_id " << std::to_string(fragment_id) << " encountered!";
+			continue;
+		}
 		std::size_t ind = id_to_index_[fragment_id];
 
 
