@@ -75,6 +75,7 @@ simple_plugin(CheckIntegrity "module"
 simple_plugin(DemoInput "source"
  artdaq-core-demo_Overlays
   artdaq-core_Core
+  artdaq-core_Utilities
   artdaq_DAQdata
   artdaq-utilities_Plugins
   artdaq_ArtModules
