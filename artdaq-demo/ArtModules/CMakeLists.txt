@@ -88,6 +88,16 @@ simple_plugin(DemoInput "source"
   ${CETLIB_EXCEPT}
 )
 
+simple_plugin(EventReporterOutput "module"
+  artdaq_ArtModules
+  art_Framework_Services_Registry
+  art_Utilities
+  MF_MessageLogger
+  fhiclcpp
+  cetlib
+  ${CETLIB_EXCEPT}
+  ${ROOT_RIO}
+)
 install_headers(SUBDIRS detail)
 install_source(SUBDIRS detail)
 install_fhicl(SUBDIRS fcl)
