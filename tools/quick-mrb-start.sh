@@ -326,7 +326,13 @@ fi
 
 source $Base/products/setup
 
-export PRODUCTS=$PRODUCTS_SET
+PRODUCTS=`dropit -D -p"\$PRODUCTS"`
+if echo "\$PRODUCTS" | grep "$PRODUCTS_SET" >/dev/null; then
+    : OK
+else
+    echo WARNING: PRODUCTS environment has changed from initial installation.
+    echo "Product list $PRODUCTS_SET not found."
+fi
 
 setup mrb
 source $Base/localProducts_artdaq_demo_${demo_version}_${equalifier}_${squalifier}_${build_type}/setup
