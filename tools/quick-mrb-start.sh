@@ -326,7 +326,7 @@ fi
 
 source $Base/products/setup
 
-PRODUCTS=`dropit -D -p"\$PRODUCTS"`
+PRODUCTS=\`dropit -D -p"\$PRODUCTS"\`
 if echo "\$PRODUCTS" | grep "$PRODUCTS_SET" >/dev/null; then
     : OK
 else
