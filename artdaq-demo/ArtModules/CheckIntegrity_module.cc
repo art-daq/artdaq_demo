@@ -15,7 +15,8 @@
 #include "artdaq-core/Data/ContainerFragment.hh"
 #include "artdaq-core/Data/Fragment.hh"
 
-#include "messagefacility/MessageLogger/MessageLogger.h"
+#include "tracemf.h"			// TLOG
+#define TRACE_NAME "CheckIntegrity"
 
 #include <algorithm>
 #include <cassert>
@@ -114,7 +115,7 @@ void demo::CheckIntegrity::analyze(art::Event const& evt)
 
 		if (bb.hdr_event_size() * sizeof(ToyFragment::Header::data_t) != frag.dataSize() * sizeof(artdaq::RawDataType))
 		{
-			mf::LogError("CheckIntegrity") << "Error: in run " << evt.run() << ", subrun " << evt.subRun() <<
+			TLOG(TLVL_ERROR) << "Error: in run " << evt.run() << ", subrun " << evt.subRun() <<
 				", event " << evt.event() << ", seqID " << frag.sequenceID() <<
 				", fragID " << frag.fragmentID() << ": Size mismatch!" <<
 				" ToyFragment Header reports size of " << bb.hdr_event_size() * sizeof(ToyFragment::Header::data_t) << " bytes, Fragment report size of " << frag.dataSize() * sizeof(artdaq::RawDataType) << " bytes.";
@@ -133,7 +134,7 @@ void demo::CheckIntegrity::analyze(art::Event const& evt)
 				// ELF 7/10/18: Distribution type 2 is the monotonically-increasing one
 				if (bb.hdr_distribution_type() == 2 && *adc_iter != expected_adc)
 				{
-					mf::LogError("CheckIntegrity") << "Error: in run " << evt.run() << ", subrun " << evt.subRun() <<
+					TLOG(TLVL_ERROR) << "Error: in run " << evt.run() << ", subrun " << evt.subRun() <<
 						", event " << evt.event() << ", seqID " << frag.sequenceID() <<
 						", fragID " << frag.fragmentID() << ": expected an ADC value of " << expected_adc <<
 						", got " << *adc_iter;
@@ -144,7 +145,7 @@ void demo::CheckIntegrity::analyze(art::Event const& evt)
 				// ELF 7/10/18: As of now, distribution types 3 and 4 are uninitialized, and can therefore produce out-of-range counts.
 				if (bb.hdr_distribution_type() < 3 && *adc_iter > bb.adc_range(frag.metadata<ToyFragment::Metadata>()->num_adc_bits))
 				{
-					mf::LogError("CheckIntegrity") << "Error: in run " << evt.run() << ", subrun " << evt.subRun() <<
+					TLOG(TLVL_ERROR) << "Error: in run " << evt.run() << ", subrun " << evt.subRun() <<
 						", event " << evt.event() << ", seqID " << frag.sequenceID() <<
 						", fragID " << frag.fragmentID() << ": " << *adc_iter << " is out-of-range for this Fragment type";
 					err = true;
@@ -155,7 +156,7 @@ void demo::CheckIntegrity::analyze(art::Event const& evt)
 		}
 	}
 	if (!err) {
-		mf::LogDebug("CheckIntegrity") << "In run " << evt.run() << ", subrun " << evt.subRun() <<
+		TLOG(TLVL_DEBUG) << "In run " << evt.run() << ", subrun " << evt.subRun() <<
 			", event " << evt.event() << ", everything is fine";
 	}
 }
