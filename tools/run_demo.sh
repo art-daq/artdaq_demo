@@ -84,7 +84,7 @@ while [ -n "${1-}" ];do
             -toolsdir)  eval $reqarg; toolsdir=$1; shift;;
 	    -no_om)        do_om=0;;
 	    -om_fhicl)  eval $reqarg; om_fhicl=$1; shift;;
-            -partition) eval $reqarg; export ARTDAQ_PARTITION_NUMBER=$1; shift;;
+            -partition) eval $reqarg; export ARTDAQ_PARTITION_NUMBER=$1; export DAQINTERFACE_PARTITION_NUMBER=$1; shift;;
             *)          aa=`echo "-$op" | sed -e"s/'/'\"'\"'/g"` args="$args '$aa'";
         esac
     else
@@ -199,6 +199,7 @@ function get_dispatcher_port() {
     cd ${daqintdir}
     source ./mock_ups_setup.sh
     export DAQINTERFACE_USER_SOURCEFILE=$PWD/user_sourcefile_example
+    export DAQINTERFACE_PARTITION_NUMBER=$ARTDAQ_PARTITION_NUMBER
     source $ARTDAQ_DAQINTERFACE_DIR/source_me > /dev/null
 
     source $ARTDAQ_DAQINTERFACE_DIR/bin/diagnostic_tools.sh
@@ -218,6 +219,7 @@ function get_dispatcher_port() {
     $toolsdir/xt_cmd.sh $daqintdir --geom '132x33 -sl 2500' \
         -c 'source mock_ups_setup.sh' \
 	-c 'export DAQINTERFACE_USER_SOURCEFILE=$PWD/user_sourcefile_example' \
+	-c 'export DAQINTERFACE_PARTITION_NUMBER=$ARTDAQ_PARTITION_NUMBER' \
 	-c 'source $ARTDAQ_DAQINTERFACE_DIR/source_me' \
 	-c 'DAQInterface'
 
@@ -230,6 +232,7 @@ function get_dispatcher_port() {
     $toolsdir/xt_cmd.sh $daqintdir --geom 132 \
         -c 'source mock_ups_setup.sh' \
 	-c 'export DAQINTERFACE_USER_SOURCEFILE=$PWD/user_sourcefile_example' \
+	-c 'export DAQINTERFACE_PARTITION_NUMBER=$ARTDAQ_PARTITION_NUMBER' \
 	-c 'source $ARTDAQ_DAQINTERFACE_DIR/source_me' \
 	-c 'if [[ -n $DAQINTERFACE_MESSAGEFACILITY_FHICL ]]; then msgfacfile=$DAQINTERFACE_MESSAGEFACILITY_FHICL ; else msgfacfile=MessageFacility.fcl ; fi' \
 	-c 'if [[ -e $msgfacfile ]]; then sed -r -i  "s/(host\s*:\s*)\"\S+\"/\1\""$HOSTNAME"\"/g" $msgfacfile ; fi' \
