@@ -44,7 +44,7 @@ namespace artdaq
 		 * \return CopyStatus (either kSuccess, kTimeout, kErrorNotRequiringException or an exception)
 		 */
 		TransferInterface::CopyStatus
-			copyFragment(artdaq::Fragment& fragment, size_t send_timeout_usec) override;
+			copyFragment(artdaq::Fragment const& fragment, size_t send_timeout_usec) override;
 
 		/**
 		 * \brief Copy a fragment, using the reliable channel. moveFragment assumes ownership of the fragment
@@ -143,7 +143,7 @@ namespace artdaq
 
 
 	TransferInterface::CopyStatus
-		NthEventTransfer::copyFragment(artdaq::Fragment& fragment,
+		NthEventTransfer::copyFragment(artdaq::Fragment const& fragment,
 			size_t send_timeout_usec)
 	{
 
