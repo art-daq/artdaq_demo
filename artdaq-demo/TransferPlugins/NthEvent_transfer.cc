@@ -38,13 +38,13 @@ namespace artdaq
 		NthEventTransfer(fhicl::ParameterSet const& ps, artdaq::TransferInterface::Role role);
 
 		/**
-		 * \brief Copy a fragment, using the non-reliable channel
-		 * \param fragment Fragment to copy
-		 * \param send_timeout_usec Timeout before aborting
-		 * \return CopyStatus (either kSuccess, kTimeout, kErrorNotRequiringException or an exception)
-		 */
+		* \brief Transfer a Fragment to the destination. May not necessarily be reliable, but will not block longer than send_timeout_usec.
+		* \param fragment Fragment to transfer
+		* \param send_timeout_usec Timeout for send, in microseconds
+		* \return CopyStatus detailing result of transfer
+		*/
 		TransferInterface::CopyStatus
-			copyFragment(artdaq::Fragment const& fragment, size_t send_timeout_usec) override;
+			transfer_fragment_min_blocking_mode(artdaq::Fragment const& fragment, size_t send_timeout_usec) override;
 
 		/**
 		 * \brief Copy a fragment, using the reliable channel. moveFragment assumes ownership of the fragment
@@ -52,7 +52,7 @@ namespace artdaq
 		 * \return CopyStatus (either kSuccess, kTimeout, kErrorNotRequiringException or an exception)
 		 */
 		TransferInterface::CopyStatus
-			moveFragment(artdaq::Fragment&& fragment) override;
+			transfer_fragment_reliable_mode(artdaq::Fragment&& fragment) override;
 
 		/**
 		 * \brief Receive a fragment from the transfer plugin
@@ -143,7 +143,7 @@ namespace artdaq
 
 
 	TransferInterface::CopyStatus
-		NthEventTransfer::copyFragment(artdaq::Fragment const& fragment,
+		NthEventTransfer::transfer_fragment_min_blocking_mode(artdaq::Fragment const& fragment,
 			size_t send_timeout_usec)
 	{
 
@@ -154,11 +154,11 @@ namespace artdaq
 		}
 
 		// This is the nth Fragment, transfer
-		return physical_transfer_->copyFragment(fragment, send_timeout_usec);
+		return physical_transfer_->transfer_fragment_min_blocking_mode(fragment, send_timeout_usec);
 	}
 
 	TransferInterface::CopyStatus
-		NthEventTransfer::moveFragment(artdaq::Fragment&& fragment)
+		NthEventTransfer::transfer_fragment_reliable_mode(artdaq::Fragment&& fragment)
 	{
 		if (!pass(fragment))
 		{
@@ -167,7 +167,7 @@ namespace artdaq
 		}
 
 		// This is the nth Fragment, transfer
-		return physical_transfer_->moveFragment(std::move(fragment));
+		return physical_transfer_->transfer_fragment_reliable_mode(std::move(fragment));
 	}
 
 	bool
