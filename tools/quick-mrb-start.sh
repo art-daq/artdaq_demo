@@ -434,6 +434,8 @@ cp ../artdaq-utilities-daqinterface/docs/boot.txt .
 
 sed -i -r 's!^\s*export ARTDAQ_DAQINTERFACE_DIR.*!export ARTDAQ_DAQINTERFACE_DIR='$Base/artdaq-utilities-daqinterface'!' mock_ups_setup.sh
 sed -i -r 's!^\s*export DAQINTERFACE_SETTINGS.*!export DAQINTERFACE_SETTINGS='$PWD/settings_example'!' user_sourcefile_example
+sed -i -r '/export DAQINTERFACE_USER_SOURCEFILE_ERRNO=0/i \
+export yourArtdaqInstallationDir='$Base'  ' user_sourcefile_example
 
 
 # Figure out which products directory contains the xmlrpc package (for
