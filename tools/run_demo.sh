@@ -150,7 +150,7 @@ cd $basedir
 export DAQINTERFACE_USER_SOURCEFILE=$daqintdir/user_sourcefile_example
 if [[ "x$brlist" != "x" ]]; then
     brlist=`readlink -m $brlist`
-    cp $DAQINTERFACE_USER_SOURCEFILE user_sourcefile_mod_brlist
+    cp $DAQINTERFACE_USER_SOURCEFILE $daqintdir/user_sourcefile_mod_brlist
     export DAQINTERFACE_USER_SOURCEFILE=$daqintdir/user_sourcefile_mod_brlist
     sed -i "s|DAQINTERFACE_KNOWN_BOARDREADERS_LIST=.*|DAQINTERFACE_KNOWN_BOARDREADERS_LIST=$brlist|g" $DAQINTERFACE_USER_SOURCEFILE
 fi
