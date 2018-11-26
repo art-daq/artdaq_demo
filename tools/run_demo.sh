@@ -45,6 +45,7 @@ validate_toolsdir
 fhicldir="$toolsdir/fcl"
 validate_fhicldir
 
+brlist=""
 
 om_fhicl=TransferInputShmem
 
@@ -59,6 +60,7 @@ examples: `basename $0`
 --basedir	  Base directory ($basedir, valid=$valid_basedir)
 --toolsdir	  artdaq_demo/tools directory ($toolsdir, valid=$valid_toolsdir)
 --fhicldir    Directory where Online Monitor FHiCL files reside (TransferInputShmem.fcl, etc) ($fhicldir, valid=$valid_fhicldir)
+--brlist      File that describes known boardreaders (ex. known_boardreaders_list_example)
 --no_om       Do *NOT* run Online Monitoring
 --om_fhicl    Name of Fhicl file to use for online monitoring ($om_fhicl)
 --partition=<N> set a partition number -- to allow multiple demos
@@ -82,6 +84,7 @@ while [ -n "${1-}" ];do
 	    -just_do_it_help) eval $op1arg; do_jdi_help=1;;
             -basedir)   eval $reqarg; basedir=$1; shift;;
             -toolsdir)  eval $reqarg; toolsdir=$1; shift;;
+        -brlist)    eval $reqarg; brlist=$1; shift;;
 	    -no_om)        do_om=0;;
 	    -om_fhicl)  eval $reqarg; om_fhicl=$1; shift;;
             -partition) eval $reqarg; export ARTDAQ_PARTITION_NUMBER=$1; shift;;
@@ -144,11 +147,17 @@ jdibootfile=$daqintdir/boot.txt
 jdiduration=200
 cd $basedir
 
+export DAQINTERFACE_USER_SOURCEFILE=$daqintdir/user_sourcefile_example
+if [[ "x$brlist" != "x" ]]; then
+    brlist=`readlink -m $brlist`
+    cp $DAQINTERFACE_USER_SOURCEFILE user_sourcefile_mod_brlist
+    export DAQINTERFACE_USER_SOURCEFILE=$daqintdir/user_sourcefile_mod_brlist
+    sed -i "s|DAQINTERFACE_KNOWN_BOARDREADERS_LIST=.*|DAQINTERFACE_KNOWN_BOARDREADERS_LIST=$brlist|g" $DAQINTERFACE_USER_SOURCEFILE
+fi
 
 if [ -n "${do_jdi_help-}" ]; then
     cd ${daqintdir}
     source ./mock_ups_setup.sh	
-	export DAQINTERFACE_USER_SOURCEFILE=$PWD/user_sourcefile_example
 	source $ARTDAQ_DAQINTERFACE_DIR/source_me
 	just_do_it.sh --help
 	exit
@@ -170,7 +179,6 @@ function wait_for_state() {
 
     cd ${daqintdir}
     source ./mock_ups_setup.sh
-    export DAQINTERFACE_USER_SOURCEFILE=$PWD/user_sourcefile_example
     source $ARTDAQ_DAQINTERFACE_DIR/source_me > /dev/null
 
     while [[ "1" ]]; do
@@ -198,7 +206,6 @@ function get_dispatcher_port() {
     
     cd ${daqintdir}
     source ./mock_ups_setup.sh
-    export DAQINTERFACE_USER_SOURCEFILE=$PWD/user_sourcefile_example
     source $ARTDAQ_DAQINTERFACE_DIR/source_me > /dev/null
 
     source $ARTDAQ_DAQINTERFACE_DIR/bin/diagnostic_tools.sh
@@ -217,7 +224,7 @@ function get_dispatcher_port() {
 
     $toolsdir/xt_cmd.sh $daqintdir --geom '132x33 -sl 2500' \
         -c 'source mock_ups_setup.sh' \
-	-c 'export DAQINTERFACE_USER_SOURCEFILE=$PWD/user_sourcefile_example' \
+	-c 'export DAQINTERFACE_USER_SOURCEFILE='"$DAQINTERFACE_USER_SOURCEFILE" \
 	-c 'source $ARTDAQ_DAQINTERFACE_DIR/source_me' \
 	-c 'DAQInterface'
 
@@ -229,7 +236,7 @@ function get_dispatcher_port() {
 
     $toolsdir/xt_cmd.sh $daqintdir --geom 132 \
         -c 'source mock_ups_setup.sh' \
-	-c 'export DAQINTERFACE_USER_SOURCEFILE=$PWD/user_sourcefile_example' \
+	-c 'export DAQINTERFACE_USER_SOURCEFILE='"$DAQINTERFACE_USER_SOURCEFILE" \
 	-c 'source $ARTDAQ_DAQINTERFACE_DIR/source_me' \
 	-c 'if [[ -n $DAQINTERFACE_MESSAGEFACILITY_FHICL ]]; then msgfacfile=$DAQINTERFACE_MESSAGEFACILITY_FHICL ; else msgfacfile=MessageFacility.fcl ; fi' \
 	-c 'if [[ -e $msgfacfile ]]; then sed -r -i  "s/(host\s*:\s*)\"\S+\"/\1\""$HOSTNAME"\"/g" $msgfacfile ; fi' \
