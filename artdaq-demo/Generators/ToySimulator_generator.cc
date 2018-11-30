@@ -35,7 +35,6 @@ demo::ToySimulator::ToySimulator(fhicl::ParameterSet const& ps)
 	, readout_buffer_(nullptr)
 	, fragment_type_(static_cast<decltype(fragment_type_)>(artdaq::Fragment::InvalidFragmentType))
 	, distribution_type_(static_cast<ToyHardwareInterface::DistributionType>(ps.get<int>("distribution_type")))
-        , generated_fragments_per_event_(ps.get<int>("generated_fragments_per_event", 1))  
 {
 	hardware_interface_->AllocateReadoutBuffer(&readout_buffer_);
 
@@ -91,18 +90,17 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 	// object. 
 
 #if 1
-	for (auto i_f = 0; i_f < generated_fragments_per_event_; ++i_f) {
+	for (auto& id : fragmentIDs()) {
 
 	  // The offset logic below is designed to both ensure
 	  // backwards compatibility and to (help) avoid collisions
 	  // with fragment_ids from other boardreaders if more than
 	  // one fragment is generated per event
 
-	  auto offset = i_f == 0 ? 0 : i_f + 10000;
 	  std::unique_ptr<artdaq::Fragment> fragptr(
 						    artdaq::Fragment::FragmentBytes(bytes_read,
 										    ev_counter(), 
-										    fragment_id() + offset,
+										    id,
 										    fragment_type_,
 										    metadata_, timestamp_));
 	  frags.emplace_back(std::move(fragptr));
@@ -138,13 +136,17 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 	ev_counter_inc();
 	timestamp_ += timestampScale_;
 
-	if (rollover_subrun_interval_ > 0 && ev_counter() % rollover_subrun_interval_ == 0 && fragment_id() == 0)
+	if (rollover_subrun_interval_ > 0 && ev_counter() % rollover_subrun_interval_ == 0)
 	{
-		artdaq::FragmentPtr endOfSubrunFrag(new artdaq::Fragment(static_cast<size_t>(ceil(sizeof(my_rank) / static_cast<double>(sizeof(artdaq::Fragment::value_type))))));
-		endOfSubrunFrag->setSystemType(artdaq::Fragment::EndOfSubrunFragmentType);
-		endOfSubrunFrag->setSequenceID(ev_counter());
-		*endOfSubrunFrag->dataBegin() = my_rank;
-		frags.emplace_back(std::move(endOfSubrunFrag));
+		bool fragmentIdZero = false;
+		for (auto& id : fragmentIDs()) { if (id == 0) fragmentIdZero = true; }
+		if (fragmentIdZero) {
+			artdaq::FragmentPtr endOfSubrunFrag(new artdaq::Fragment(static_cast<size_t>(ceil(sizeof(my_rank) / static_cast<double>(sizeof(artdaq::Fragment::value_type))))));
+			endOfSubrunFrag->setSystemType(artdaq::Fragment::EndOfSubrunFragmentType);
+			endOfSubrunFrag->setSequenceID(ev_counter());
+			*endOfSubrunFrag->dataBegin() = my_rank;
+			frags.emplace_back(std::move(endOfSubrunFrag));
+		}
 	}
 
 
