@@ -104,7 +104,7 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 										    metadata_, timestamp_));
 	  frags.emplace_back(std::move(fragptr));
 
-	  if (distribution_type_ != ToyHardwareInterface::DistributionType::uninitialized && distribution_type_ != ToyHardwareInterface::DistributionType::uninit2)
+	  if (distribution_type_ != ToyHardwareInterface::DistributionType::uninitialized)
 		  memcpy(frags.back()->dataBeginBytes(), readout_buffer_, bytes_read);
 	  else
 	  {
