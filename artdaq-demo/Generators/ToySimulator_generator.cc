@@ -89,7 +89,6 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 	// which will then return a unique_ptr to an artdaq::Fragment
 	// object. 
 
-#if 1
 	for (auto& id : fragmentIDs()) {
 
 	  // The offset logic below is designed to both ensure
@@ -104,29 +103,18 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 										    fragment_type_,
 										    metadata_, timestamp_));
 	  frags.emplace_back(std::move(fragptr));
-	}
-#else
-	std::unique_ptr<artdaq::Fragment> fragptr(
-		artdaq::Fragment::FragmentBytes(/*bytes_read*/ 1024 - 40,
-										ev_counter(), fragment_id(),
-										fragment_type_,
-										metadata_, timestamp_));
-	frags.emplace_back(std::move(fragptr));
-	artdaq::detail::RawFragmentHeader *hdr = (artdaq::detail::RawFragmentHeader*)(frags.back()->headerBeginBytes());
-	// Need a way to fake frag->sizeBytes() (which calls frag->size() which calls fragmentHeader()->word_count
-	hdr->word_count = ceil((bytes_read + 32) / static_cast<double>(sizeof(artdaq::RawDataType)));
-#endif
 
-	if (distribution_type_ != ToyHardwareInterface::DistributionType::uninitialized)
-		memcpy(frags.back()->dataBeginBytes(), readout_buffer_, bytes_read);
-	else
-	{
-		// Must preserve the Header!
-		memcpy(frags.back()->dataBeginBytes(), readout_buffer_, sizeof(ToyFragment::Header));
-	}
+	  if (distribution_type_ != ToyHardwareInterface::DistributionType::uninitialized && distribution_type_ != ToyHardwareInterface::DistributionType::uninit2)
+		  memcpy(frags.back()->dataBeginBytes(), readout_buffer_, bytes_read);
+	  else
+	  {
+		  // Must preserve the Header!
+		  memcpy(frags.back()->dataBeginBytes(), readout_buffer_, sizeof(ToyFragment::Header));
+	  }
 
-	TLOG(50) << "getNext_ after memcpy " << bytes_read
-		<< " bytes and std::move dataSizeBytes()=" << frags.back()->sizeBytes() << " metabytes=" << sizeof(metadata_);
+	  TLOG(50) << "getNext_ after memcpy " << bytes_read
+		  << " bytes and std::move dataSizeBytes()=" << frags.back()->sizeBytes() << " metabytes=" << sizeof(metadata_);
+	}
 
 	if (metricMan != nullptr)
 	{
