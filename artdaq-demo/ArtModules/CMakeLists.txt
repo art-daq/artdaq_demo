@@ -76,6 +76,7 @@ simple_plugin(DemoInput "source"
  artdaq-core-demo_Overlays
   artdaq-core_Core
   artdaq-core_Utilities
+  rt
   artdaq_DAQdata
   artdaq-utilities_Plugins
   artdaq_ArtModules
