@@ -60,6 +60,7 @@ examples: `basename $0`
 --toolsdir	  artdaq_demo/tools directory ($toolsdir, valid=$valid_toolsdir)
 --fhicldir    Directory where Online Monitor FHiCL files reside (TransferInputShmem.fcl, etc) ($fhicldir, valid=$valid_fhicldir)
 --no_om       Do *NOT* run Online Monitoring
+--no_db       Do *NOT* use Online Database
 --om_fhicl    Name of Fhicl file to use for online monitoring ($om_fhicl)
 --partition=<N> set a partition number -- to allow multiple demos
 "
@@ -70,7 +71,8 @@ eval "set -- $env_opts \"\$@\""
 op1chr='rest=`expr "$op" : "[^-]\(.*\)"`   && set -- "-$rest" "$@"'
 op1arg='rest=`expr "$op" : "[^-]\(.*\)"`   && set --  "$rest" "$@"'
 reqarg="$op1arg;"'test -z "${1+1}" &&echo opt -$op requires arg. &&echo "$USAGE" &&exit'
-args= do_help= do_jdi_help= do_om=1;
+args= do_help= do_jdi_help= do_om=1 do_db=1;
+
 while [ -n "${1-}" ];do
     if expr "x${1-}" : 'x-' >/dev/null;then
         op=`expr "x$1" : 'x-\(.*\)'`; shift   # done with $1
@@ -83,6 +85,7 @@ while [ -n "${1-}" ];do
             -basedir)   eval $reqarg; basedir=$1; shift;;
             -toolsdir)  eval $reqarg; toolsdir=$1; shift;;
 	    -no_om)        do_om=0;;
+	    -no_db)        do_db=0;;
 	    -om_fhicl)  eval $reqarg; om_fhicl=$1; shift;;
             -partition) eval $reqarg; export ARTDAQ_PARTITION_NUMBER=$1; shift;;
             *)          aa=`echo "-$op" | sed -e"s/'/'\"'\"'/g"` args="$args '$aa'";
@@ -211,6 +214,11 @@ function get_dispatcher_port() {
 
 	return $dispatcherPort
 }
+
+
+$(dirname $(readlink --canonicalize-existing $0))/configure_artdaq_database.sh \
+  --setup-script=$basedir/setupARTDAQDEMO $( [[ $do_db == 0 ]] && echo "--no-db" )
+
 
 # And now, actually run DAQInterface as described in
 # https://cdcvs.fnal.gov/redmine/projects/artdaq-utilities/wiki/Artdaq-daqinterface
