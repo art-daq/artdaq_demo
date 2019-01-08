@@ -391,7 +391,7 @@ function load_configs()
 
   local actual_config_count=$(conftool.py getListOfAvailableRunConfigurations |wc -l)
 
-  if [[ $actual_config_count !=  $expected_config_count ]]; then 
+  if [[ $actual_config_count !=  $expected_config_count ]]; then
     ret_msg+="Error: Not all configurations were imported into artdaq_database; expected,actual=$expected_config_count,$actual_config_count . "
     echo "Error: Not all configurations were imported into artdaq_database; expected,actual=$expected_config_count,$actual_config_count."
     ((error_count+=1))
@@ -434,12 +434,9 @@ function stop_daqinterface_if_running(){
 
     #"current_state:call_transition_funct:new_state:transition_timeout"
     declare -a daqifc_fsm_map=(
-    "running:call_stop:ready,stopped:$def_transition_timeout_seconds"
-    "ready:call_terminate:terminated:$def_transition_timeout_seconds"
-    "stopped:call_terminate:terminated:$def_transition_timeout_seconds"
-    "booted:call_terminate:terminated:$def_transition_timeout_seconds"
-    "configured:call_terminate:terminated:$def_transition_timeout_seconds"
-    "configuring:call_terminate:terminated:$def_transition_timeout_seconds")
+    "running:call_stop:ready:$def_transition_timeout_seconds"
+    "ready:call_terminate:stopped$def_transition_timeout_seconds"
+    "booted:call_terminate:stopped$def_transition_timeout_seconds")
 
     function setup() {
       local this_ups=$(which ups 2>/dev/null)
@@ -547,7 +544,7 @@ function stop_daqinterface_if_running(){
       local expected_state=$(echo $daqifc_transition | cut -d ":" -f 3)
       local transition_timeout_seconds=$(echo $daqifc_transition | cut -d ":" -f 4)
 
-echo   eval "$transition_function $expected_state $transition_timeout_seconds"
+#echo   eval "$transition_function $expected_state $transition_timeout_seconds"
       eval "$transition_function $expected_state $transition_timeout_seconds"
       if [[ $? != 0 ]] || [[ "$expected_state" == "terminateed" ]]; then
         should_continue="FALSE"
@@ -638,7 +635,7 @@ if [[ $arg_load_configs == 0 ]]; then
 else
    delete_database
    if [[ $? != 0 ]];then
-      #[[ $arg_verbose == 1 ]] && 
+      #[[ $arg_verbose == 1 ]] &&
       echo $ret_msg
    else
     load_configs
@@ -655,4 +652,4 @@ else
    fi
 fi
 
-[[ "$0" != "$BASH_SOURCE" ]] && return 0 ||exit 0 
+[[ "$0" != "$BASH_SOURCE" ]] && return 0 ||exit 0
