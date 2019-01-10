@@ -36,6 +36,7 @@ simple_plugin(ArtdaqDemoBuildInfo "module"
   artdaq-core_BuildInfo
   artdaq-demo_BuildInfo
   artdaq-core-demo_BuildInfo
+  art_Persistency_Provenance
   ${MF_MESSAGELOGGER}
   ${FHICLCPP}
   ${CETLIB}
@@ -43,22 +44,29 @@ simple_plugin(ArtdaqDemoBuildInfo "module"
 )
 
 simple_plugin(NthEvent "module"
-  ${CETLIB_EXCEPT})
+	${CETLIB_EXCEPT}
+)
+
 simple_plugin(ToyDump "module"
-              artdaq-core_Data
-			  artdaq-core-demo_Overlays
-  ${CETLIB_EXCEPT})
+	artdaq-core_Data
+	artdaq-core-demo_Overlays
+	art_Persistency_Provenance
+	${CETLIB_EXCEPT}
+)
+
 simple_plugin(ASCIIDump "module"
-              artdaq-core_Data
+			  artdaq-core_Data
 			  artdaq-core-demo_Overlays
+  art_Persistency_Provenance
   ${CETLIB_EXCEPT})
 
 simple_plugin(RootApplication "module"
   ${CETLIB_EXCEPT})
 simple_plugin(WFViewer "module"
-              artdaq-core_Data
+			  artdaq-core_Data
 			  artdaq-core-demo_Overlays
 			  MF_MessageLogger
+  art_Persistency_Provenance
 			  ${ROOT_GPAD}
 			  ${ROOT_HIST}
 			  ${ROOT_GUI}
@@ -66,8 +74,9 @@ simple_plugin(WFViewer "module"
   ${CETLIB_EXCEPT})
 
 simple_plugin(CheckIntegrity "module"
-              artdaq-core_Data
+			  artdaq-core_Data
 			  artdaq-core-demo_Overlays
+			art_Persistency_Provenance
   ${MESSAGEFACILITY_LIBS}
   ${CETLIB_EXCEPT}
 )
