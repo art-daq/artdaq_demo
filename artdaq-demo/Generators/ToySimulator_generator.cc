@@ -6,7 +6,7 @@
 
 #include "canvas/Utilities/Exception.h"
 
-#include "artdaq/Application/GeneratorMacros.hh"
+#include "artdaq/Generators/GeneratorMacros.hh"
 #include "artdaq-core/Utilities/SimpleLookupPolicy.hh"
 
 #include "artdaq-core-demo/Overlays/ToyFragment.hh"
