@@ -119,16 +119,19 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 	hdr->word_count = ceil((bytes_read + 32) / static_cast<double>(sizeof(artdaq::RawDataType)));
 #endif
 
-	if (distribution_type_ != ToyHardwareInterface::DistributionType::uninitialized)
-		memcpy(frags.back()->dataBeginBytes(), readout_buffer_, bytes_read);
-	else
-	{
-		// Must preserve the Header!
-		memcpy(frags.back()->dataBeginBytes(), readout_buffer_, sizeof(ToyFragment::Header));
-	}
+	if ( !frags.empty() ) {
 
-	TLOG(50) << "getNext_ after memcpy " << bytes_read
-		<< " bytes and std::move dataSizeBytes()=" << frags.back()->sizeBytes() << " metabytes=" << sizeof(metadata_);
+	  if (distribution_type_ != ToyHardwareInterface::DistributionType::uninitialized)
+	    memcpy(frags.back()->dataBeginBytes(), readout_buffer_, bytes_read);
+	  else
+	    {
+	      // Must preserve the Header!
+	      memcpy(frags.back()->dataBeginBytes(), readout_buffer_, sizeof(ToyFragment::Header));
+	    }
+
+	  TLOG(50) << "getNext_ after memcpy " << bytes_read
+		   << " bytes and std::move dataSizeBytes()=" << frags.back()->sizeBytes() << " metabytes=" << sizeof(metadata_);
+	}
 
 	if (metricMan != nullptr)
 	{
