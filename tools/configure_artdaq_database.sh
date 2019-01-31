@@ -14,13 +14,13 @@
 
 
 #defines
-#def_extra_products=/cvmfs/fermilab.opensciencegrid.org/products/artdaq
-def_extra_products=/mnt/sde/products
+def_extra_products=/cvmfs/fermilab.opensciencegrid.org/products/artdaq
+#def_extra_products=/mnt/sde/products
 def_toolsdir_dir=/srcs/artdaq_demo/tools
 def_ignore_database="export DAQINTERFACE_FHICL_DIRECTORY=IGNORED"
 def_timestamp=$(date -d "today" +"%Y%m%d%H%M%S")
 def_usersourcefile=user_sourcefile_example
-def_transition_timeout_seconds=120
+def_transition_timeout_seconds=10
 
 #commnad line arguments parsing
 show_help(){
@@ -430,13 +430,14 @@ function stop_daqinterface_if_running(){
 
     glb_daqintdir=$this_daqintdir
 
-    cd $glb_daqintdir
 
     #"current_state:call_transition_funct:new_state:transition_timeout"
     declare -a daqifc_fsm_map=(
+    "booting:call_kill_daqinterface:terminated:$def_transition_timeout_seconds"
     "running:call_stop:ready:$def_transition_timeout_seconds"
-    "ready:call_terminate:stopped$def_transition_timeout_seconds"
-    "booted:call_terminate:stopped$def_transition_timeout_seconds")
+    "ready:call_terminate:stopped:$def_transition_timeout_seconds"
+    "booted:call_terminate:stopped:$def_transition_timeout_seconds"
+    "stopped:call_kill_daqinterface:terminated:$def_transition_timeout_seconds")
 
     function setup() {
       local this_ups=$(which ups 2>/dev/null)
@@ -500,6 +501,10 @@ function stop_daqinterface_if_running(){
       return 0
     }
 
+    cd $glb_daqintdir
+
+    source $this_basedir/$(basename $this_setup_script) > /dev/null
+    [[ ! -z $arg_extra_products ]] && export PRODUCTS="$PRODUCTS:$arg_extra_products"
     source $glb_daqintdir/mock_ups_setup.sh
     export DAQINTERFACE_USER_SOURCEFILE=$glb_daqintdir/$def_usersourcefile
     source $ARTDAQ_DAQINTERFACE_DIR/source_me > /dev/null
@@ -546,14 +551,20 @@ function stop_daqinterface_if_running(){
 
 #echo   eval "$transition_function $expected_state $transition_timeout_seconds"
       eval "$transition_function $expected_state $transition_timeout_seconds"
-      if [[ $? != 0 ]] || [[ "$expected_state" == "terminateed" ]]; then
+      if [[ $? != 0 ]] || [[ "$expected_state" == "terminated" ]]; then
         should_continue="FALSE"
         kill_daqinterface_on_partition.sh $DAQINTERFACE_PARTITION_NUMBER
-      fi
 
-     echo "Info: Stopped DAQInterface in partition $DAQINTERFACE_PARTITION_NUMBER."
-     return 0
-   done
+        sleep 1
+        if [[ $(listdaqinterfaces.sh 2>/dev/null  |grep "$USER in partition $DAQINTERFACE_PARTITION_NUMBER listening" |wc -l) == 0 ]]; then
+          echo "Info: Stopped DAQInterface in partition $DAQINTERFACE_PARTITION_NUMBER."
+        else
+          echo "Error: Failed to stop DAQInterface in partition $DAQINTERFACE_PARTITION_NUMBER."
+          return 3
+        fi
+      fi
+      return 0
+    done
 }
 
 function disable_database() 
@@ -617,7 +628,6 @@ if [[ $arg_load_configs == 0 ]]; then
    [[ $arg_verbose == 1 ]] &&  echo $ret_msg
    [[ "$0" != "$BASH_SOURCE" ]] && return 1 ||exit 1
   fi
-
   stop_daqinterface_if_running
   if [[ $arg_do_db == 1 ]]; then
     enable_database
