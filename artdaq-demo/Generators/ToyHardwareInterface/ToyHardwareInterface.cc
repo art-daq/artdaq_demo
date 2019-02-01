@@ -104,7 +104,7 @@ void ToyHardwareInterface::FillBuffer(char* buffer, size_t* bytes_read)
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wsign-compare"
-		if (elapsed_secs_since_datataking_start < change_after_N_seconds_)
+		if (elapsed_secs_since_datataking_start < change_after_N_seconds_ || send_calls_ == 0)
 		{
 #pragma GCC diagnostic pop
 
