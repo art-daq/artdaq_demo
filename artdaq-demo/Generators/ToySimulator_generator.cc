@@ -35,6 +35,7 @@ demo::ToySimulator::ToySimulator(fhicl::ParameterSet const& ps)
 	, readout_buffer_(nullptr)
 	, fragment_type_(static_cast<decltype(fragment_type_)>(artdaq::Fragment::InvalidFragmentType))
 	, distribution_type_(static_cast<ToyHardwareInterface::DistributionType>(ps.get<int>("distribution_type")))
+        , generated_fragments_per_event_(ps.get<int>("generated_fragments_per_event", 1))  
 {
 	hardware_interface_->AllocateReadoutBuffer(&readout_buffer_);
 
@@ -90,12 +91,22 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 	// object. 
 
 #if 1
-	std::unique_ptr<artdaq::Fragment> fragptr(
-		artdaq::Fragment::FragmentBytes(bytes_read,
-										ev_counter(), fragment_id(),
-										fragment_type_,
-										metadata_, timestamp_));
-	frags.emplace_back(std::move(fragptr));
+	for (auto i_f = 0; i_f < generated_fragments_per_event_; ++i_f) {
+
+	  // The offset logic below is designed to both ensure
+	  // backwards compatibility and to (help) avoid collisions
+	  // with fragment_ids from other boardreaders if more than
+	  // one fragment is generated per event
+
+	  auto offset = i_f == 0 ? 0 : i_f + 10000;
+	  std::unique_ptr<artdaq::Fragment> fragptr(
+						    artdaq::Fragment::FragmentBytes(bytes_read,
+										    ev_counter(), 
+										    fragment_id() + offset,
+										    fragment_type_,
+										    metadata_, timestamp_));
+	  frags.emplace_back(std::move(fragptr));
+	}
 #else
 	std::unique_ptr<artdaq::Fragment> fragptr(
 		artdaq::Fragment::FragmentBytes(/*bytes_read*/ 1024 - 40,
@@ -108,16 +119,19 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 	hdr->word_count = ceil((bytes_read + 32) / static_cast<double>(sizeof(artdaq::RawDataType)));
 #endif
 
-	if (distribution_type_ != ToyHardwareInterface::DistributionType::uninitialized)
-		memcpy(frags.back()->dataBeginBytes(), readout_buffer_, bytes_read);
-	else
-	{
-		// Must preserve the Header!
-		memcpy(frags.back()->dataBeginBytes(), readout_buffer_, sizeof(ToyFragment::Header));
-	}
+	if ( !frags.empty() ) {
 
-	TLOG(50) << "getNext_ after memcpy " << bytes_read
-		<< " bytes and std::move dataSizeBytes()=" << frags.back()->sizeBytes() << " metabytes=" << sizeof(metadata_);
+	  if (distribution_type_ != ToyHardwareInterface::DistributionType::uninitialized)
+	    memcpy(frags.back()->dataBeginBytes(), readout_buffer_, bytes_read);
+	  else
+	    {
+	      // Must preserve the Header!
+	      memcpy(frags.back()->dataBeginBytes(), readout_buffer_, sizeof(ToyFragment::Header));
+	    }
+
+	  TLOG(50) << "getNext_ after memcpy " << bytes_read
+		   << " bytes and std::move dataSizeBytes()=" << frags.back()->sizeBytes() << " metabytes=" << sizeof(metadata_);
+	}
 
 	if (metricMan != nullptr)
 	{

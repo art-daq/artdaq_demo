@@ -194,6 +194,24 @@ function wait_for_state() {
     done
 }
 
+function get_dispatcher_port() {
+    
+    cd ${daqintdir}
+    source ./mock_ups_setup.sh
+    export DAQINTERFACE_USER_SOURCEFILE=$PWD/user_sourcefile_example
+    source $ARTDAQ_DAQINTERFACE_DIR/source_me > /dev/null
+
+    source $ARTDAQ_DAQINTERFACE_DIR/bin/diagnostic_tools.sh
+
+    thisdir=`ls -t $recorddir|head -1`
+    #echo "Reading $recorddir/$thisdir/ranks.txt"
+	dispatcherPort=`grep -i dispatcher $recorddir/$thisdir/ranks.txt|head -1|awk '{print $2}'`
+
+	echo "Dispatcher found at port $dispatcherPort"
+
+	return $dispatcherPort
+}
+
 # And now, actually run DAQInterface as described in
 # https://cdcvs.fnal.gov/redmine/projects/artdaq-utilities/wiki/Artdaq-daqinterface
 
@@ -224,6 +242,11 @@ function wait_for_state() {
     wait_for_state "running"
     echo "Done waiting."
 
+    get_dispatcher_port
+
+	if [[ "x$dispatcherPort" != "x" ]]; then
+    sed -r -i "s/dispatcherPort:.*/dispatcherPort: ${dispatcherPort}/" ${fhicldir}/${om_fhicl}.fcl
+
     xrdbproc=$( which xrdb )
 
     xloc=
@@ -251,3 +274,4 @@ function wait_for_state() {
         -c 'art -c  /tmp/'$om_fhicl'2.fcl'
 
 	fi
+fi

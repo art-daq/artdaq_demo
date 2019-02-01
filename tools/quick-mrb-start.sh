@@ -417,8 +417,11 @@ cd artdaq-utilities-daqinterface
 if [[ $opt_develop -eq 1 ]]; then 
     git checkout develop
 else
-    echo "Checking out version `git tag --sort creatordate|tail -1` of artdaq_daqinterface"
-    git checkout `git tag --sort creatordate|tail -1` # Fetch latest tagged version
+    # JCF, Sep-25-2018: grep out the protodune DAQInterface series when searching for the newest DAQInterface version...
+
+    artdaq_daqinterface_version=$( git tag --sort creatordate | grep -v "v3_00_0[0-9].*" | tail -1 )
+    echo "Checking out version $artdaq_daqinterface_version of artdaq_daqinterface"
+    git checkout $artdaq_daqinterface_version # Fetch latest tagged version
 fi
 
 mkdir $daqintdir
@@ -431,6 +434,8 @@ cp ../artdaq-utilities-daqinterface/docs/boot.txt .
 
 sed -i -r 's!^\s*export ARTDAQ_DAQINTERFACE_DIR.*!export ARTDAQ_DAQINTERFACE_DIR='$Base/artdaq-utilities-daqinterface'!' mock_ups_setup.sh
 sed -i -r 's!^\s*export DAQINTERFACE_SETTINGS.*!export DAQINTERFACE_SETTINGS='$PWD/settings_example'!' user_sourcefile_example
+sed -i -r '/export DAQINTERFACE_USER_SOURCEFILE_ERRNO=0/i \
+export yourArtdaqInstallationDir='$Base'  ' user_sourcefile_example
 
 
 # Figure out which products directory contains the xmlrpc package (for

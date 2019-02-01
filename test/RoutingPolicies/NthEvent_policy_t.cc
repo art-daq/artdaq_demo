@@ -20,20 +20,17 @@ BOOST_AUTO_TEST_CASE(Simple)
 	// Extra token, and out of sequence
 	nth->Reset();
 	nth->AddReceiverToken(1, 1);
-	nth->AddReceiverToken(3, 1);
 	nth->AddReceiverToken(2, 1);
 	nth->AddReceiverToken(4, 1);
 	nth->AddReceiverToken(2, 1);
 	auto secondTable = nth->GetCurrentTable();
-	BOOST_REQUIRE_EQUAL(secondTable.size(), 4);
-	BOOST_REQUIRE_EQUAL(secondTable[0].destination_rank, 3);
-	BOOST_REQUIRE_EQUAL(secondTable[0].sequence_id, 0);
-	BOOST_REQUIRE_EQUAL(secondTable[1].destination_rank, 1);
-	BOOST_REQUIRE_EQUAL(secondTable[1].sequence_id, 1);
-	BOOST_REQUIRE_EQUAL(secondTable[2].destination_rank, 2);
-	BOOST_REQUIRE_EQUAL(secondTable[2].sequence_id, 2);
-	BOOST_REQUIRE_EQUAL(secondTable[3].destination_rank, 4);
-	BOOST_REQUIRE_EQUAL(secondTable[3].sequence_id, 3);
+	BOOST_REQUIRE_EQUAL(secondTable.size(), 3);
+	BOOST_REQUIRE_EQUAL(secondTable[0].destination_rank, 1);
+	BOOST_REQUIRE_EQUAL(secondTable[0].sequence_id, 1);
+	BOOST_REQUIRE_EQUAL(secondTable[1].destination_rank, 2);
+	BOOST_REQUIRE_EQUAL(secondTable[1].sequence_id, 2);
+	BOOST_REQUIRE_EQUAL(secondTable[2].destination_rank, 4);
+	BOOST_REQUIRE_EQUAL(secondTable[2].sequence_id, 3);
 
 	// Adding empty number of tokens
 	nth->AddReceiverToken(1, 0);
