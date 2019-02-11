@@ -463,7 +463,8 @@ sed -i -r 's!^\s*data_directory_override.*!data_directory_override: '$datadir'!'
 sed -i -r 's!^\s*DAQ setup script:.*!DAQ setup script: '$Base'/setupARTDAQDEMO!' boot.txt
 
 cd $Base
-wget https://cdcvs.fnal.gov/redmine/projects/artdaq-demo/repository/revisions/develop/raw/tools/run_demo.sh
+cp $MRB_SOURCE/artdaq_demo/tools/run_demo.sh .
+chmod +x run_demo.sh
 
 if [ "x${opt_run_demo-}" != "x" ]; then
 	echo doing the demo
