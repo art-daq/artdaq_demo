@@ -143,6 +143,7 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 		artdaq::FragmentPtr endOfSubrunFrag(new artdaq::Fragment(static_cast<size_t>(ceil(sizeof(my_rank) / static_cast<double>(sizeof(artdaq::Fragment::value_type))))));
 		endOfSubrunFrag->setSystemType(artdaq::Fragment::EndOfSubrunFragmentType);
 		endOfSubrunFrag->setSequenceID(ev_counter());
+        endOfSubrunFrag->setTimestamp(ev_counter() / rollover_subrun_interval_);
 		*endOfSubrunFrag->dataBegin() = my_rank;
 		frags.emplace_back(std::move(endOfSubrunFrag));
 	}
