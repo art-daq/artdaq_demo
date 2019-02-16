@@ -369,7 +369,7 @@ if [ \`echo \$ARTDAQ_DIR|grep -c "$Base"\` -eq 0 ]; then
   source mrbSetEnv
 fi
 
-alias rawEventDump="if [[ -n \\\$SETUP_TRACE ]]; then unsetup TRACE ; echo Disabling TRACE so that it will not affect rawEventDump output ; sleep 1; fi; art -c \$ARTDAQ_DIR/artdaq/ArtModules/fcl/rawEventDump.fcl"
+alias rawEventDump="if [[ -n \\\$SETUP_TRACE ]]; then unsetup TRACE ; echo Disabling TRACE so that it will not affect rawEventDump output ; sleep 1; fi; art -c \$ARTDAQ_DIR/fcl/rawEventDump.fcl"
 
 EOF
 #
