@@ -369,7 +369,7 @@ if [ \`echo \$ARTDAQ_DIR|grep -c "$Base"\` -eq 0 ]; then
   source mrbSetEnv
 fi
 
-alias rawEventDump="if [[ -n \\\$SETUP_TRACE ]]; then unsetup TRACE ; echo Disabling TRACE so that it will not affect rawEventDump output ; sleep 1; fi; art -c \$ARTDAQ_DIR/artdaq/ArtModules/fcl/rawEventDump.fcl"
+alias rawEventDump="if [[ -n \\\$SETUP_TRACE ]]; then unsetup TRACE ; echo Disabling TRACE so that it will not affect rawEventDump output ; sleep 1; fi; art -c \$ARTDAQ_DIR/fcl/rawEventDump.fcl"
 
 EOF
 #
@@ -392,9 +392,8 @@ if [ $installStatus -eq 0 ]; then
 else
 	echo "BUILD ERROR!!! SOMETHING IS VERY WRONG!!!"
 	echo
-	echo "Skipping installation of DAQInterface"
+	echo "Continuing with installation of DAQInterface, with the hope there is a simple fix for the BUILD ERROR"
 	echo
-	exit 1
 fi
 
 # Now, install DAQInterface, basically following the instructions at
@@ -466,11 +465,15 @@ cd $Base
 wget https://cdcvs.fnal.gov/redmine/projects/artdaq-demo/repository/revisions/develop/raw/tools/run_demo.sh
 
 if [ "x${opt_run_demo-}" != "x" ]; then
+    if [ $installStatus -eq 0 ]; then
 	echo doing the demo
 
 	set +u
 	. ./run_demo.sh --basedir $Base --toolsdir ${Base}/srcs/artdaq_demo/tools
 	set -u
+    else
+        echo 'Build error (see above) precludes running the demo (i.e --run-demo option specified)'
+    fi
 fi
 
 
