@@ -62,6 +62,7 @@ examples: `basename $0`
 --no_om       Do *NOT* run Online Monitoring
 --om_fhicl    Name of Fhicl file to use for online monitoring ($om_fhicl)
 --partition=<N> set a partition number -- to allow multiple demos
+--auto        Close DAQInterface windows after run. Do not exit this script until run complete
 "
 
 # Process script arguments and options
@@ -70,7 +71,7 @@ eval "set -- $env_opts \"\$@\""
 op1chr='rest=`expr "$op" : "[^-]\(.*\)"`   && set -- "-$rest" "$@"'
 op1arg='rest=`expr "$op" : "[^-]\(.*\)"`   && set --  "$rest" "$@"'
 reqarg="$op1arg;"'test -z "${1+1}" &&echo opt -$op requires arg. &&echo "$USAGE" &&exit'
-args= do_help= do_jdi_help= do_om=1;
+args= do_help= do_jdi_help= do_om=1 auto_mode=0;
 while [ -n "${1-}" ];do
     if expr "x${1-}" : 'x-' >/dev/null;then
         op=`expr "x$1" : 'x-\(.*\)'`; shift   # done with $1
@@ -83,6 +84,7 @@ while [ -n "${1-}" ];do
             -basedir)   eval $reqarg; basedir=$1; shift;;
             -toolsdir)  eval $reqarg; toolsdir=$1; shift;;
 	    -no_om)        do_om=0;;
+        -auto)         auto_mode=1;;
 	    -om_fhicl)  eval $reqarg; om_fhicl=$1; shift;;
             -partition) eval $reqarg; export ARTDAQ_PARTITION_NUMBER=$1; export DAQINTERFACE_PARTITION_NUMBER=$1; shift;;
             *)          aa=`echo "-$op" | sed -e"s/'/'\"'\"'/g"` args="$args '$aa'";
@@ -262,7 +264,6 @@ function get_dispatcher_port() {
     $toolsdir/xt_cmd.sh $basedir --geom '150x33+'$xloc'+0 -sl 2500' \
         -c '. ./setupARTDAQDEMO' \
         -c 'art -c '$fhicldir'/'$om_fhicl'.fcl'
-
     sleep 4;
 
     $toolsdir/xt_cmd.sh $basedir --geom '100x33+0+0 -sl 2500' \
@@ -277,4 +278,22 @@ function get_dispatcher_port() {
         -c 'art -c  /tmp/'$om_fhicl'2.fcl'
 
 	fi
+fi
+
+if [ $auto_mode -eq 1 ];then
+    if [ $do_om -ne 1 ];then
+       echo ""
+       echo "Waiting for the run to start"
+       wait_for_state "running"
+    fi
+    
+    echo ""
+    echo "Waiting for DAQInterface to reached the 'stopped' state before exiting..."
+    wait_for_state "stopped"
+    echo "Done waiting."
+
+    for i in `ps -fu $USER|grep [x]term|awk '{print $2}'`; do
+        echo "Killing pid $i"
+        kill $i
+    done
 fi
