@@ -64,6 +64,7 @@ examples: `basename $0`
 --no_om       Do *NOT* run Online Monitoring
 --om_fhicl    Name of Fhicl file to use for online monitoring ($om_fhicl)
 --partition=<N> set a partition number -- to allow multiple demos
+--auto        Close DAQInterface windows after run. Do not exit this script until run complete
 "
 
 # Process script arguments and options
@@ -72,7 +73,7 @@ eval "set -- $env_opts \"\$@\""
 op1chr='rest=`expr "$op" : "[^-]\(.*\)"`   && set -- "-$rest" "$@"'
 op1arg='rest=`expr "$op" : "[^-]\(.*\)"`   && set --  "$rest" "$@"'
 reqarg="$op1arg;"'test -z "${1+1}" &&echo opt -$op requires arg. &&echo "$USAGE" &&exit'
-args= do_help= do_jdi_help= do_om=1;
+args= do_help= do_jdi_help= do_om=1 auto_mode=0;
 while [ -n "${1-}" ];do
     if expr "x${1-}" : 'x-' >/dev/null;then
         op=`expr "x$1" : 'x-\(.*\)'`; shift   # done with $1
@@ -87,6 +88,7 @@ while [ -n "${1-}" ];do
 			-brlist)    eval $reqarg; brlist=$1; shift;;
 			-no_om)        do_om=0;;
 			-om_fhicl)  eval $reqarg; om_fhicl=$1; shift;;
+        -auto)         auto_mode=1;;
             -partition) eval $reqarg; export ARTDAQ_PARTITION_NUMBER=$1; export DAQINTERFACE_PARTITION_NUMBER=$1; shift;;
             *)          aa=`echo "-$op" | sed -e"s/'/'\"'\"'/g"` args="$args '$aa'";
         esac
@@ -207,7 +209,8 @@ function get_dispatcher_port() {
     cd ${daqintdir}
     source ./mock_ups_setup.sh
     export DAQINTERFACE_USER_SOURCEFILE=$PWD/user_sourcefile_example
-    export DAQINTERFACE_PARTITION_NUMBER=$ARTDAQ_PARTITION_NUMBER
+    test -n "$ARTDAQ_PARTITION_NUMBER" && \
+        export DAQINTERFACE_PARTITION_NUMBER=$ARTDAQ_PARTITION_NUMBER
     source $ARTDAQ_DAQINTERFACE_DIR/source_me > /dev/null
 
     source $ARTDAQ_DAQINTERFACE_DIR/bin/diagnostic_tools.sh
@@ -224,12 +227,14 @@ function get_dispatcher_port() {
 # And now, actually run DAQInterface as described in
 # https://cdcvs.fnal.gov/redmine/projects/artdaq-utilities/wiki/Artdaq-daqinterface
 
+xt_pids=
 $toolsdir/xt_cmd.sh $daqintdir --geom '132x33 -sl 2500' \
     -c 'source mock_ups_setup.sh' \
 	-c 'export DAQINTERFACE_USER_SOURCEFILE='"$DAQINTERFACE_USER_SOURCEFILE" \
-	-c 'export DAQINTERFACE_PARTITION_NUMBER=$ARTDAQ_PARTITION_NUMBER' \
-	-c 'source $ARTDAQ_DAQINTERFACE_DIR/source_me' \
-	-c 'DAQInterface'
+    ${ARTDAQ_PARTITION_NUMBER:+-cexport DAQINTERFACE_PARTITION_NUMBER=$ARTDAQ_PARTITION_NUMBER} \
+    -c 'source $ARTDAQ_DAQINTERFACE_DIR/source_me' \
+    -c 'DAQInterface' --exec &
+xt_pids="$xt_pids $!"
 
 sleep 3
 echo ""
@@ -240,11 +245,12 @@ echo "Done waiting."
 $toolsdir/xt_cmd.sh $daqintdir --geom 132 \
     -c 'source mock_ups_setup.sh' \
 	-c 'export DAQINTERFACE_USER_SOURCEFILE='"$DAQINTERFACE_USER_SOURCEFILE" \
-	-c 'export DAQINTERFACE_PARTITION_NUMBER=$ARTDAQ_PARTITION_NUMBER' \
-	-c 'source $ARTDAQ_DAQINTERFACE_DIR/source_me' \
-	-c 'if [[ -n $DAQINTERFACE_MESSAGEFACILITY_FHICL ]]; then msgfacfile=$DAQINTERFACE_MESSAGEFACILITY_FHICL ; else msgfacfile=MessageFacility.fcl ; fi' \
-	-c 'if [[ -e $msgfacfile ]]; then sed -r -i  "s/(host\s*:\s*)\"\S+\"/\1\""$HOSTNAME"\"/g" $msgfacfile ; fi' \
-	-c "just_do_it.sh -v $* $jdibootfile $jdiduration"
+    ${ARTDAQ_PARTITION_NUMBER:+-cexport DAQINTERFACE_PARTITION_NUMBER=$ARTDAQ_PARTITION_NUMBER} \
+    -c 'source $ARTDAQ_DAQINTERFACE_DIR/source_me' \
+    -c 'if [[ -n $DAQINTERFACE_MESSAGEFACILITY_FHICL ]]; then msgfacfile=$DAQINTERFACE_MESSAGEFACILITY_FHICL ; else msgfacfile=MessageFacility.fcl ; fi' \
+    -c 'if [[ -e $msgfacfile ]]; then sed -r -i  "s/(host\s*:\s*)\"\S+\"/\1\""$HOSTNAME"\"/g" $msgfacfile ; fi' \
+    -c "just_do_it.sh -v $* $jdibootfile $jdiduration" --exec &
+xt_pids="$xt_pids $!"
 
 if [ $do_om -eq 1 ]; then
     sleep 8;
@@ -255,34 +261,52 @@ if [ $do_om -eq 1 ]; then
 
     get_dispatcher_port
 
-	if [[ "x$dispatcherPort" != "x" ]]; then
-		sed -r -i "s/dispatcherPort:.*/dispatcherPort: ${dispatcherPort}/" ${fhicldir}/${om_fhicl}.fcl
+    if [[ "x$dispatcherPort" != "x" ]]; then
+        sed -r -i "s/dispatcherPort:.*/dispatcherPort: ${dispatcherPort}/" ${fhicldir}/${om_fhicl}.fcl
 
-		xrdbproc=$( which xrdb )
+        xrdbproc=$( which xrdb )
 
-		xloc=
-		if [[ -e $xrdbproc ]]; then
-    		xloc=$( xrdb -symbols | grep DWIDTH | awk 'BEGIN {FS="="} {pixels = $NF; print pixels/2}' )
-		else
-    		xloc=800
-		fi
+        xloc=
+        if [[ -e $xrdbproc ]]; then
+    	    xloc=$( xrdb -symbols | grep DWIDTH | awk 'BEGIN {FS="="} {pixels = $NF; print pixels/2}' )
+        else
+    	    xloc=800
+        fi
 
-		$toolsdir/xt_cmd.sh $basedir --geom '150x33+'$xloc'+0 -sl 2500' \
-			-c '. ./setupARTDAQDEMO' \
-			-c 'art -c '$fhicldir'/'$om_fhicl'.fcl'
+        $toolsdir/xt_cmd.sh $basedir --geom '150x33+'$xloc'+0 -sl 2500' \
+            -c '. ./setupARTDAQDEMO' \
+            -c 'art -c '$fhicldir'/'$om_fhicl'.fcl' --exec &
+        xt_pids="$xt_pids $!"
+        sleep 4;
 
-		sleep 4;
+        $toolsdir/xt_cmd.sh $basedir --geom '100x33+0+0 -sl 2500' \
+            -c '. ./setupARTDAQDEMO' \
+    	    -c 'rm -f /tmp/'$om_fhicl'2.fcl' \
+            -c 'cp -p '$fhicldir'/'$om_fhicl'.fcl /tmp/'$om_fhicl'2.fcl' \
+    	    -c 'sed -r -i "s/.*modulus.*[0-9]+.*/modulus: 100/" /tmp/'$om_fhicl'2.fcl' \
+    	    -c 'sed -r -i "/end_paths:/s/a3/a1/" /tmp/'$om_fhicl'2.fcl' \
+    	    -c 'sed -r -i "/shm_key:/s/.*/shm_key: 0x40471453/" /tmp/'$om_fhicl'2.fcl' \
+    	    -c 'sed -r -i "s/shmem1/shmem2/"  /tmp/'$om_fhicl'2.fcl' \
+	    -c 'sed -r -i "s/destination_rank: 6/destination_rank: 7/" /tmp/'$om_fhicl'2.fcl' \
+            -c 'art -c  /tmp/'$om_fhicl'2.fcl' --exec &
+        xt_pids="$xt_pids $!"
 
-		$toolsdir/xt_cmd.sh $basedir --geom '100x33+0+0 -sl 2500' \
-			-c '. ./setupARTDAQDEMO' \
-    		-c 'rm -f /tmp/'$om_fhicl'2.fcl' \
-			-c 'cp -p '$fhicldir'/'$om_fhicl'.fcl /tmp/'$om_fhicl'2.fcl' \
-    		-c 'sed -r -i "s/.*modulus.*[0-9]+.*/modulus: 100/" /tmp/'$om_fhicl'2.fcl' \
-    		-c 'sed -r -i "/end_paths:/s/a3/a1/" /tmp/'$om_fhicl'2.fcl' \
-    		-c 'sed -r -i "/shm_key:/s/.*/shm_key: 0x40471453/" /tmp/'$om_fhicl'2.fcl' \
-    		-c 'sed -r -i "s/shmem1/shmem2/"  /tmp/'$om_fhicl'2.fcl' \
-			-c 'sed -r -i "s/destination_rank: 6/destination_rank: 7/" /tmp/'$om_fhicl'2.fcl' \
-			-c 'art -c  /tmp/'$om_fhicl'2.fcl'
+    fi
+fi
 
-	fi
+if [ $auto_mode -eq 1 ];then
+    if [ $do_om -ne 1 ];then
+       echo ""
+       echo "Waiting for the run to start"
+       wait_for_state "running"
+    fi
+    
+    echo ""
+    echo "Waiting for DAQInterface to reached the 'stopped' state before exiting..."
+    wait_for_state "stopped"
+    echo "Done waiting."
+
+    kill $xt_pids
+else
+    echo "cleanup via kill $xt_pids"
 fi

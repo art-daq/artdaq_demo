@@ -86,7 +86,7 @@ source:
 
   commanderPluginType: xmlrpc
   dispatcherHost: localhost
-  dispatcherPort: 5269
+  dispatcherPort: 10105
 
   transfer_plugin: {
 
