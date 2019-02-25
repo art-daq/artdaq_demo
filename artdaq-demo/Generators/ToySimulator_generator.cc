@@ -35,9 +35,15 @@ demo::ToySimulator::ToySimulator(fhicl::ParameterSet const& ps)
 	, readout_buffer_(nullptr)
 	, fragment_type_(static_cast<decltype(fragment_type_)>(artdaq::Fragment::InvalidFragmentType))
 	, distribution_type_(static_cast<ToyHardwareInterface::DistributionType>(ps.get<int>("distribution_type")))
-        , generated_fragments_per_event_(ps.get<int>("generated_fragments_per_event", 1))  
+        , generated_fragments_per_event_(ps.get<int>("generated_fragments_per_event", 1))
+        , exception_on_config_(ps.get<bool>("exception_on_config", false))
+
 {
 	hardware_interface_->AllocateReadoutBuffer(&readout_buffer_);
+
+	if (exception_on_config_) {
+	  throw cet::exception("ToySimulator") << "This is an engineered exception designed for testing purposes";
+	}
 
 	metadata_.board_serial_number = hardware_interface_->SerialNumber() & 0xFFFF;
 	metadata_.num_adc_bits = hardware_interface_->NumADCBits();
