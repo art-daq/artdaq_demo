@@ -138,7 +138,7 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 		metricMan->sendMetric("Fragments Sent", ev_counter(), "Events", 3, artdaq::MetricMode::LastPoint);
 	}
 
-	if (rollover_subrun_interval_ > 0 && ev_counter() % rollover_subrun_interval_ == 0 && fragment_id() == 0 && ev_counter() > 1)
+	if (rollover_subrun_interval_ > 0 && ev_counter() % rollover_subrun_interval_ == 0 && fragment_id() == 0)
 	{
 		artdaq::FragmentPtr endOfSubrunFrag(new artdaq::Fragment(static_cast<size_t>(ceil(sizeof(my_rank) / static_cast<double>(sizeof(artdaq::Fragment::value_type))))));
 		endOfSubrunFrag->setSystemType(artdaq::Fragment::EndOfSubrunFragmentType);
