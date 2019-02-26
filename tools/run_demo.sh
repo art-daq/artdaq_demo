@@ -158,6 +158,11 @@ if [[ "x$brlist" != "x" ]]; then
     sed -i "s|DAQINTERFACE_KNOWN_BOARDREADERS_LIST=.*|DAQINTERFACE_KNOWN_BOARDREADERS_LIST=$brlist|g" $DAQINTERFACE_USER_SOURCEFILE
 fi
 
+# if there is any communication with DAQINTERFACE, make sure the view of the partition is
+# in sync.
+test -n "$ARTDAQ_PARTITION_NUMBER" && \
+    export DAQINTERFACE_PARTITION_NUMBER=$ARTDAQ_PARTITION_NUMBER
+
 if [ -n "${do_jdi_help-}" ]; then
     cd ${daqintdir}
     source ./mock_ups_setup.sh	
@@ -165,7 +170,6 @@ if [ -n "${do_jdi_help-}" ]; then
 	just_do_it.sh --help
 	exit
 fi
-
 
 function wait_for_state() {
     local stateName=$1
@@ -210,8 +214,6 @@ function get_dispatcher_port() {
     cd ${daqintdir}
     source ./mock_ups_setup.sh
     export DAQINTERFACE_USER_SOURCEFILE=$PWD/user_sourcefile_example
-    test -n "$ARTDAQ_PARTITION_NUMBER" && \
-        export DAQINTERFACE_PARTITION_NUMBER=$ARTDAQ_PARTITION_NUMBER
     source $ARTDAQ_DAQINTERFACE_DIR/source_me > /dev/null
 
     source $ARTDAQ_DAQINTERFACE_DIR/bin/diagnostic_tools.sh
@@ -267,6 +269,7 @@ if [ $do_om -eq 1 ]; then
         rm -f                                                              "/tmp/$om_fhicl_out.fcl"
         cp ${fhicldir}/${om_fhicl}.fcl                                     "/tmp/$om_fhicl_out.fcl"
         sed -r -i "s/dispatcherPort:.*/dispatcherPort: ${dispatcherPort}/" "/tmp/$om_fhicl_out.fcl"
+	sed -r -i "s/destination_rank:[ 0-9]*/destination_rank: 256/"      "/tmp/$om_fhicl_out.fcl"
 
         xrdbproc=$( which xrdb )
 
@@ -284,13 +287,13 @@ if [ $do_om -eq 1 ]; then
 
         sleep 4;
 
-        rm -f                                                  "/tmp/${om_fhicl_out}_2.fcl"
-        cp -p "/tmp/$om_fhicl_out.fcl"                         "/tmp/${om_fhicl_out}_2.fcl"
-    	sed -r -i "s/.*modulus.*[0-9]+.*/modulus: 100/"        "/tmp/${om_fhicl_out}_2.fcl"
-    	sed -r -i "/end_paths:/s/a3/a1/"                       "/tmp/${om_fhicl_out}_2.fcl"
-    	sed -r -i "/shm_key:/s/.*/shm_key: 0x40471453/"        "/tmp/${om_fhicl_out}_2.fcl"
-    	sed -r -i "s/shmem1/shmem2/"                           "/tmp/${om_fhicl_out}_2.fcl"
-	sed -r -i "s/destination_rank: 6/destination_rank: 7/" "/tmp/${om_fhicl_out}_2.fcl"
+        rm -f                                                         "/tmp/${om_fhicl_out}_2.fcl"
+        cp -p "/tmp/$om_fhicl_out.fcl"                                "/tmp/${om_fhicl_out}_2.fcl"
+    	sed -r -i "s/.*modulus.*[0-9]+.*/modulus: 100/"               "/tmp/${om_fhicl_out}_2.fcl"
+    	sed -r -i "/end_paths:/s/a3/a1/"                              "/tmp/${om_fhicl_out}_2.fcl"
+    	sed -r -i "/shm_key:/s/.*/shm_key: 0x40471453/"               "/tmp/${om_fhicl_out}_2.fcl"
+    	sed -r -i "s/shmem1/shmem2/"                                  "/tmp/${om_fhicl_out}_2.fcl"
+	sed -r -i "s/destination_rank:[ 0-9]*/destination_rank: 257/" "/tmp/${om_fhicl_out}_2.fcl"
 
         $toolsdir/xt_cmd.sh $basedir --geom '100x33+0+0 -sl 2500' \
             -c '. ./setupARTDAQDEMO' \
