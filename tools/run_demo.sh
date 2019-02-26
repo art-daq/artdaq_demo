@@ -81,7 +81,8 @@ while [ -n "${1-}" ];do
         test -n "$leq"&&eval "set -- \"\$lev\" \"\$@\""&&op=`expr "x$op" : 'x\([^=]*\)'`
         case "$op" in
             \?*|h*)     eval $op1chr; do_help=1;;
-            -help)      eval $op1arg; do_help=1;;
+            x*)         eval $op1chr; set -x;;
+            -help)      do_help=1;;
 			-just_do_it_help) eval $op1arg; do_jdi_help=1;;
             -basedir)   eval $reqarg; basedir=$1; shift;;
             -toolsdir)  eval $reqarg; toolsdir=$1; shift;;
@@ -231,7 +232,7 @@ xt_pids=
 $toolsdir/xt_cmd.sh $daqintdir --geom '132x33 -sl 2500' \
     -c 'source mock_ups_setup.sh' \
 	-c 'export DAQINTERFACE_USER_SOURCEFILE='"$DAQINTERFACE_USER_SOURCEFILE" \
-    ${ARTDAQ_PARTITION_NUMBER:+-cexport DAQINTERFACE_PARTITION_NUMBER=$ARTDAQ_PARTITION_NUMBER} \
+    ${ARTDAQ_PARTITION_NUMBER:+-c"export DAQINTERFACE_PARTITION_NUMBER=$ARTDAQ_PARTITION_NUMBER"} \
     -c 'source $ARTDAQ_DAQINTERFACE_DIR/source_me' \
     -c 'DAQInterface' --exec &
 xt_pids="$xt_pids $!"
@@ -245,7 +246,7 @@ echo "Done waiting."
 $toolsdir/xt_cmd.sh $daqintdir --geom 132 \
     -c 'source mock_ups_setup.sh' \
 	-c 'export DAQINTERFACE_USER_SOURCEFILE='"$DAQINTERFACE_USER_SOURCEFILE" \
-    ${ARTDAQ_PARTITION_NUMBER:+-cexport DAQINTERFACE_PARTITION_NUMBER=$ARTDAQ_PARTITION_NUMBER} \
+    ${ARTDAQ_PARTITION_NUMBER:+-c"export DAQINTERFACE_PARTITION_NUMBER=$ARTDAQ_PARTITION_NUMBER"} \
     -c 'source $ARTDAQ_DAQINTERFACE_DIR/source_me' \
     -c 'if [[ -n $DAQINTERFACE_MESSAGEFACILITY_FHICL ]]; then msgfacfile=$DAQINTERFACE_MESSAGEFACILITY_FHICL ; else msgfacfile=MessageFacility.fcl ; fi' \
     -c 'if [[ -e $msgfacfile ]]; then sed -r -i  "s/(host\s*:\s*)\"\S+\"/\1\""$HOSTNAME"\"/g" $msgfacfile ; fi' \
@@ -262,7 +263,10 @@ if [ $do_om -eq 1 ]; then
     get_dispatcher_port
 
     if [[ "x$dispatcherPort" != "x" ]]; then
-        sed -r -i "s/dispatcherPort:.*/dispatcherPort: ${dispatcherPort}/" ${fhicldir}/${om_fhicl}.fcl
+        om_fhicl_out=${om_fhicl}_${USER}_${ARTDAQ_PARTITION_NUMBER:-0}
+        rm -f                                                              "/tmp/$om_fhicl_out.fcl"
+        cp ${fhicldir}/${om_fhicl}.fcl                                     "/tmp/$om_fhicl_out.fcl"
+        sed -r -i "s/dispatcherPort:.*/dispatcherPort: ${dispatcherPort}/" "/tmp/$om_fhicl_out.fcl"
 
         xrdbproc=$( which xrdb )
 
@@ -275,20 +279,22 @@ if [ $do_om -eq 1 ]; then
 
         $toolsdir/xt_cmd.sh $basedir --geom '150x33+'$xloc'+0 -sl 2500' \
             -c '. ./setupARTDAQDEMO' \
-            -c 'art -c '$fhicldir'/'$om_fhicl'.fcl' --exec &
+            -c "art -c /tmp/$om_fhicl_out.fcl" --exec &
         xt_pids="$xt_pids $!"
+
         sleep 4;
+
+        rm -f                                                  "/tmp/${om_fhicl_out}_2.fcl"
+        cp -p "/tmp/$om_fhicl_out.fcl"                         "/tmp/${om_fhicl_out}_2.fcl"
+    	sed -r -i "s/.*modulus.*[0-9]+.*/modulus: 100/"        "/tmp/${om_fhicl_out}_2.fcl"
+    	sed -r -i "/end_paths:/s/a3/a1/"                       "/tmp/${om_fhicl_out}_2.fcl"
+    	sed -r -i "/shm_key:/s/.*/shm_key: 0x40471453/"        "/tmp/${om_fhicl_out}_2.fcl"
+    	sed -r -i "s/shmem1/shmem2/"                           "/tmp/${om_fhicl_out}_2.fcl"
+	sed -r -i "s/destination_rank: 6/destination_rank: 7/" "/tmp/${om_fhicl_out}_2.fcl"
 
         $toolsdir/xt_cmd.sh $basedir --geom '100x33+0+0 -sl 2500' \
             -c '. ./setupARTDAQDEMO' \
-    	    -c 'rm -f /tmp/'$om_fhicl'2.fcl' \
-            -c 'cp -p '$fhicldir'/'$om_fhicl'.fcl /tmp/'$om_fhicl'2.fcl' \
-    	    -c 'sed -r -i "s/.*modulus.*[0-9]+.*/modulus: 100/" /tmp/'$om_fhicl'2.fcl' \
-    	    -c 'sed -r -i "/end_paths:/s/a3/a1/" /tmp/'$om_fhicl'2.fcl' \
-    	    -c 'sed -r -i "/shm_key:/s/.*/shm_key: 0x40471453/" /tmp/'$om_fhicl'2.fcl' \
-    	    -c 'sed -r -i "s/shmem1/shmem2/"  /tmp/'$om_fhicl'2.fcl' \
-	    -c 'sed -r -i "s/destination_rank: 6/destination_rank: 7/" /tmp/'$om_fhicl'2.fcl' \
-            -c 'art -c  /tmp/'$om_fhicl'2.fcl' --exec &
+            -c "art -c  /tmp/${om_fhicl_out}_2.fcl" --exec &
         xt_pids="$xt_pids $!"
 
     fi
