@@ -36,13 +36,16 @@ demo::ToySimulator::ToySimulator(fhicl::ParameterSet const& ps)
 	, fragment_type_(static_cast<decltype(fragment_type_)>(artdaq::Fragment::InvalidFragmentType))
 	, distribution_type_(static_cast<ToyHardwareInterface::DistributionType>(ps.get<int>("distribution_type")))
         , generated_fragments_per_event_(ps.get<int>("generated_fragments_per_event", 1))
-        , exception_on_config_(ps.get<bool>("exception_on_config", false))
+        , exception_on_config_(ps.get<bool>("exception_on_config", false))                                             , dies_on_config_(ps.get<bool>("dies_on_config", false))
 
 {
 	hardware_interface_->AllocateReadoutBuffer(&readout_buffer_);
 
 	if (exception_on_config_) {
-	  throw cet::exception("ToySimulator") << "This is an engineered exception designed for testing purposes";
+	  throw cet::exception("ToySimulator") << "This is an engineered exception designed for testing purposes, set by the exception_on_config FHiCL variable";
+	} else if (dies_on_config_) {
+	  TLOG(TLVL_ERROR) << "This is an engineered process death, set by the dies_on_config FHiCL variable";
+	  std::exit(1);
 	}
 
 	metadata_.board_serial_number = hardware_interface_->SerialNumber() & 0xFFFF;
