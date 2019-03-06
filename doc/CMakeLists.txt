@@ -1,3 +1,3 @@
 include(artdaq_doxygen)
 
-create_doxygen_documentation()
+create_doxygen_documentation(DEPENDS artdaq artdaq_core_demo artdaq_core artdaq_utilities)
