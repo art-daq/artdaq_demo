@@ -5,17 +5,17 @@
 
 get_this_dir() 
 {
-    reldir=`dirname ${0}`
-    ssi_mdt_dir=`cd ${reldir} && pwd -P`
+	reldir=`dirname ${0}`
+	ssi_mdt_dir=`cd ${reldir} && pwd -P`
 }
 
 validate_basedir()
 {
 	valid_basedir=0
 	if [ -d $basedir/artdaq-utilities-daqinterface ] || [ -d $ARTDAQ_DAQINTERFACE_DIR ]; then
-		if [ -d $basedir/DAQInterface ]; then
-			valid_basedir=1
-		fi
+	if [ -d $basedir/DAQInterface ]; then
+		valid_basedir=1
+	fi
 	fi
 }
 
@@ -23,7 +23,7 @@ validate_toolsdir()
 {
 	valid_toolsdir=0
 	if [ -f $toolsdir/xt_cmd.sh ]; then
-		valid_toolsdir=1
+	valid_toolsdir=1
 	fi
 }
 
@@ -31,7 +31,7 @@ validate_fhicldir()
 {
 	valid_fhicldir=0
 	if [ -f $fhicldir/TransferInputShmem.fcl ]; then
-		valid_fhicldir=1
+	valid_fhicldir=1
 	fi
 }
 
@@ -53,7 +53,7 @@ env_opts_var=`basename $0 | sed 's/\.sh$//' | tr 'a-z-' 'A-Z_'`_OPTS
 USAGE="\
    usage: `basename $0` [options] [just_do_it.sh options]
 examples: `basename $0` 
-          `basename $0` --om --om_fhicl TransferInputShmemWithDelay
+		  `basename $0` --om --om_fhicl TransferInputShmemWithDelay
 		  `basename $0` --om --config demo_largesystem --compfile $PWD/DAQInterface/comps.list --runduration 40
 --help        This help message
 --just_do_it_help Help message from just_do_it.sh
@@ -83,13 +83,13 @@ while [ -n "${1-}" ];do
             \?*|h*)     eval $op1chr; do_help=1;;
             x*)         eval $op1chr; set -x;;
             -help)      do_help=1;;
-			-just_do_it_help) eval $op1arg; do_jdi_help=1;;
+            -just_do_it_help) eval $op1arg; do_jdi_help=1;;
             -basedir)   eval $reqarg; basedir=$1; shift;;
             -toolsdir)  eval $reqarg; toolsdir=$1; shift;;
-			-brlist)    eval $reqarg; brlist=$1; shift;;
-			-no_om)        do_om=0;;
-			-om_fhicl)  eval $reqarg; om_fhicl=$1; shift;;
-        -auto)         auto_mode=1;;
+            -brlist)    eval $reqarg; brlist=$1; shift;;
+            -no_om)        do_om=0;;
+            -om_fhicl)  eval $reqarg; om_fhicl=$1; shift;;
+            -auto)         auto_mode=1;;
             -partition) eval $reqarg; export ARTDAQ_PARTITION_NUMBER=$1; export DAQINTERFACE_PARTITION_NUMBER=$1; shift;;
             *)          aa=`echo "-$op" | sed -e"s/'/'\"'\"'/g"` args="$args '$aa'";
         esac
@@ -118,14 +118,14 @@ if [ $valid_toolsdir -eq 0 ]; then
 	toolsdir="$basedir/srcs/artdaq_demo/tools"
 	validate_toolsdir
 	if [ $valid_toolsdir -eq 0 ]; then
-		toolsdir="$ARTDAQ_DEMO_FQ_DIR/bin"
-		validate_toolsdir
-		
-		if [ $valid_toolsdir -eq 0 ]; then
-			echo "Provided tools directory (${toolsdir_save}) is not valid!"
-			return 2
-			exit 2
-		fi
+	toolsdir="$ARTDAQ_DEMO_FQ_DIR/bin"
+	validate_toolsdir
+	
+	if [ $valid_toolsdir -eq 0 ]; then
+		echo "Provided tools directory (${toolsdir_save}) is not valid!"
+		return 2
+		exit 2
+	fi
 	fi
 fi
 
@@ -134,14 +134,14 @@ if [ $valid_fhicldir -eq 0 ]; then
 	fhicldir="$basedir/srcs/artdaq_demo/tools/fcl"
 	validate_fhicldir
 	if [ $valid_fhicldir -eq 0 ]; then
-		fhicldir="$ARTDAQ_DEMO_DIR/fcl"
-		validate_fhicldir
-		
-		if [ $valid_fhicldir -eq 0 ]; then
-			echo "Provided FHiCL directory (${fhicldir_save}) is not valid!"
-			return 2
-			exit 2
-		fi
+	fhicldir="$ARTDAQ_DEMO_DIR/fcl"
+	validate_fhicldir
+	
+	if [ $valid_fhicldir -eq 0 ]; then
+		echo "Provided FHiCL directory (${fhicldir_save}) is not valid!"
+		return 2
+		exit 2
+	fi
 	fi
 fi
 
@@ -164,67 +164,72 @@ test -n "$ARTDAQ_PARTITION_NUMBER" && \
     export DAQINTERFACE_PARTITION_NUMBER=$ARTDAQ_PARTITION_NUMBER
 
 if [ -n "${do_jdi_help-}" ]; then
-    cd ${daqintdir}
-    source ./mock_ups_setup.sh	
+	cd ${daqintdir}
+	source ./mock_ups_setup.sh	
 	source $ARTDAQ_DAQINTERFACE_DIR/source_me
 	just_do_it.sh --help
 	exit
 fi
 
 function wait_for_state() {
-    local stateName=$1
+	local stateName=$1
 
-    # 20-Mar-2018, KAB
-    # The DAQInterface setup uses a dynamic way to determine which PORT to use for communication.
-    # This means that we need to allow sufficient time between when DAQInterface is started and
-    # when we run 'source_me' so that they agree on the port that should be used.
-    # The way that we work around this here is to catch what appears to be a port mis-match
-    # (the status.sh call returns an empty string), wait a bit, and then re-run source_me in the
-    # hope that it will pick up the correct port.
-    # An important piece of this is the un-setting of the DAQINTERFACE_STANDARD_SOURCEFILE_SOURCED
-    # env var so that source_me will go through the process of re-determining which port to use.
+	# 20-Mar-2018, KAB
+	# The DAQInterface setup uses a dynamic way to determine which PORT to use for communication.
+	# This means that we need to allow sufficient time between when DAQInterface is started and
+	# when we run 'source_me' so that they agree on the port that should be used.
+	# The way that we work around this here is to catch what appears to be a port mis-match
+	# (the status.sh call returns an empty string), wait a bit, and then re-run source_me in the
+	# hope that it will pick up the correct port.
+	# An important piece of this is the un-setting of the DAQINTERFACE_STANDARD_SOURCEFILE_SOURCED
+	# env var so that source_me will go through the process of re-determining which port to use.
 
-    cd ${daqintdir}
-    source ./mock_ups_setup.sh
-    source $ARTDAQ_DAQINTERFACE_DIR/source_me > /dev/null
+	cd ${daqintdir}
+	source ./mock_ups_setup.sh
+	source $ARTDAQ_DAQINTERFACE_DIR/source_me > /dev/null
 
-    while [[ "1" ]]; do
-		sleep 1
+	while [[ "1" ]]; do
+	    sleep 1
 
-		# 19-Apr-2018, KAB: removed the redirection of stderr for the status.sh call
-		# so that we will see problems like 'unable to find installed package' when
-		# we install the demo on one node in a cluster and try to run it on another
-		# node that has a different set of external disks mounted.
-		res=$( status.sh | tail -1 | tr "'" " " | awk '{print $2}' )
+	    # 19-Apr-2018, KAB: removed the redirection of stderr for the status.sh call
+	    # so that we will see problems like 'unable to find installed package' when
+	    # we install the demo on one node in a cluster and try to run it on another
+	    # node that has a different set of external disks mounted.
+	    res=$( status.sh | tail -1 | tr "'" " " | awk '{print $2}' )
 
-		if [[ "$res" == "" ]]; then
+	    if [[ "$res" == "" ]]; then
 			sleep 2
 			unset DAQINTERFACE_STANDARD_SOURCEFILE_SOURCED
 			source $ARTDAQ_DAQINTERFACE_DIR/source_me > /dev/null
-		fi
+	    fi
 
-		if [[ "$res" == "$stateName" ]]; then
+	    if [[ "$res" == "$stateName" ]]; then
 			break
-		fi
-    done
+	    fi
+	done
+}
+
+function get_run_record_dir() {
+	cd ${daqintdir}
+	source ./mock_ups_setup.sh
+	source $ARTDAQ_DAQINTERFACE_DIR/source_me > /dev/null
+
+	source $ARTDAQ_DAQINTERFACE_DIR/bin/diagnostic_tools.sh
+
+	thisrecorddir="$recorddir/`ls -t $recorddir|head -1`"
+
+	echo "Record directory at ${thisrecorddir}"
 }
 
 function get_dispatcher_port() {
-    
-    cd ${daqintdir}
-    source ./mock_ups_setup.sh
-    export DAQINTERFACE_USER_SOURCEFILE=$PWD/user_sourcefile_example
-    source $ARTDAQ_DAQINTERFACE_DIR/source_me > /dev/null
+	if [ ! -d ${thisrecorddir:-""} ]; then
+		get_run_record_dir
+	fi
 
-    source $ARTDAQ_DAQINTERFACE_DIR/bin/diagnostic_tools.sh
-
-    thisdir=`ls -t $recorddir|head -1`
-    #echo "Reading $recorddir/$thisdir/ranks.txt"
-	dispatcherPort=`grep -i dispatcher $recorddir/$thisdir/ranks.txt|head -1|awk '{print $2}'`
+	#echo "Reading $recorddir/$thisdir/ranks.txt"
+	dispatcherPort=`grep -i dispatcher $thisrecorddir/ranks.txt|head -1|awk '{print $2}'`
 
 	echo "Dispatcher found at port $dispatcherPort"
-
-	return $dispatcherPort
 }
 
 # And now, actually run DAQInterface as described in
@@ -233,7 +238,7 @@ function get_dispatcher_port() {
 xt_pids=
 $toolsdir/xt_cmd.sh $daqintdir --geom '132x33 -sl 2500' \
     -c 'source mock_ups_setup.sh' \
-	-c 'export DAQINTERFACE_USER_SOURCEFILE='"$DAQINTERFACE_USER_SOURCEFILE" \
+    -c 'export DAQINTERFACE_USER_SOURCEFILE='"$DAQINTERFACE_USER_SOURCEFILE" \
     ${ARTDAQ_PARTITION_NUMBER:+-c"export DAQINTERFACE_PARTITION_NUMBER=$ARTDAQ_PARTITION_NUMBER"}\
     ${DAQINTERFACE_PROCESS_MANAGEMENT_METHOD:+-c"export DAQINTERFACE_PROCESS_MANAGEMENT_METHOD=$DAQINTERFACE_PROCESS_MANAGEMENT_METHOD"}\
     -c 'source $ARTDAQ_DAQINTERFACE_DIR/source_me' \
@@ -248,7 +253,7 @@ echo "Done waiting."
 
 $toolsdir/xt_cmd.sh $daqintdir --geom 132 \
     -c 'source mock_ups_setup.sh' \
-	-c 'export DAQINTERFACE_USER_SOURCEFILE='"$DAQINTERFACE_USER_SOURCEFILE" \
+    -c 'export DAQINTERFACE_USER_SOURCEFILE='"$DAQINTERFACE_USER_SOURCEFILE" \
     ${ARTDAQ_PARTITION_NUMBER:+-c"export DAQINTERFACE_PARTITION_NUMBER=$ARTDAQ_PARTITION_NUMBER"} \
     -c 'source $ARTDAQ_DAQINTERFACE_DIR/source_me' \
     -c 'if [[ -n $DAQINTERFACE_MESSAGEFACILITY_FHICL ]]; then msgfacfile=$DAQINTERFACE_MESSAGEFACILITY_FHICL ; else msgfacfile=MessageFacility.fcl ; fi' \
@@ -263,16 +268,23 @@ if [ $do_om -eq 1 ]; then
     wait_for_state "running"
     echo "Done waiting."
 
+    get_run_record_dir
     get_dispatcher_port
 
     if [[ "x$dispatcherPort" != "x" ]]; then
-        om_fhicl_out=${om_fhicl}_${USER}_${ARTDAQ_PARTITION_NUMBER:-0}
-        rm -f                                                              "/tmp/$om_fhicl_out.fcl"
-        cp ${fhicldir}/${om_fhicl}.fcl                                     "/tmp/$om_fhicl_out.fcl"
-        sed -r -i "s/dispatcherPort:.*/dispatcherPort: ${dispatcherPort}/" "/tmp/$om_fhicl_out.fcl"
-	sed -r -i "s/destination_rank:[ 0-9]*/destination_rank: 256/"      "/tmp/$om_fhicl_out.fcl"
+	
+		cp ${fhicldir}/${om_fhicl}.fcl ${thisrecorddir}
+		cp ${fhicldir}/${om_fhicl}.fcl ${thisrecorddir}/${om_fhicl}2.fcl
+		
+		sed -r -i "s/dispatcherPort:.*/dispatcherPort: ${dispatcherPort}/" ${thisrecorddir}/${om_fhicl}.fcl
+		sed -r -i "s/dispatcherPort:.*/dispatcherPort: ${dispatcherPort}/" ${thisrecorddir}/${om_fhicl}2.fcl
+		sed -r -i "s/.*modulus.*[0-9]+.*/modulus: 100/" ${thisrecorddir}/${om_fhicl}2.fcl
+		sed -r -i "/end_paths:/s/a3/a1/" ${thisrecorddir}/${om_fhicl}2.fcl
+		sed -r -i "/shm_key:/s/.*/shm_key: 0x40471453/" ${thisrecorddir}/${om_fhicl}2.fcl
+		sed -r -i "s/shmem1/shmem2/"  ${thisrecorddir}/${om_fhicl}2.fcl
+		sed -r -i "s/destination_rank: 6/destination_rank: 7/" ${thisrecorddir}/${om_fhicl}2.fcl
 
-        xrdbproc=$( which xrdb )
+		xrdbproc=$( which xrdb )
 
         xloc=
         if [[ -e $xrdbproc ]]; then
@@ -281,26 +293,17 @@ if [ $do_om -eq 1 ]; then
     	    xloc=800
         fi
 
-        $toolsdir/xt_cmd.sh $basedir --geom '150x33+'$xloc'+0 -sl 2500' \
-            -c '. ./setupARTDAQDEMO' \
-            -c "art -c /tmp/$om_fhicl_out.fcl" --exec &
-        xt_pids="$xt_pids $!"
+		$toolsdir/xt_cmd.sh $basedir --geom '150x33+'$xloc'+0 -sl 2500' \
+			-c '. ./setupARTDAQDEMO' \
+			-c 'art -c '$thisrecorddir'/'$om_fhicl'.fcl' --exec &
+                xt_pids="$xt_pids $!"
 
-        sleep 4;
+		sleep 4;
 
-        rm -f                                                         "/tmp/${om_fhicl_out}_2.fcl"
-        cp -p "/tmp/$om_fhicl_out.fcl"                                "/tmp/${om_fhicl_out}_2.fcl"
-    	sed -r -i "s/.*modulus.*[0-9]+.*/modulus: 100/"               "/tmp/${om_fhicl_out}_2.fcl"
-    	sed -r -i "/end_paths:/s/a3/a1/"                              "/tmp/${om_fhicl_out}_2.fcl"
-    	sed -r -i "/shm_key:/s/.*/shm_key: 0x40471453/"               "/tmp/${om_fhicl_out}_2.fcl"
-    	sed -r -i "s/shmem1/shmem2/"                                  "/tmp/${om_fhicl_out}_2.fcl"
-	sed -r -i "s/destination_rank:[ 0-9]*/destination_rank: 257/" "/tmp/${om_fhicl_out}_2.fcl"
-
-        $toolsdir/xt_cmd.sh $basedir --geom '100x33+0+0 -sl 2500' \
-            -c '. ./setupARTDAQDEMO' \
-            -c "art -c  /tmp/${om_fhicl_out}_2.fcl" --exec &
-        xt_pids="$xt_pids $!"
-
+		$toolsdir/xt_cmd.sh $basedir --geom '100x33+0+0 -sl 2500' \
+			-c '. ./setupARTDAQDEMO' \
+			-c 'art -c  '$thisrecorddir'/'$om_fhicl'2.fcl' --exec &
+                xt_pids="$xt_pids $!"
     fi
 fi
 
