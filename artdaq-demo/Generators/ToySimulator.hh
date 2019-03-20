@@ -105,6 +105,8 @@ namespace demo
 		FragmentType fragment_type_;
 		ToyHardwareInterface::DistributionType distribution_type_;
 	        int generated_fragments_per_event_;
+	        bool exception_on_config_;
+	        bool dies_on_config_;
 	};
 }
 
