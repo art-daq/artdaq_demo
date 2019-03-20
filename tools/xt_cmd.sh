@@ -23,9 +23,11 @@ examples: `basename $0` xt_tmp_home -c'ps aux|grep \$$' -c': hi' -c'ls -a'
           echo -e 'echo hi - ^C to abort;sleep 2\n:!loop' >|xt_tmp_home/loop;\\
           `basename $0` xt_tmp_home -c':!loop'
 
--t<term> --term=<term>  terminal program (dflt:$term)
+-h -?             help
+-t<term> --term=  terminal program (dflt:$term)
 -c<cmd>
--g<geom_option> ???
+-g<geom_option>   terminal geometry options
+--exec            exec (do not background) (user can background and get pid)
 
 special 2 character sequences (as in -c':^sleep 5' above):
 :^   just eval command (no echo, no hist insert)
@@ -60,6 +62,7 @@ while [ -n "${1-}" ];do
                         term_geom=$1
                     fi
                     shift;;
+        -exec)      do_exec=1;;
         c*)         eval $op1arg; test -z "$CMD_STR" && CMD_STR=$1 || CMD_STR=`echo "$CMD_STR";echo "$1"`;shift;;
         *)          echo "Unknown option -$op"; do_help=1;;
         esac
@@ -203,20 +206,27 @@ if [ -f "$HOME"/.Xauthority ];then
     fi
 fi
 cd "$pseudo_home" >/dev/null
-env -i SHELL=$SHELL PATH=/usr/bin:/bin LOGNAME=$USER USER=$USER \
- DISPLAY=$DISPLAY \
- REALHOME="$HOME" HISTFILE="$HOME/.bash_history" \
- HISTTIMEFORMAT='%a %m/%d %H:%M:%S  ' \
- HOME="$home" ${KRB5CCNAME+KRB5CCNAME="$KRB5CCNAME"} \
- ${TRACE_FILE+TRACE_FILE="$TRACE_FILE"} \
- ${TRACE_LVLS+TRACE_LVLS="$TRACE_LVLS"} \
- ${TRACE_LVLM+TRACE_LVLM="$TRACE_LVLM"} \
- ${TRACE_MSGMAX+TRACE_MSGMAX="$TRACE_MSGMAX"} \
- ${UPS_OVERRIDE+UPS_OVERRIDE="$UPS_OVERRIDE"} \
- ${CET_PLATINFO+CET_PLATINFO="$CET_PLATINFO"} \
- ${LIBRARY_PATH+LIBRARY_PATH="$LIBRARY_PATH"} \
- ${PRODUCTS+PRODUCTS="$PRODUCTS"} \
- ${ARTDAQDEMO_BASE_PORT+ARTDAQDEMO_BASE_PORT="$ARTDAQDEMO_BASE_PORT"} \
- ${ARTDAQ_PARTITION_NUMBER+ARTDAQ_PARTITION_NUMBER="$ARTDAQ_PARTITION_NUMBER"} \
- CMD_STR="$CMD_STR" \
- $term $term_geom $term_opts $bash $bash_opts &
+
+cmd='env -i SHELL=$SHELL PATH=/usr/bin:/bin LOGNAME=$USER USER=$USER'\
+' DISPLAY=$DISPLAY'\
+' REALHOME="$HOME" HISTFILE="$HOME/.bash_history"'\
+' HISTTIMEFORMAT="%a %m/%d %H:%M:%S  "'\
+' HOME="$home" ${KRB5CCNAME+KRB5CCNAME="$KRB5CCNAME"}'\
+' ${TRACE_FILE+TRACE_FILE="$TRACE_FILE"}'\
+' ${TRACE_LVLS+TRACE_LVLS="$TRACE_LVLS"}'\
+' ${TRACE_LVLM+TRACE_LVLM="$TRACE_LVLM"}'\
+' ${TRACE_MSGMAX+TRACE_MSGMAX="$TRACE_MSGMAX"}'\
+' ${UPS_OVERRIDE+UPS_OVERRIDE="$UPS_OVERRIDE"}'\
+' ${CET_PLATINFO+CET_PLATINFO="$CET_PLATINFO"}'\
+' ${LIBRARY_PATH+LIBRARY_PATH="$LIBRARY_PATH"}'\
+' ${PRODUCTS+PRODUCTS="$PRODUCTS"}'\
+' ${ARTDAQDEMO_BASE_PORT+ARTDAQDEMO_BASE_PORT="$ARTDAQDEMO_BASE_PORT"}'\
+' ${ARTDAQ_PARTITION_NUMBER+ARTDAQ_PARTITION_NUMBER="$ARTDAQ_PARTITION_NUMBER"}'\
+' CMD_STR="$CMD_STR"'\
+' $term $term_geom $term_opts $bash $bash_opts'
+
+if [ -n "${do_exec-}" ];then
+    eval "exec $cmd"
+else
+    eval "$cmd &"
+fi

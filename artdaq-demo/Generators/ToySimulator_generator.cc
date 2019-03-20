@@ -35,8 +35,19 @@ demo::ToySimulator::ToySimulator(fhicl::ParameterSet const& ps)
 	, readout_buffer_(nullptr)
 	, fragment_type_(static_cast<decltype(fragment_type_)>(artdaq::Fragment::InvalidFragmentType))
 	, distribution_type_(static_cast<ToyHardwareInterface::DistributionType>(ps.get<int>("distribution_type")))
+    , generated_fragments_per_event_(ps.get<int>("generated_fragments_per_event", 1))
+    , exception_on_config_(ps.get<bool>("exception_on_config", false))             
+	, dies_on_config_(ps.get<bool>("dies_on_config", false))
+
 {
 	hardware_interface_->AllocateReadoutBuffer(&readout_buffer_);
+
+	if (exception_on_config_) {
+	  throw cet::exception("ToySimulator") << "This is an engineered exception designed for testing purposes, set by the exception_on_config FHiCL variable";
+	} else if (dies_on_config_) {
+	  TLOG(TLVL_ERROR) << "This is an engineered process death, set by the dies_on_config FHiCL variable";
+	  std::exit(1);
+	}
 
 	metadata_.board_serial_number = hardware_interface_->SerialNumber() & 0xFFFF;
 	metadata_.num_adc_bits = hardware_interface_->NumADCBits();
@@ -121,22 +132,24 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 		metricMan->sendMetric("Fragments Sent", ev_counter(), "Events", 3, artdaq::MetricMode::LastPoint);
 	}
 
-	ev_counter_inc();
-	timestamp_ += timestampScale_;
-
-	if (rollover_subrun_interval_ > 0 && ev_counter() % rollover_subrun_interval_ == 0)
+	if (rollover_subrun_interval_ > 0 && ev_counter() % rollover_subrun_interval_ == 0 && fragment_id() == 0)
 	{
 		bool fragmentIdZero = false;
 		for (auto& id : fragmentIDs()) { if (id == 0) fragmentIdZero = true; }
 		if (fragmentIdZero) {
 			artdaq::FragmentPtr endOfSubrunFrag(new artdaq::Fragment(static_cast<size_t>(ceil(sizeof(my_rank) / static_cast<double>(sizeof(artdaq::Fragment::value_type))))));
 			endOfSubrunFrag->setSystemType(artdaq::Fragment::EndOfSubrunFragmentType);
-			endOfSubrunFrag->setSequenceID(ev_counter());
+
+		endOfSubrunFrag->setSequenceID(ev_counter() + 1);
+		endOfSubrunFrag->setTimestamp(1 + (ev_counter() / rollover_subrun_interval_));
+
 			*endOfSubrunFrag->dataBegin() = my_rank;
 			frags.emplace_back(std::move(endOfSubrunFrag));
 		}
 	}
 
+	ev_counter_inc();
+	timestamp_ += timestampScale_;
 
 	return true;
 }

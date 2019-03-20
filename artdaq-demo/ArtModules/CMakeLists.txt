@@ -91,6 +91,7 @@ simple_plugin(DemoInput "source"
 
 simple_plugin(EventReporterOutput "module"
   artdaq_ArtModules
+  artdaq_DAQdata
   art_Framework_Services_Registry
   art_Utilities
   MF_MessageLogger
