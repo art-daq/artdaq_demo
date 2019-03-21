@@ -320,11 +320,14 @@ echo # This script is intended to be sourced.
 
 sh -c "[ \`ps \$\$ | grep bash | wc -l\` -gt 0 ] || { echo 'Please switch to the bash shell before running the artdaq-demo.'; exit; }" || exit
 
-if [[ -e /cvmfs/fermilab.opensciencegrid.org/products/artdaq ]]; then
-  . /cvmfs/fermilab.opensciencegrid.org/products/artdaq/setup
-fi
-
 source $Base/products/setup
+
+for prodDir in \$(echo ${PRODUCTS_SET:-""} | tr ":" "\n");do
+  if [ -d \$prodDir ];then
+    source \$prodDir/setup
+  fi
+done
+	
 
 PRODUCTS=\`dropit -D -p"\$PRODUCTS"\`
 if echo "\$PRODUCTS" | grep "$PRODUCTS_SET" >/dev/null; then
