@@ -55,7 +55,7 @@ source: {
 
 outputs: {
   rootout: {
-    module_type: RootOutput
+    module_type: RootDAQOut
     fileName: "/dev/null"
     compressionLevel: 0
   }
