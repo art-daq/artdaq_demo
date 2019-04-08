@@ -63,8 +63,7 @@ private:
 };
 
 
-NthEvent::NthEvent(fhicl::ParameterSet const& p)
-	: nth_(p.get<uint32_t>("nth")) {}
+NthEvent::NthEvent(fhicl::ParameterSet const& p) : art::EDFilter{p}, nth_( p.get<uint32_t>( "nth" ) ) {}
 
 inline
 bool NthEvent::filter(art::Event& e)
