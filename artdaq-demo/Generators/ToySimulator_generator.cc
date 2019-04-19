@@ -28,7 +28,7 @@ demo::ToySimulator::ToySimulator(fhicl::ParameterSet const& ps)
 	:
 	CommandableFragmentGenerator(ps)
 	, hardware_interface_(new ToyHardwareInterface(ps))
-	, timestamp_(0)
+	, timestamp_(static_cast<artdaq::Fragment::timestamp_t>(ps.get<int>("starting_timestamp", 0)))
 	, timestampScale_(ps.get<int>("timestamp_scale_factor", 1))
 	, rollover_subrun_interval_(ps.get<int>("rollover_subrun_interval", 0))
 	, metadata_({ 0,0,0 })
