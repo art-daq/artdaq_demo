@@ -90,6 +90,7 @@ namespace demo
 
 		std::unique_ptr<ToyHardwareInterface> hardware_interface_;
 		artdaq::Fragment::timestamp_t timestamp_;
+	    artdaq::Fragment::timestamp_t starting_timestamp_;
 		int timestampScale_;
 		int rollover_subrun_interval_;
 

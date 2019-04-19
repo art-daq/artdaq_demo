@@ -28,7 +28,8 @@ demo::ToySimulator::ToySimulator(fhicl::ParameterSet const& ps)
 	:
 	CommandableFragmentGenerator(ps)
 	, hardware_interface_(new ToyHardwareInterface(ps))
-	, timestamp_(static_cast<artdaq::Fragment::timestamp_t>(ps.get<int>("starting_timestamp", 0)))
+	, timestamp_(0)
+    , starting_timestamp_(0)
 	, timestampScale_(ps.get<int>("timestamp_scale_factor", 1))
 	, rollover_subrun_interval_(ps.get<int>("rollover_subrun_interval", 0))
 	, metadata_({ 0,0,0 })
@@ -40,6 +41,15 @@ demo::ToySimulator::ToySimulator(fhicl::ParameterSet const& ps)
 
 {
 	hardware_interface_->AllocateReadoutBuffer(&readout_buffer_);
+
+	auto ts = ps.get<int>( "starting_timestamp", 0 );
+	if (ts < 0)
+	{ starting_timestamp_ = artdaq::Fragment::InvalidTimestamp; }
+	else
+	{
+		starting_timestamp_ = static_cast<artdaq::Fragment::timestamp_t>( ts );
+	}
+	timestamp_ = starting_timestamp_;
 
 	if (exception_on_config_) {
 	  throw cet::exception("ToySimulator") << "This is an engineered exception designed for testing purposes, set by the exception_on_config FHiCL variable";
@@ -168,7 +178,7 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 void demo::ToySimulator::start()
 {
 	hardware_interface_->StartDatataking();
-	timestamp_ = 0;
+	timestamp_ = starting_timestamp_;
 }
 
 void demo::ToySimulator::stop()
