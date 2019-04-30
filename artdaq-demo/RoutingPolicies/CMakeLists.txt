@@ -1,5 +1,5 @@
 simple_plugin("MisbehaviorTest" "policy"
-    artdaq_Application_Routing
+    artdaq_RoutingPolicies
     artdaq_DAQdata
     ${FHICLCPP}
     ${MF_MESSAGELOGGER}
@@ -9,7 +9,7 @@ simple_plugin("MisbehaviorTest" "policy"
     )
 
 simple_plugin(NthEvent "policy"
-artdaq_Application_Routing
+artdaq_RoutingPolicies
 artdaq_DAQdata
 ${FHICLCPP}
 ${MF_MESSAGELOGGER}
