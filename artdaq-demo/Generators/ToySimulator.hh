@@ -8,7 +8,7 @@
 
 #include "fhiclcpp/fwd.h"
 #include "artdaq-core/Data/Fragment.hh"
-#include "artdaq/Application/CommandableFragmentGenerator.hh"
+#include "artdaq/Generators/CommandableFragmentGenerator.hh"
 #include "artdaq-core-demo/Overlays/ToyFragment.hh"
 #include "artdaq-core-demo/Overlays/FragmentType.hh"
 
@@ -105,6 +105,8 @@ namespace demo
 		FragmentType fragment_type_;
 		ToyHardwareInterface::DistributionType distribution_type_;
 	        int generated_fragments_per_event_;
+	        bool exception_on_config_;
+	        bool dies_on_config_;
 	};
 }
 

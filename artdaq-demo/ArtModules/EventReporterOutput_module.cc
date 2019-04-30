@@ -12,8 +12,12 @@
 #include "canvas/Persistency/Provenance/BranchIDList.h"
 #endif
 #include "art/Persistency/Provenance/ProcessHistoryRegistry.h"
+#if ART_HEX_VERSION < 0x30000
 #include "art/Persistency/Provenance/ProductMetaData.h"
+#endif
 
+#include <algorithm>
+#include <iterator>
 #include "canvas/Persistency/Provenance/BranchDescription.h"
 #include "canvas/Persistency/Provenance/BranchKey.h"
 #include "canvas/Persistency/Provenance/History.h"
@@ -30,17 +34,15 @@
 #include "cetlib/column_width.h"
 #include "cetlib/lpad.h"
 #include "cetlib/rpad.h"
-#include <algorithm>
-# include <iterator>
 #include "fhiclcpp/ParameterSet.h"
 #include "fhiclcpp/ParameterSetID.h"
 #include "fhiclcpp/ParameterSetRegistry.h"
 
-#include "artdaq/TransferPlugins/TransferInterface.hh"
-#include "artdaq/TransferPlugins/MakeTransferPlugin.hh"
 #include "artdaq-core/Data/detail/ParentageMap.hh"
 #include "artdaq/DAQdata/Globals.hh"
 #include "artdaq/DAQdata/NetMonHeader.hh"
+#include "artdaq/TransferPlugins/MakeTransferPlugin.hh"
+#include "artdaq/TransferPlugins/TransferInterface.hh"
 
 #include <iomanip>
 #include <iostream>
@@ -53,152 +55,117 @@
 #include <TClass.h>
 #include <TMessage.h>
 
-namespace art
-{
-	class EventReporterOutput;
+namespace art {
+class EventReporterOutput;
 }
 
-
 /**
-* \brief An art::OutputModule which does nothing, but reports seen events and their fragments.
-* This module is designed for debugging purposes, where writing events into ROOT files 
-* or sending events down stream is not necessary.
-*/
-class art::EventReporterOutput : public OutputModule
-{
-public:
-	/**
-	* \brief EventReporterOutput Constructor
-	* \param ps ParameterSet used to configure EventReporterOutput
-	*
-	* EventReporterOutput accepts no Parameters beyond those which art::OutputModule takes.
-	* See the art::OutputModule documentation for more details on those Parameters.
-	*/
-	explicit EventReporterOutput(fhicl::ParameterSet const& ps);
+ * \brief An art::OutputModule which does nothing, but reports seen events and their fragments.
+ * This module is designed for debugging purposes, where writing events into ROOT files
+ * or sending events down stream is not necessary.
+ */
+class art::EventReporterOutput : public OutputModule {
+ public:
+  /**
+   * \brief EventReporterOutput Constructor
+   * \param ps ParameterSet used to configure EventReporterOutput
+   *
+   * EventReporterOutput accepts no Parameters beyond those which art::OutputModule takes.
+   * See the art::OutputModule documentation for more details on those Parameters.
+   */
+  explicit EventReporterOutput(fhicl::ParameterSet const& ps);
 
-	/**
-	* \brief EventReporterOutput Destructor
-	*/
-	~EventReporterOutput();
+  /**
+   * \brief EventReporterOutput Destructor
+   */
+  ~EventReporterOutput();
 
-private:
-	virtual void openFile(FileBlock const&);
+ private:
+  virtual void openFile(FileBlock const&);
 
-	virtual void closeFile();
+  virtual void closeFile();
 
-	virtual void respondToCloseInputFile(FileBlock const&);
+  virtual void respondToCloseInputFile(FileBlock const&);
 
-	virtual void respondToCloseOutputFiles(FileBlock const&);
+  virtual void respondToCloseOutputFiles(FileBlock const&);
 
-	virtual void endJob();
+  virtual void endJob();
 
-	virtual void write(EventPrincipal&);
+  virtual void write(EventPrincipal&);
 
-	virtual void writeRun(RunPrincipal&);
+  virtual void writeRun(RunPrincipal&);
 
-	virtual void writeSubRun(SubRunPrincipal&);
+  virtual void writeSubRun(SubRunPrincipal&);
 
-private:
-
+ private:
 };
 
-art::EventReporterOutput::
-EventReporterOutput(fhicl::ParameterSet const& ps)
-	: OutputModule(ps)
-{
+art::EventReporterOutput::EventReporterOutput(fhicl::ParameterSet const& ps) : OutputModule(ps) {
   TLOG(TLVL_DEBUG) << "Begin: EventReporterOutput::EventReporterOutput(ParameterSet const& ps)";
 }
 
-art::EventReporterOutput::
-~EventReporterOutput()
-{
+art::EventReporterOutput::~EventReporterOutput() {
   TLOG(TLVL_DEBUG) << "Begin: EventReporterOutput::~EventReporterOutput()";
 }
 
-void
-art::EventReporterOutput::
-openFile(FileBlock const&)
-{
+void art::EventReporterOutput::openFile(FileBlock const&) {
   TLOG(TLVL_DEBUG) << "Begin/End: EventReporterOutput::openFile(const FileBlock&)";
 }
 
-void
-art::EventReporterOutput::
-closeFile()
-{
-  TLOG(TLVL_DEBUG) << "Begin/End: EventReporterOutput::closeFile()";
-}
+void art::EventReporterOutput::closeFile() { TLOG(TLVL_DEBUG) << "Begin/End: EventReporterOutput::closeFile()"; }
 
-void
-art::EventReporterOutput::
-respondToCloseInputFile(FileBlock const&)
-{
+void art::EventReporterOutput::respondToCloseInputFile(FileBlock const&) {
   TLOG(TLVL_DEBUG) << "Begin/End: EventReporterOutput::respondToCloseOutputFiles(FileBlock const&)";
 }
 
-void
-art::EventReporterOutput::
-respondToCloseOutputFiles(FileBlock const&)
-{
+void art::EventReporterOutput::respondToCloseOutputFiles(FileBlock const&) {
   TLOG(TLVL_DEBUG) << "Begin/End: EventReporterOutput::respondToCloseOutputFiles(FileBlock const&)";
 }
 
-void
-art::EventReporterOutput::
-endJob()
-{
-  TLOG(TLVL_DEBUG) << "Begin: EventReporterOutput::endJob()";
-}
+void art::EventReporterOutput::endJob() { TLOG(TLVL_DEBUG) << "Begin: EventReporterOutput::endJob()"; }
 
+void art::EventReporterOutput::write(EventPrincipal& ep) {
+  TLOG(TLVL_DEBUG) << " Begin: EventReporterOutput::write(const EventPrincipal& ep)";
 
+  using RawEvent = artdaq::Fragments;
+  ;
+  using RawEvents = std::vector<RawEvent>;
+  using RawEventHandle = art::Handle<RawEvent>;
+  using RawEventHandles = std::vector<RawEventHandle>;
 
-void
-art::EventReporterOutput::
-write(EventPrincipal& ep)
-{
-	TLOG(TLVL_DEBUG) << " Begin: EventReporterOutput::write(const EventPrincipal& ep)";
+  auto result_handles = std::vector<art::GroupQueryResult>();
 
-	using RawEvent = artdaq::Fragments;;
-	using RawEvents = std::vector<RawEvent>;
-	using RawEventHandle = art::Handle<RawEvent>;
-	using RawEventHandles = std::vector<RawEventHandle>;
-
-	auto result_handles = std::vector<art::GroupQueryResult>();
-
-#if ART_HEX_VERSION < 0x20906
-	ep.getManyByType(art::TypeID(typeid(RawEvent)), result_handles);
+#if ART_HEX_VERSION < 0x30000
+  auto const& wrapped = art::WrappedTypeID::make<RawEvent>();
+  result_handles = ep.getMany(wrapped, art::MatchAllSelector{});
 #else
-	auto const& wrapped = art::WrappedTypeID::make<RawEvent>();
-	result_handles = ep.getMany(wrapped, art::MatchAllSelector{});
+  auto const& wrapped = art::WrappedTypeID::make<RawEvent>();
+  ModuleContext const mc{moduleDescription()};
+  ProcessTag const processTag{"", mc.moduleDescription().processName()};
+
+  result_handles = ep.getMany(mc, wrapped, art::MatchAllSelector{}, processTag);
 #endif
 
-	for (auto const& result_handle : result_handles)
-	{
-		auto const raw_event_handle = RawEventHandle(result_handle);
+  for (auto const& result_handle : result_handles) {
+    auto const raw_event_handle = RawEventHandle(result_handle);
 
-		if (!raw_event_handle.isValid())
-			continue;
+    if (!raw_event_handle.isValid()) continue;
 
-		for (auto const& fragment : *raw_event_handle){
-			TLOG(TLVL_DEBUG) << "EventReporterOutput::write: Event sequenceID=" << fragment.sequenceID() << ", fragmentID=" << fragment.fragmentID();
-		}
-	}
+    for (auto const& fragment : *raw_event_handle) {
+      TLOG(TLVL_DEBUG) << "EventReporterOutput::write: Event sequenceID=" << fragment.sequenceID()
+                       << ", fragmentID=" << fragment.fragmentID();
+    }
+  }
 
-	return;
+  return;
 }
 
-void
-art::EventReporterOutput::
-writeRun(RunPrincipal& )
-{
+void art::EventReporterOutput::writeRun(RunPrincipal&) {
   TLOG(TLVL_DEBUG) << " EventReporterOutput::writeRun(const RunPrincipal& rp)";
 }
 
-void
-art::EventReporterOutput::writeSubRun(SubRunPrincipal& )
-{
+void art::EventReporterOutput::writeSubRun(SubRunPrincipal&) {
   TLOG(TLVL_DEBUG) << " EventReporterOutput:: writeSubRun(const SubRunPrincipal& srp)";
 }
 
 DEFINE_ART_MODULE(art::EventReporterOutput)
-
