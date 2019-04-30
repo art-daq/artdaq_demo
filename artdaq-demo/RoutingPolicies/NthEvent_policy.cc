@@ -1,6 +1,6 @@
 #define TRACE_NAME "NthEventPolicy"
-#include "artdaq/Application/Routing/RoutingMasterPolicy.hh"
-#include "artdaq/Application/Routing/PolicyMacros.hh"
+#include "artdaq/RoutingPolicies/RoutingMasterPolicy.hh"
+#include "artdaq/RoutingPolicies/PolicyMacros.hh"
 #include "fhiclcpp/ParameterSet.h"
 #include "cetlib_except/exception.h"
 
