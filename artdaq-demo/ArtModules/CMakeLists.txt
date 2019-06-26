@@ -113,6 +113,7 @@ simple_plugin(EventReporterOutput "module"
   fhiclcpp
   cetlib
   ${CETLIB_EXCEPT}
+  ${ROOT_CORE}
   ${ROOT_RIO}
 )
 
