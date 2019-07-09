@@ -1,7 +1,26 @@
 
+source setupARTDAQDEMO
+
+bootfile_name=${bootfile_name:-"boot.txt"}
+extra_args="${extra_args} $@"
+
+if [ -d $ARTDAQ_DAQINTERFACE_DIR/simple_test_config ]; then
+	dir=$ARTDAQ_DAQINTERFACE_DIR/simple_test_config
+elif [ -d $PWD/artdaq-utilities-daqinterface/simple_test_config ]; then
+	dir=$PWD/artdaq-utilities-daqinterface/simple_test_config
+else
+	echo "ERROR: Could not locate artdaq_daqinterface's simple_test_config directory in $ARTDAQ_DAQINTERFACE_DIR or $PWD/artdaq-utilities-daqinterface" >&2
+	exit 2
+fi
+
+if ! [ -e $PWD/run_demo.sh ]; then
+	echo "ERROR: Could not locate run_demo.sh in current directory!" >&2
+	exit 3
+fi
+
 function treset () 
 { 
-        ${TRACE_BIN}/trace_cntl reset "$@"
+	${TRACE_BIN}/trace_cntl reset "$@"
 }
 
 
@@ -11,112 +30,65 @@ function cleanup() {
 	treset
 }
 
-source setupARTDAQDEMO
-cleanup
-echo "=============================================="
-echo "demo"
-echo "=============================================="
-./run_demo.sh --auto ${extra_args}
-echo "=================LATEST FILE=================="
-echo `ls -t daqdata|head -1`
-echo "=============================================="
-cleanup
-echo "=============================================="
-echo "ascii_simulator_example"
-echo "=============================================="
-./run_demo.sh --config ascii_simulator_example --comps component01 -- --no_om --auto ${extra_args}
-echo "=================LATEST FILE=================="
-echo `ls -t daqdata|head -1`
-echo "=============================================="
-cleanup
-echo "=============================================="
-echo "combined_eb_and_dl"
-echo "=============================================="
-./run_demo.sh --config combined_eb_and_dl --comps component{01..04} -- --no_om --auto --bootfile $PWD/artdaq-utilities-daqinterface/simple_test_config/combined_eb_and_dl/boot.txt ${extra_args}
-echo "=================LATEST FILE=================="
-echo `ls -t daqdata|head -1`
-echo "=============================================="
-cleanup
-echo "=============================================="
-echo "config_includes"
-echo "=============================================="
-./run_demo.sh --config config_includes --comps component{01..04} -- --auto --bootfile $PWD/artdaq-utilities-daqinterface/simple_test_config/config_includes/boot.txt ${extra_args}
-echo "=================LATEST FILE=================="
-echo `ls -t daqdata|head -1`
-echo "=============================================="
-cleanup
-echo "=============================================="
-echo "demo_largesystem"
-echo "=============================================="
-./run_demo.sh --config demo_largesystem --comps component{01..19} -- --auto ${extra_args}
-echo "=================LATEST FILE=================="
-echo `ls -t daqdata|head -1`
-echo "=============================================="
-cleanup
-echo "=============================================="
-echo "eventbuilder_diskwriting"
-echo "=============================================="
-./run_demo.sh --config eventbuilder_diskwriting --auto --bootfile $PWD/artdaq-utilities-daqinterface/simple_test_config/eventbuilder_diskwriting/boot.txt ${extra_args}
-echo "=================LATEST FILE=================="
-echo `ls -t daqdata|head -1`
-echo "=============================================="
-cleanup
-echo "=============================================="
-echo "file_closing_example"
-echo "=============================================="
-./run_demo.sh --config file_closing_example --auto ${extra_args}
-echo "=================LATEST FILE=================="
-echo `ls -t daqdata|head -1`
-echo "=============================================="
-cleanup
-echo "=============================================="
-echo "mediumsystem_with_routing_master"
-echo "=============================================="
-./run_demo.sh --config mediumsystem_with_routing_master --comps component{01..10} -- --auto --bootfile $PWD/artdaq-utilities-daqinterface/simple_test_config/mediumsystem_with_routing_master/boot.txt ${extra_args}
-echo "=================LATEST FILE=================="
-echo `ls -t daqdata|head -1`
-echo "=============================================="
-cleanup
-echo "=============================================="
-echo "multiple_art_processes_example"
-echo "=============================================="
-./run_demo.sh --config multiple_art_processes_example --auto  ${extra_args}
-echo "=================LATEST FILE=================="
-echo `ls -t daqdata|head -1`
-echo "=============================================="
-cleanup
-echo "=============================================="
-echo "multiple_dataloggers"
-echo "=============================================="
-./run_demo.sh --config multiple_dataloggers --comps component{01..04} -- --auto --bootfile $PWD/artdaq-utilities-daqinterface/simple_test_config/multiple_dataloggers/boot.txt ${extra_args}
-echo "=================LATEST FILE=================="
-echo `ls -t daqdata|head -1`
-echo "=============================================="
-cleanup
-echo "=============================================="
-echo "request_based_dataflow_example"
-echo "=============================================="
-./run_demo.sh --config request_based_dataflow_example --comps component{01..03} -- --auto ${extra_args}
-echo "=================LATEST FILE=================="
-echo `ls -t daqdata|head -1`
-echo "=============================================="
-cleanup
-echo "=============================================="
-echo "routing_master_example"
-echo "=============================================="
-./run_demo.sh --config routing_master_example --auto --bootfile $PWD/artdaq-utilities-daqinterface/simple_test_config/routing_master_example/boot.txt ${extra_args}
-echo "=================LATEST FILE=================="
-echo `ls -t daqdata|head -1`
-echo "=============================================="
-cleanup
-echo "=============================================="
-echo "subrun_example"
-echo "=============================================="
-./run_demo.sh --config subrun_example --comps component{01..04} -- --auto --bootfile $PWD/artdaq-utilities-daqinterface/simple_test_config/subrun_example/boot.txt ${extra_args}
-echo "=================LATEST FILE=================="
-echo `ls -t daqdata|head -1`
-echo "=============================================="
-cleanup
+function run_simple_test_config() {
+	config=$1
+	
+	cleanup
+	echo "=============================================="
+	echo $config
+	echo "=============================================="
+
+	configDir=$dir/$config
+	bootfile=
+	brlist=
+	brs=
+	om=
+
+	if [ -e $configDir/boot.txt ]; then
+		bootfile="--bootfile $configDir/$bootfile_name"
+	fi
+
+	brlist_file="$dir/../docs/known_boardreaders_list_example"
+	if [ -e $configDir/known_boardreaders_list_example ]; then
+		brlist_file=$configDir/known_boardreaders_list_example
+		brlist="--brlist $brlist_file"
+	fi
+
+	br_temp=`cat $brlist_file|awk '{print $1}'|sed 's/#.*//g'|tr '\n' ' '`
+	for br in ${br_temp}; do
+		if [ -e $configDir/${br}.fcl ] || [ -e $configDir/${br}_hw_cfg.fcl ]; then
+			brs="$brs $br"
+		fi
+	done
+
+	do_om=0
+	for ff in $configDir/*.fcl;do
+		do_om=$(( $do_om + `grep -c ToySimulator $ff` ))
+	done
+
+
+	if [ $do_om -eq 0 ];then
+		om="--no_om"
+	fi
+
+	echo "Command line: ./run_demo.sh --auto --config $config $bootfile $brlist $om --comps $brs -- ${extra_args}"
+	./run_demo.sh --auto --config $config $bootfile $brlist $om --comps $brs -- ${extra_args}
+
+	echo "=================LATEST FILE=================="
+	echo `ls -t daqdata|head -1`
+	echo "=============================================="
+
+}
+
+for config in $dir/*/;do
+	configName=`echo $config|sed 's|/$||g'|sed 's|.*/||g'`
+	if [[ $configName != "config_includes" ]]; then
+		run_simple_test_config $configName
+	fi
+done
+
+
+# Special tests with their own configs:
 echo "=============================================="
 echo "demo (Hung online monitor)"
 echo "=============================================="
