@@ -2,6 +2,7 @@
 source setupARTDAQDEMO
 
 bootfile_name=${bootfile_name:-"boot.txt"}
+ignoredConfigs="subconfigs"
 extra_args="${extra_args} $@"
 
 if [ -d $ARTDAQ_DAQINTERFACE_DIR/simple_test_config ]; then
@@ -82,7 +83,9 @@ function run_simple_test_config() {
 
 for config in $dir/*/;do
 	configName=`echo $config|sed 's|/$||g'|sed 's|.*/||g'`
-	if [[ $configName != "config_includes" ]]; then
+	if [[ $configName =~ $ignoredConfigs ]]; then
+		echo "Ignoring simple_test_config directory $configName"
+	else
 		run_simple_test_config $configName
 	fi
 done
