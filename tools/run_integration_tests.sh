@@ -2,7 +2,7 @@
 source setupARTDAQDEMO
 
 bootfile_name=${bootfile_name:-"boot.txt"}
-ignoredConfigs="subconfigs"
+ignoredConfigs="dune_sample_system|pdune_swtrig|subconfigs"
 extra_args="${extra_args} $@"
 
 if [ -d $ARTDAQ_DAQINTERFACE_DIR/simple_test_config ]; then
