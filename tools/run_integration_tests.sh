@@ -89,7 +89,8 @@ env_opts_var=`basename $0 | sed 's/\.sh$//' | tr 'a-z-' 'A-Z_'`_OPTS
 USAGE="\
    usage: `basename $0` [options]
 examples: `basename $0` 
-		  `basename $0` --om --om_fhicl TransferI
+		  `basename $0` --runduration 60 --runs 3
+          `basename $0` --brlist_name known_boardreaders_list_example.mu2edaq --boot_name boot.mu2edaq.txt
 --help        This help message
 --brlist_name Name of the BoardReader list file (ex. known_boardreaders_list_example) ($brlistfile_name)
 --boot_name   Name of the DAQInterface boot file (ex. boot.txt) (Default: $bootfile_name)
