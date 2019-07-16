@@ -460,6 +460,7 @@ sed -i -r 's!^\s*DAQ setup script:.*!DAQ setup script: '$Base'/setupARTDAQDEMO!'
 
 cd $Base
 ln -s srcs/artdaq_demo/tools/run_demo.sh .
+ln -s srcs/artdaq_demo/tools/run_integration_tests.sh .
 
 if [ "x${opt_run_demo-}" != "x" ]; then
     if [ $installStatus -eq 0 ]; then
