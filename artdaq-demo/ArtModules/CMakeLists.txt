@@ -34,6 +34,7 @@ simple_plugin(ArtdaqDemoBuildInfo "module"
   artdaq_DAQdata
   artdaq_BuildInfo
   artdaq-core_BuildInfo
+  artdaq-utilities_BuildInfo
   artdaq-demo_BuildInfo
   artdaq-core-demo_BuildInfo
   art_Persistency_Provenance
