@@ -49,6 +49,7 @@ simple_plugin(NthEvent "module"
 
 simple_plugin(ToyDump "module"
 	artdaq-core_Data
+    artdaq-core_Utilities
 	artdaq-core-demo_Overlays
 	art_Persistency_Provenance
 	${CETLIB_EXCEPT}
@@ -56,6 +57,7 @@ simple_plugin(ToyDump "module"
 
 simple_plugin(ASCIIDump "module"
 			  artdaq-core_Data
+              artdaq-core_Utilities
 			  artdaq-core-demo_Overlays
 			  art_Persistency_Provenance
 			  ${CETLIB_EXCEPT}
@@ -68,6 +70,7 @@ simple_plugin(RootApplication "module"
 
 simple_plugin(WFViewer "module"
 			  artdaq-core_Data
+              artdaq-core_Utilities
 			  artdaq-core-demo_Overlays
 			  MF_MessageLogger
   art_Persistency_Provenance
@@ -81,6 +84,7 @@ simple_plugin(WFViewer "module"
 
 simple_plugin(CheckIntegrity "module"
 			  artdaq-core_Data
+              artdaq-core_Utilities
 			  artdaq-core-demo_Overlays
 			art_Persistency_Provenance
   ${MESSAGEFACILITY_LIBS}
@@ -107,6 +111,7 @@ simple_plugin(DemoInput "source"
 simple_plugin(EventReporterOutput "module"
   artdaq_ArtModules
   artdaq_DAQdata
+  artdaq-core_Utilities
   art_Framework_Services_Registry
   art_Utilities
   MF_MessageLogger
