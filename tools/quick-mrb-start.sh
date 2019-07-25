@@ -312,6 +312,9 @@ for vv in `awk '/cetbuildtools/{print$2}' */ups/product_deps | sort -u`;do
         cmake_ver=`ups depend cetbuildtools $vv 2>&1 | sed -n -e '/cmake /{s/.*cmake //;s/ .*//;p;}'`
         detectAndPull cmake ${os}-x86_64 nq $cmake_ver
 done
+for vv in `awk '/TRACE\s*v/{print$2}' */ups/product_deps | sort -u`;do
+	detectAndPull TRACE ${os}-x86_64 nq $vv
+done
 
 ARTDAQ_DEMO_DIR=$Base/srcs/artdaq_demo
 ARTDAQ_DIR=$Base/srcs/artdaq
