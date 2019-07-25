@@ -437,6 +437,16 @@ sed -i -r 's!^\s*export DAQINTERFACE_SETTINGS.*!export DAQINTERFACE_SETTINGS='$P
 sed -i -r '/export DAQINTERFACE_USER_SOURCEFILE_ERRNO=0/i \
 export yourArtdaqInstallationDir='$Base'  ' user_sourcefile_example
 
+mkdir -p $Base/run_records
+sed -i -r 's!^\s*record_directory.*!record_directory: '$Base/run_records'!' settings_example
+
+mkdir -p $logdir
+sed -i -r 's!^\s*log_directory.*!log_directory: '$logdir'!' settings_example
+
+mkdir -p $datadir
+sed -i -r 's!^\s*data_directory_override.*!data_directory_override: '$datadir'!' settings_example
+
+sed -i -r 's!^\s*DAQ setup script:.*!DAQ setup script: '$Base'/setupARTDAQDEMO!' boot*.txt
 
 # Figure out which products directory contains the xmlrpc package (for
 # sending commands to DAQInterface) and set it in the settings file
@@ -444,27 +454,52 @@ export yourArtdaqInstallationDir='$Base'  ' user_sourcefile_example
 productsdir=$( ups active | grep xmlrpc | awk '{print $NF}' )
 
 if [[ -z $productsdir ]]; then
-	echo "Unable to determine the products directory containing xmlrpc; will return..." >&2
-	return 41
+
+    # Even though ups active failed us, let's at least find the
+    # highest-priority products directory which contains xmlrpc_c...
+    for pdir in $( echo $PRODUCTS | tr ":" " " ); do 
+	
+	if [[ -d $pdir/xmlrpc_c ]]; then
+	    productsdir=$pdir
+	    break
+	fi
+    done
 fi
 
-sed -i -r 's!^\s*productsdir_for_bash_scripts:.*!productsdir_for_bash_scripts: '$productsdir'!' settings_example
+if [[ -n $productsdir ]]; then
 
-mkdir -p $Base/run_records
+    sed -i -r 's!^\s*productsdir_for_bash_scripts:.*!productsdir_for_bash_scripts: '$productsdir'!' settings_example
 
-sed -i -r 's!^\s*record_directory.*!record_directory: '$Base/run_records'!' settings_example
+else 
 
-mkdir -p $Base/daqlogs
-mkdir -p $Base/daqdata
+    cat<<EOF >&2
 
-sed -i -r 's!^\s*log_directory.*!log_directory: '$logdir'!' settings_example
-sed -i -r 's!^\s*data_directory_override.*!data_directory_override: '$datadir'!' settings_example
+Unable to determine a products directory containing xmlrpc_c, needed
+in order for DAQInterface to receive transition commands. This means
+this script is unable to properly set the
+"productsdir_for_bash_scripts" variable in the 
+$PWD/settings_example 
+file, and consequently the user will need to do so upon determining an
+appropriate products directory. Please consult the DAQInterface manual
+at
+https://cdcvs.fnal.gov/redmine/projects/artdaq-utilities/wiki/Artdaq-daqinterface
+for further details on how to set up DAQInterface. Exiting...
 
-sed -i -r 's!^\s*DAQ setup script:.*!DAQ setup script: '$Base'/setupARTDAQDEMO!' boot*.txt
+EOF
+
+    # Still will want the softlinks despite the failure to edit the
+    # settings file...
+    cd $Base
+    ln -s srcs/artdaq_demo/tools/run_demo.sh .
+    ln -s srcs/artdaq_demo/tools/run_integration_tests.sh .
+    
+    exit 41
+fi
 
 cd $Base
 ln -s srcs/artdaq_demo/tools/run_demo.sh .
 ln -s srcs/artdaq_demo/tools/run_integration_tests.sh .
+
 
 if [ "x${opt_run_demo-}" != "x" ]; then
     if [ $installStatus -eq 0 ]; then
