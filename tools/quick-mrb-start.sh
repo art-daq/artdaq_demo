@@ -123,12 +123,15 @@ function detectAndPull() {
 
 	if [[ "$packageOs" != "noarch" ]]; then
 		local upsflavor=`ups flavor`
-		local packageQualifiers="-`echo $qualifiers|sed 's/:/-/g'`"
-		local packageUPSString="-f $upsflavor -q$qualifiers"
+                if [ -n "${qualifiers-}" ];then
+                	local packageQualifiers="-`echo $qualifiers|sed 's/:/-/g'`"
+		        local packageUPSString="-f $upsflavor -q$qualifiers"
+                fi
 	fi
 	local packageInstalled=`ups list -aK+ $packageName $packageVersion ${packageUPSString-}|grep -c "$packageName"`
 	if [ $packageInstalled -eq 0 ]; then
-		local packagePath="$packageName/$packageVersion/$packageName-$packageDotVersion-${packageOs}${packageQualifiers-}.tar.bz2"
+	    local packagePath="$packageName/$packageVersion/$packageName-$packageDotVersion-${packageOs}${packageQualifiers-}.tar.bz2"
+                echo INFO: about to wget $packageName-$packageDotVersion-${packageOs}${packageQualifiers-}
 		wget http://scisoft.fnal.gov/scisoft/packages/$packagePath >/dev/null 2>&1
 		local packageFile=$( echo $packagePath | awk 'BEGIN { FS="/" } { print $NF }' )
 
@@ -249,10 +252,10 @@ chmod +x pullProducts
 	echo "Error in pullProducts. Please go to http://scisoft.fnal.gov/scisoft/bundles/artdaq_demo/${demo_version}/manifest and make sure that a manifest for the specified qualifiers (${squalifier}-${equalifier}) exists."
 	exit 1
 	fi
-detectAndPull mrb noarch
 export PRODUCTS=$PRODUCTS_SET
 source $Base/products/setup
 PRODUCTS_SET=$PRODUCTS
+detectAndPull mrb noarch
 setup mrb
 setup git
 setup gitflow
@@ -296,21 +299,19 @@ else
 	fi
 fi
 
+os=`$Base/download/cetpkgsupport/bin/get-directory-name os`
+test "$os" = "slf7" && os="sl7"
 if [[ "x${opt_viewer-}" != "x" ]] && [[ $opt_develop -eq 1 ]]; then
-	cd $MRB_SOURCE
 	mrb gitCheckout -d artdaq_mfextensions http://cdcvs.fnal.gov/projects/mf-extensions-git
-
 	qtver=$( awk '/^[[:space:]]*qt[[:space:]]*/ {print $2}' artdaq_mfextensions/ups/product_deps )
-
-	os=`$Base/download/cetpkgsupport/bin/get-directory-name os`
-
-	if [[ "$os" == "slf7" ]]; then
-	os="sl7"
-	fi
-
 	detectAndPull qt ${os}-x86_64 ${equalifier} ${qtver}
 fi
-
+for vv in `awk '/cetbuildtools/{print$2}' */ups/product_deps | sort -u`;do
+	detectAndPull cetbuildtools noarch nq $vv
+        # the following looks for a missing cmake in the depend error output or a non-missing cmake in normal output
+        cmake_ver=`ups depend cetbuildtools $vv 2>&1 | sed -n -e '/cmake /{s/.*cmake //;s/ .*//;p;}'`
+        detectAndPull cmake ${os}-x86_64 nq $cmake_ver
+done
 
 ARTDAQ_DEMO_DIR=$Base/srcs/artdaq_demo
 ARTDAQ_DIR=$Base/srcs/artdaq
