@@ -2,7 +2,7 @@
 
 #include "canvas/Utilities/Exception.h"
 
-#include "artdaq/Application/GeneratorMacros.hh"
+#include "artdaq/Generators/GeneratorMacros.hh"
 #include "cetlib_except/exception.h"
 #include "artdaq-core-demo/Overlays/AsciiFragment.hh"
 #include "artdaq-core-demo/Overlays/AsciiFragmentWriter.hh"
@@ -120,9 +120,12 @@ bool demo::AsciiSimulator::getNext_(artdaq::FragmentPtrs& frags)
 
 	std::size_t initial_payload_size = 0;
 
-	frags.emplace_back(artdaq::Fragment::FragmentBytes(initial_payload_size,
-	                                                   ev_counter(), fragment_id(),
-	                                                   FragmentType::ASCII, metadata));
+
+	std::unique_ptr<artdaq::Fragment> fragptr(
+		artdaq::Fragment::FragmentBytes(initial_payload_size,
+			ev_counter(), fragment_id(),
+			FragmentType::ASCII, metadata));
+	frags.emplace_back(std::move(fragptr));
 
 	// Then any overlay-specific quantities next; will need the
 	// AsciiFragmentWriter class's setter-functions for this

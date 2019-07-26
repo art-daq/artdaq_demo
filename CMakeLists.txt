@@ -105,7 +105,6 @@ else()
 endif()
 
 # macros for art_dictionary and simple_plugin
-include(ArtDictionary)
 include(ArtMake)
 include(BuildPlugins)
 include(CetTest)
