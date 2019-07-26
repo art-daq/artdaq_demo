@@ -19,7 +19,7 @@ bindir      fq_dir      bin
 product		 version	optional
 artdaq           v3_06_00
 artdaq_core_demo v1_06_15
-cetbuildtools    v7_12_01       -       only_for_build
+cetbuildtools    v7_13_02       -       only_for_build
 end_product_list
 
 # See https://cdcvs.fnal.gov/redmine/projects/cet-is-public/wiki/AboutQualifiers for information about the qualifiers used
