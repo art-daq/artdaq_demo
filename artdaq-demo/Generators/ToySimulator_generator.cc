@@ -35,8 +35,9 @@ demo::ToySimulator::ToySimulator(fhicl::ParameterSet const& ps)
 	, readout_buffer_(nullptr)
 	, fragment_type_(static_cast<decltype(fragment_type_)>(artdaq::Fragment::InvalidFragmentType))
 	, distribution_type_(static_cast<ToyHardwareInterface::DistributionType>(ps.get<int>("distribution_type")))
-        , generated_fragments_per_event_(ps.get<int>("generated_fragments_per_event", 1))
-        , exception_on_config_(ps.get<bool>("exception_on_config", false))                                             , dies_on_config_(ps.get<bool>("dies_on_config", false))
+    , generated_fragments_per_event_(ps.get<int>("generated_fragments_per_event", 1))
+    , exception_on_config_(ps.get<bool>("exception_on_config", false))             
+	, dies_on_config_(ps.get<bool>("dies_on_config", false))
 
 {
 	hardware_interface_->AllocateReadoutBuffer(&readout_buffer_);
@@ -99,47 +100,31 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 	// which will then return a unique_ptr to an artdaq::Fragment
 	// object. 
 
-#if 1
-	for (auto i_f = 0; i_f < generated_fragments_per_event_; ++i_f) {
+	for (auto& id : fragmentIDs()) {
 
 	  // The offset logic below is designed to both ensure
 	  // backwards compatibility and to (help) avoid collisions
 	  // with fragment_ids from other boardreaders if more than
 	  // one fragment is generated per event
 
-	  auto offset = i_f == 0 ? 0 : i_f + 10000;
 	  std::unique_ptr<artdaq::Fragment> fragptr(
 						    artdaq::Fragment::FragmentBytes(bytes_read,
 										    ev_counter(), 
-										    fragment_id() + offset,
+										    id,
 										    fragment_type_,
 										    metadata_, timestamp_));
 	  frags.emplace_back(std::move(fragptr));
-	}
-#else
-	std::unique_ptr<artdaq::Fragment> fragptr(
-		artdaq::Fragment::FragmentBytes(/*bytes_read*/ 1024 - 40,
-										ev_counter(), fragment_id(),
-										fragment_type_,
-										metadata_, timestamp_));
-	frags.emplace_back(std::move(fragptr));
-	artdaq::detail::RawFragmentHeader *hdr = (artdaq::detail::RawFragmentHeader*)(frags.back()->headerBeginBytes());
-	// Need a way to fake frag->sizeBytes() (which calls frag->size() which calls fragmentHeader()->word_count
-	hdr->word_count = ceil((bytes_read + 32) / static_cast<double>(sizeof(artdaq::RawDataType)));
-#endif
-
-	if ( !frags.empty() ) {
 
 	  if (distribution_type_ != ToyHardwareInterface::DistributionType::uninitialized)
-	    memcpy(frags.back()->dataBeginBytes(), readout_buffer_, bytes_read);
+		  memcpy(frags.back()->dataBeginBytes(), readout_buffer_, bytes_read);
 	  else
-	    {
-	      // Must preserve the Header!
-	      memcpy(frags.back()->dataBeginBytes(), readout_buffer_, sizeof(ToyFragment::Header));
-	    }
+	  {
+		  // Must preserve the Header!
+		  memcpy(frags.back()->dataBeginBytes(), readout_buffer_, sizeof(ToyFragment::Header));
+	  }
 
 	  TLOG(50) << "getNext_ after memcpy " << bytes_read
-		   << " bytes and std::move dataSizeBytes()=" << frags.back()->sizeBytes() << " metabytes=" << sizeof(metadata_);
+		  << " bytes and std::move dataSizeBytes()=" << frags.back()->sizeBytes() << " metabytes=" << sizeof(metadata_);
 	}
 
 	if (metricMan != nullptr)
@@ -149,14 +134,18 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 
 	if (rollover_subrun_interval_ > 0 && ev_counter() % rollover_subrun_interval_ == 0 && fragment_id() == 0)
 	{
-		artdaq::FragmentPtr endOfSubrunFrag(new artdaq::Fragment(static_cast<size_t>(ceil(sizeof(my_rank) / static_cast<double>(sizeof(artdaq::Fragment::value_type))))));
-		endOfSubrunFrag->setSystemType(artdaq::Fragment::EndOfSubrunFragmentType);
+		bool fragmentIdZero = false;
+		for (auto& id : fragmentIDs()) { if (id == 0) fragmentIdZero = true; }
+		if (fragmentIdZero) {
+			artdaq::FragmentPtr endOfSubrunFrag(new artdaq::Fragment(static_cast<size_t>(ceil(sizeof(my_rank) / static_cast<double>(sizeof(artdaq::Fragment::value_type))))));
+			endOfSubrunFrag->setSystemType(artdaq::Fragment::EndOfSubrunFragmentType);
 
 		endOfSubrunFrag->setSequenceID(ev_counter() + 1);
 		endOfSubrunFrag->setTimestamp(1 + (ev_counter() / rollover_subrun_interval_));
 
-		*endOfSubrunFrag->dataBegin() = my_rank;
-		frags.emplace_back(std::move(endOfSubrunFrag));
+			*endOfSubrunFrag->dataBegin() = my_rank;
+			frags.emplace_back(std::move(endOfSubrunFrag));
+		}
 	}
 
 	ev_counter_inc();
