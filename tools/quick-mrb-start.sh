@@ -429,10 +429,7 @@ fi
 mkdir $daqintdir
 cd $daqintdir
 cp ../artdaq-utilities-daqinterface/bin/mock_ups_setup.sh .
-cp ../artdaq-utilities-daqinterface/docs/user_sourcefile_example .
-cp ../artdaq-utilities-daqinterface/docs/settings_example .
-cp ../artdaq-utilities-daqinterface/docs/known_boardreaders_list_example .
-cp ../artdaq-utilities-daqinterface/docs/boot.txt .
+cp ../artdaq-utilities-daqinterface/docs/* .
 
 sed -i -r 's!^\s*export ARTDAQ_DAQINTERFACE_DIR.*!export ARTDAQ_DAQINTERFACE_DIR='$Base/artdaq-utilities-daqinterface'!' mock_ups_setup.sh
 sed -i -r 's!^\s*export DAQINTERFACE_SETTINGS.*!export DAQINTERFACE_SETTINGS='$PWD/settings_example'!' user_sourcefile_example
@@ -462,10 +459,11 @@ mkdir -p $Base/daqdata
 sed -i -r 's!^\s*log_directory.*!log_directory: '$logdir'!' settings_example
 sed -i -r 's!^\s*data_directory_override.*!data_directory_override: '$datadir'!' settings_example
 
-sed -i -r 's!^\s*DAQ setup script:.*!DAQ setup script: '$Base'/setupARTDAQDEMO!' boot.txt
+sed -i -r 's!^\s*DAQ setup script:.*!DAQ setup script: '$Base'/setupARTDAQDEMO!' boot*.txt
 
 cd $Base
 ln -s srcs/artdaq_demo/tools/run_demo.sh .
+ln -s srcs/artdaq_demo/tools/run_integration_tests.sh .
 
 if [ "x${opt_run_demo-}" != "x" ]; then
     if [ $installStatus -eq 0 ]; then
