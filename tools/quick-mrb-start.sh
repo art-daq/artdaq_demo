@@ -255,6 +255,7 @@ chmod +x pullProducts
 export PRODUCTS=$PRODUCTS_SET
 source $Base/products/setup
 PRODUCTS_SET=$PRODUCTS
+echo PRODUCTS after source products/setup: $PRODUCTS
 detectAndPull mrb noarch
 setup mrb
 setup git
@@ -324,19 +325,26 @@ echo # This script is intended to be sourced.
 
 sh -c "[ \`ps \$\$ | grep bash | wc -l\` -gt 0 ] || { echo 'Please switch to the bash shell before running the artdaq-demo.'; exit; }" || exit
 
-if [[ -e /cvmfs/fermilab.opensciencegrid.org/products/artdaq ]]; then
-  . /cvmfs/fermilab.opensciencegrid.org/products/artdaq/setup
+echo "initial PRODUCTS=\${PRODUCTS-}"
+echo "resetting to demo start: $PRODUCTS_SET"
+export PRODUCTS="$PRODUCTS_SET"
+if echo ":\$PRODUCTS:" | grep :/cvmfs/fermilab.opensciencegrid.org/products/artdaq: >/dev/null;then
+  : already there
+elif [[ -e /cvmfs/fermilab.opensciencegrid.org/products/artdaq ]]; then
+  # /cvmfs exists but wasn't in the orginal, so append to end
+  PRODUCTS="\$PRODUCTS:/cvmfs/fermilab.opensciencegrid.org/products/artdaq/setup"
 fi
 
 source $Base/products/setup
 
-PRODUCTS=\`dropit -D -p"\$PRODUCTS"\`
-if echo "\$PRODUCTS" | grep "$PRODUCTS_SET" >/dev/null; then
-    : OK
-else
+# AT THIS POINT, verify PRODUCTS directories; produce warngings for any nonexistent directories
+echo PRODUCTS cleanup and check...
+PRODUCTS=\`dropit -D -E -p"\$PRODUCTS"\`
+if [ "\$PRODUCTS" != "$PRODUCTS_SET" ]; then
     echo WARNING: PRODUCTS environment has changed from initial installation.
-    echo "Product list $PRODUCTS_SET not found."
+    echo "current \"\$PRODUCTS\" != demo start \"$PRODUCTS_SET\""
 fi
+echo ...done with cleanup and check
 
 setup mrb
 source $Base/localProducts_artdaq_demo_${demo_version}_${equalifier}_${squalifier}_${build_type}/setup
@@ -368,10 +376,16 @@ export FHICL_FILE_PATH=.:\$ARTDAQ_DEMO_DIR/tools/snippets:\$ARTDAQ_DEMO_DIR/tool
 # from the srcs area in the mrb environment is what is found first in the PATH.
 if [ \`echo \$ARTDAQ_DIR|grep -c "$Base"\` -eq 0 ]; then
   echo ""
+  echo ">>> ARTDAQ_DIR=\$ARTDAQ_DIR <<<"
   echo ">>> Setting up the MRB environment again to ensure that MRB-based executables and libraries are used during running. <<<"
   echo ""
   source mrbSetEnv
+  echo ">>> ARTDAQ_DIR=\$ARTDAQ_DIR <<<"
 fi
+
+echo Check for Toy...
+IFSsav=\$IFS IFS=:; for dd in \$LD_LIBRARY_PATH;do IFS=\$IFSsav; ls \$dd/*Toy* 2>/dev/null ;done
+echo ...done with check for Toy
 
 alias rawEventDump="if [[ -n \\\$SETUP_TRACE ]]; then unsetup TRACE ; echo Disabling TRACE so that it will not affect rawEventDump output ; sleep 1; fi; art -c \$ARTDAQ_DIR/fcl/rawEventDump.fcl"
 
@@ -457,6 +471,7 @@ if [[ -z $productsdir ]]; then
 
     # Even though ups active failed us, let's at least find the
     # highest-priority products directory which contains xmlrpc_c...
+    echo searching for xmlrpc_c in PRODUCTS=${PRODUCTS-}
     for pdir in $( echo $PRODUCTS | tr ":" " " ); do 
 	
 	if [[ -d $pdir/xmlrpc_c ]]; then
@@ -468,6 +483,7 @@ fi
 
 if [[ -n $productsdir ]]; then
 
+    echo found xmlrpc_c in $productsdir
     sed -i -r 's!^\s*productsdir_for_bash_scripts:.*!productsdir_for_bash_scripts: '$productsdir'!' settings_example
 
 else 
