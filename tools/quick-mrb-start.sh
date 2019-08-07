@@ -348,7 +348,11 @@ echo ...done with cleanup and check
 
 setup mrb
 source $Base/localProducts_artdaq_demo_${demo_version}_${equalifier}_${squalifier}_${build_type}/setup
-source mrbSetEnv
+if [ \$# -ge 1 -a "\${1-}" = for_running -a -e "\$MRB_BUILDDIR/\$MRB_PROJECT-\$MRB_PROJECT_VERSION" ];then
+   source "\${MRB_DIR}/bin/shell_independence"; source "\$MRB_BUILDDIR/\$MRB_PROJECT-\$MRB_PROJECT_VERSION"
+else
+   source mrbSetEnv
+fi
 
 if [[ "x\${ARTDAQ_MPICH_PLUGIN_DIR:-}" == "x" ]]; then
   for plugin_version in \`ups list -aK+ artdaq_mpich_plugin -q ${equalifier}:${squalifier}:eth:${build_type}|awk '{print \$2}'|sed 's/\"//g'\`;do
@@ -397,6 +401,7 @@ cd $MRB_BUILDDIR
 set +u
 source mrbSetEnv
 set -u
+PRODUCTS=`dropit -D -E -p"$PRODUCTS"`    # clean it
 export CETPKG_J=$((`cat /proc/cpuinfo|grep processor|tail -1|awk '{print $3}'` + 1))
 mrb build    # VERBOSE=1
 installStatus=$?
@@ -462,55 +467,7 @@ sed -i -r 's!^\s*data_directory_override.*!data_directory_override: '$datadir'!'
 
 sed -i -r 's!^\s*DAQ setup script:.*!DAQ setup script: '$Base'/setupARTDAQDEMO!' boot*.txt
 
-# Figure out which products directory contains the xmlrpc package (for
-# sending commands to DAQInterface) and set it in the settings file
-
-productsdir=$( ups active | grep xmlrpc | awk '{print $NF}' )
-
-if [[ -z $productsdir ]]; then
-
-    # Even though ups active failed us, let's at least find the
-    # highest-priority products directory which contains xmlrpc_c...
-    echo searching for xmlrpc_c in PRODUCTS=${PRODUCTS-}
-    for pdir in $( echo $PRODUCTS | tr ":" " " ); do 
-	
-	if [[ -d $pdir/xmlrpc_c ]]; then
-	    productsdir=$pdir
-	    break
-	fi
-    done
-fi
-
-if [[ -n $productsdir ]]; then
-
-    echo found xmlrpc_c in $productsdir
-    sed -i -r 's!^\s*productsdir_for_bash_scripts:.*!productsdir_for_bash_scripts: '$productsdir'!' settings_example
-
-else 
-
-    cat<<EOF >&2
-
-Unable to determine a products directory containing xmlrpc_c, needed
-in order for DAQInterface to receive transition commands. This means
-this script is unable to properly set the
-"productsdir_for_bash_scripts" variable in the 
-$PWD/settings_example 
-file, and consequently the user will need to do so upon determining an
-appropriate products directory. Please consult the DAQInterface manual
-at
-https://cdcvs.fnal.gov/redmine/projects/artdaq-utilities/wiki/Artdaq-daqinterface
-for further details on how to set up DAQInterface. Exiting...
-
-EOF
-
-    # Still will want the softlinks despite the failure to edit the
-    # settings file...
-    cd $Base
-    ln -s srcs/artdaq_demo/tools/run_demo.sh .
-    ln -s srcs/artdaq_demo/tools/run_integration_tests.sh .
-    
-    exit 41
-fi
+sed -i -r 's!^\s*productsdir_for_bash_scripts:.*!productsdir_for_bash_scripts: '"$PRODUCTS"'!' settings_example
 
 cd $Base
 ln -s srcs/artdaq_demo/tools/run_demo.sh .
