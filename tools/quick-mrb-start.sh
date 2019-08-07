@@ -123,12 +123,15 @@ function detectAndPull() {
 
 	if [[ "$packageOs" != "noarch" ]]; then
 		local upsflavor=`ups flavor`
-		local packageQualifiers="-`echo $qualifiers|sed 's/:/-/g'`"
-		local packageUPSString="-f $upsflavor -q$qualifiers"
+                if [ -n "${qualifiers-}" ];then
+                	local packageQualifiers="-`echo $qualifiers|sed 's/:/-/g'`"
+		        local packageUPSString="-f $upsflavor -q$qualifiers"
+                fi
 	fi
 	local packageInstalled=`ups list -aK+ $packageName $packageVersion ${packageUPSString-}|grep -c "$packageName"`
 	if [ $packageInstalled -eq 0 ]; then
-		local packagePath="$packageName/$packageVersion/$packageName-$packageDotVersion-${packageOs}${packageQualifiers-}.tar.bz2"
+	    local packagePath="$packageName/$packageVersion/$packageName-$packageDotVersion-${packageOs}${packageQualifiers-}.tar.bz2"
+                echo INFO: about to wget $packageName-$packageDotVersion-${packageOs}${packageQualifiers-}
 		wget http://scisoft.fnal.gov/scisoft/packages/$packagePath >/dev/null 2>&1
 		local packageFile=$( echo $packagePath | awk 'BEGIN { FS="/" } { print $NF }' )
 
@@ -249,10 +252,11 @@ chmod +x pullProducts
 	echo "Error in pullProducts. Please go to http://scisoft.fnal.gov/scisoft/bundles/artdaq_demo/${demo_version}/manifest and make sure that a manifest for the specified qualifiers (${squalifier}-${equalifier}) exists."
 	exit 1
 	fi
-detectAndPull mrb noarch
 export PRODUCTS=$PRODUCTS_SET
 source $Base/products/setup
 PRODUCTS_SET=$PRODUCTS
+echo PRODUCTS after source products/setup: $PRODUCTS
+detectAndPull mrb noarch
 setup mrb
 setup git
 setup gitflow
@@ -296,21 +300,22 @@ else
 	fi
 fi
 
+os=`$Base/download/cetpkgsupport/bin/get-directory-name os`
+test "$os" = "slf7" && os="sl7"
 if [[ "x${opt_viewer-}" != "x" ]] && [[ $opt_develop -eq 1 ]]; then
-	cd $MRB_SOURCE
 	mrb gitCheckout -d artdaq_mfextensions http://cdcvs.fnal.gov/projects/mf-extensions-git
-
 	qtver=$( awk '/^[[:space:]]*qt[[:space:]]*/ {print $2}' artdaq_mfextensions/ups/product_deps )
-
-	os=`$Base/download/cetpkgsupport/bin/get-directory-name os`
-
-	if [[ "$os" == "slf7" ]]; then
-	os="sl7"
-	fi
-
 	detectAndPull qt ${os}-x86_64 ${equalifier} ${qtver}
 fi
-
+for vv in `awk '/cetbuildtools/{print$2}' */ups/product_deps | sort -u`;do
+	detectAndPull cetbuildtools noarch nq $vv
+        # the following looks for a missing cmake in the depend error output or a non-missing cmake in normal output
+        cmake_ver=`ups depend cetbuildtools $vv 2>&1 | sed -n -e '/cmake /{s/.*cmake //;s/ .*//;p;}'`
+        detectAndPull cmake ${os}-x86_64 nq $cmake_ver
+done
+for vv in `awk '/TRACE\s*v/{print$2}' */ups/product_deps | sort -u`;do
+	detectAndPull TRACE ${os}-x86_64 nq $vv
+done
 
 ARTDAQ_DEMO_DIR=$Base/srcs/artdaq_demo
 ARTDAQ_DIR=$Base/srcs/artdaq
@@ -320,19 +325,26 @@ echo # This script is intended to be sourced.
 
 sh -c "[ \`ps \$\$ | grep bash | wc -l\` -gt 0 ] || { echo 'Please switch to the bash shell before running the artdaq-demo.'; exit; }" || exit
 
-if [[ -e /cvmfs/fermilab.opensciencegrid.org/products/artdaq ]]; then
-  . /cvmfs/fermilab.opensciencegrid.org/products/artdaq/setup
+echo "initial PRODUCTS=\${PRODUCTS-}"
+echo "resetting to demo start: $PRODUCTS_SET"
+export PRODUCTS="$PRODUCTS_SET"
+if echo ":\$PRODUCTS:" | grep :/cvmfs/fermilab.opensciencegrid.org/products/artdaq: >/dev/null;then
+  : already there
+elif [[ -e /cvmfs/fermilab.opensciencegrid.org/products/artdaq ]]; then
+  # /cvmfs exists but wasn't in the orginal, so append to end
+  PRODUCTS="\$PRODUCTS:/cvmfs/fermilab.opensciencegrid.org/products/artdaq/setup"
 fi
 
 source $Base/products/setup
 
-PRODUCTS=\`dropit -D -p"\$PRODUCTS"\`
-if echo "\$PRODUCTS" | grep "$PRODUCTS_SET" >/dev/null; then
-    : OK
-else
+# AT THIS POINT, verify PRODUCTS directories; produce warngings for any nonexistent directories
+echo PRODUCTS cleanup and check...
+PRODUCTS=\`dropit -D -E -p"\$PRODUCTS"\`
+if [ "\$PRODUCTS" != "$PRODUCTS_SET" ]; then
     echo WARNING: PRODUCTS environment has changed from initial installation.
-    echo "Product list $PRODUCTS_SET not found."
+    echo "current \"\$PRODUCTS\" != demo start \"$PRODUCTS_SET\""
 fi
+echo ...done with cleanup and check
 
 setup mrb
 source $Base/localProducts_artdaq_demo_${demo_version}_${equalifier}_${squalifier}_${build_type}/setup
@@ -364,10 +376,16 @@ export FHICL_FILE_PATH=.:\$ARTDAQ_DEMO_DIR/tools/snippets:\$ARTDAQ_DEMO_DIR/tool
 # from the srcs area in the mrb environment is what is found first in the PATH.
 if [ \`echo \$ARTDAQ_DIR|grep -c "$Base"\` -eq 0 ]; then
   echo ""
+  echo ">>> ARTDAQ_DIR=\$ARTDAQ_DIR <<<"
   echo ">>> Setting up the MRB environment again to ensure that MRB-based executables and libraries are used during running. <<<"
   echo ""
   source mrbSetEnv
+  echo ">>> ARTDAQ_DIR=\$ARTDAQ_DIR <<<"
 fi
+
+echo Check for Toy...
+IFSsav=\$IFS IFS=:; for dd in \$LD_LIBRARY_PATH;do IFS=\$IFSsav; ls \$dd/*Toy* 2>/dev/null ;done
+echo ...done with check for Toy
 
 alias rawEventDump="if [[ -n \\\$SETUP_TRACE ]]; then unsetup TRACE ; echo Disabling TRACE so that it will not affect rawEventDump output ; sleep 1; fi; art -c \$ARTDAQ_DIR/fcl/rawEventDump.fcl"
 
@@ -433,6 +451,16 @@ sed -i -r 's!^\s*export DAQINTERFACE_SETTINGS.*!export DAQINTERFACE_SETTINGS='$P
 sed -i -r '/export DAQINTERFACE_USER_SOURCEFILE_ERRNO=0/i \
 export yourArtdaqInstallationDir='$Base'  ' user_sourcefile_example
 
+mkdir -p $Base/run_records
+sed -i -r 's!^\s*record_directory.*!record_directory: '$Base/run_records'!' settings_example
+
+mkdir -p $logdir
+sed -i -r 's!^\s*log_directory.*!log_directory: '$logdir'!' settings_example
+
+mkdir -p $datadir
+sed -i -r 's!^\s*data_directory_override.*!data_directory_override: '$datadir'!' settings_example
+
+sed -i -r 's!^\s*DAQ setup script:.*!DAQ setup script: '$Base'/setupARTDAQDEMO!' boot*.txt
 
 # Figure out which products directory contains the xmlrpc package (for
 # sending commands to DAQInterface) and set it in the settings file
@@ -440,27 +468,54 @@ export yourArtdaqInstallationDir='$Base'  ' user_sourcefile_example
 productsdir=$( ups active | grep xmlrpc | awk '{print $NF}' )
 
 if [[ -z $productsdir ]]; then
-	echo "Unable to determine the products directory containing xmlrpc; will return..." >&2
-	return 41
+
+    # Even though ups active failed us, let's at least find the
+    # highest-priority products directory which contains xmlrpc_c...
+    echo searching for xmlrpc_c in PRODUCTS=${PRODUCTS-}
+    for pdir in $( echo $PRODUCTS | tr ":" " " ); do 
+	
+	if [[ -d $pdir/xmlrpc_c ]]; then
+	    productsdir=$pdir
+	    break
+	fi
+    done
 fi
 
-sed -i -r 's!^\s*productsdir_for_bash_scripts:.*!productsdir_for_bash_scripts: '$productsdir'!' settings_example
+if [[ -n $productsdir ]]; then
 
-mkdir -p $Base/run_records
+    echo found xmlrpc_c in $productsdir
+    sed -i -r 's!^\s*productsdir_for_bash_scripts:.*!productsdir_for_bash_scripts: '$productsdir'!' settings_example
 
-sed -i -r 's!^\s*record_directory.*!record_directory: '$Base/run_records'!' settings_example
+else 
 
-mkdir -p $Base/daqlogs
-mkdir -p $Base/daqdata
+    cat<<EOF >&2
 
-sed -i -r 's!^\s*log_directory.*!log_directory: '$logdir'!' settings_example
-sed -i -r 's!^\s*data_directory_override.*!data_directory_override: '$datadir'!' settings_example
+Unable to determine a products directory containing xmlrpc_c, needed
+in order for DAQInterface to receive transition commands. This means
+this script is unable to properly set the
+"productsdir_for_bash_scripts" variable in the 
+$PWD/settings_example 
+file, and consequently the user will need to do so upon determining an
+appropriate products directory. Please consult the DAQInterface manual
+at
+https://cdcvs.fnal.gov/redmine/projects/artdaq-utilities/wiki/Artdaq-daqinterface
+for further details on how to set up DAQInterface. Exiting...
 
-sed -i -r 's!^\s*DAQ setup script:.*!DAQ setup script: '$Base'/setupARTDAQDEMO!' boot*.txt
+EOF
+
+    # Still will want the softlinks despite the failure to edit the
+    # settings file...
+    cd $Base
+    ln -s srcs/artdaq_demo/tools/run_demo.sh .
+    ln -s srcs/artdaq_demo/tools/run_integration_tests.sh .
+    
+    exit 41
+fi
 
 cd $Base
 ln -s srcs/artdaq_demo/tools/run_demo.sh .
 ln -s srcs/artdaq_demo/tools/run_integration_tests.sh .
+
 
 if [ "x${opt_run_demo-}" != "x" ]; then
     if [ $installStatus -eq 0 ]; then
