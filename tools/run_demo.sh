@@ -272,19 +272,24 @@ if [ $do_om -eq 1 ]; then
     get_dispatcher_port
 
     if [[ "x$dispatcherPort" != "x" ]]; then
-	
-		cp ${fhicldir}/${om_fhicl}.fcl ${thisrecorddir}
-		cp ${fhicldir}/${om_fhicl}.fcl ${thisrecorddir}/${om_fhicl}2.fcl
-		
-		sed -r -i "s/dispatcherPort:.*/dispatcherPort: ${dispatcherPort}/" ${thisrecorddir}/${om_fhicl}.fcl
-		sed -r -i "s/dispatcherPort:.*/dispatcherPort: ${dispatcherPort}/" ${thisrecorddir}/${om_fhicl}2.fcl
-		sed -r -i "s/.*modulus.*[0-9]+.*/modulus: 100/" ${thisrecorddir}/${om_fhicl}2.fcl
-		sed -r -i "/end_paths:/s/a3/a1/" ${thisrecorddir}/${om_fhicl}2.fcl
-		sed -r -i "/shm_key:/s/.*/shm_key: 0x40471453/" ${thisrecorddir}/${om_fhicl}2.fcl
-		sed -r -i "s/shmem1/shmem2/"  ${thisrecorddir}/${om_fhicl}2.fcl
-		sed -r -i "s/destination_rank: 6/destination_rank: 7/" ${thisrecorddir}/${om_fhicl}2.fcl
 
-		xrdbproc=$( which xrdb )
+        save_perm=`stat -c'%a' ${thisrecorddir}`
+        chmod +w ${thisrecorddir}
+
+	cp ${fhicldir}/${om_fhicl}.fcl ${thisrecorddir}
+	cp ${fhicldir}/${om_fhicl}.fcl ${thisrecorddir}/${om_fhicl}2.fcl
+		
+	sed -r -i "s/dispatcherPort:.*/dispatcherPort: ${dispatcherPort}/" ${thisrecorddir}/${om_fhicl}.fcl
+	sed -r -i "s/dispatcherPort:.*/dispatcherPort: ${dispatcherPort}/" ${thisrecorddir}/${om_fhicl}2.fcl
+	sed -r -i "s/.*modulus.*[0-9]+.*/modulus: 100/" ${thisrecorddir}/${om_fhicl}2.fcl
+	sed -r -i "/end_paths:/s/a3/a1/" ${thisrecorddir}/${om_fhicl}2.fcl
+	sed -r -i "/shm_key:/s/.*/shm_key: 0x40471453/" ${thisrecorddir}/${om_fhicl}2.fcl
+	sed -r -i "s/shmem1/shmem2/"  ${thisrecorddir}/${om_fhicl}2.fcl
+	sed -r -i "s/destination_rank: 6/destination_rank: 7/" ${thisrecorddir}/${om_fhicl}2.fcl
+
+        chmod $save_perm ${thisrecorddir}
+
+	xrdbproc=$( which xrdb )
 
         xloc=
         if [[ -e $xrdbproc ]]; then
@@ -293,17 +298,17 @@ if [ $do_om -eq 1 ]; then
     	    xloc=800
         fi
 
-		$toolsdir/xt_cmd.sh $basedir --geom '150x33+'$xloc'+0 -sl 2500' \
+	$toolsdir/xt_cmd.sh $basedir --geom '150x33+'$xloc'+0 -sl 2500' \
 			-c '. ./setupARTDAQDEMO' \
 			-c 'art -c '$thisrecorddir'/'$om_fhicl'.fcl' --exec &
-                xt_pids="$xt_pids $!"
+        xt_pids="$xt_pids $!"
 
-		sleep 4;
+	sleep 4;
 
-		$toolsdir/xt_cmd.sh $basedir --geom '100x33+0+0 -sl 2500' \
+	$toolsdir/xt_cmd.sh $basedir --geom '100x33+0+0 -sl 2500' \
 			-c '. ./setupARTDAQDEMO' \
 			-c 'art -c  '$thisrecorddir'/'$om_fhicl'2.fcl' --exec &
-                xt_pids="$xt_pids $!"
+        xt_pids="$xt_pids $!"
     fi
 fi
 
