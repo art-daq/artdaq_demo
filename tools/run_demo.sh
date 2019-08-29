@@ -5,17 +5,17 @@
 
 get_this_dir() 
 {
-    reldir=`dirname ${0}`
-    ssi_mdt_dir=`cd ${reldir} && pwd -P`
+	reldir=`dirname ${0}`
+	ssi_mdt_dir=`cd ${reldir} && pwd -P`
 }
 
 validate_basedir()
 {
 	valid_basedir=0
 	if [ -d $basedir/artdaq-utilities-daqinterface ] || [ -d $ARTDAQ_DAQINTERFACE_DIR ]; then
-		if [ -d $basedir/DAQInterface ]; then
-			valid_basedir=1
-		fi
+	    if [ -d $basedir/DAQInterface ]; then
+		valid_basedir=1
+	    fi
 	fi
 }
 
@@ -54,7 +54,7 @@ USAGE="\
    usage: `basename $0` [options] [just_do_it.sh options]
 examples: `basename $0` 
           `basename $0` --om --om_fhicl TransferInputShmemWithDelay
-		  `basename $0` --om --config demo_largesystem --compfile $PWD/DAQInterface/comps.list --runduration 40
+          `basename $0` --om --config demo_largesystem --compfile $PWD/DAQInterface/comps.list --runduration 40
 --help        This help message
 --just_do_it_help Help message from just_do_it.sh
 --basedir	  Base directory ($basedir, valid=$valid_basedir)
@@ -74,7 +74,7 @@ eval "set -- $env_opts \"\$@\""
 op1chr='rest=`expr "$op" : "[^-]\(.*\)"`   && set -- "-$rest" "$@"'
 op1arg='rest=`expr "$op" : "[^-]\(.*\)"`   && set --  "$rest" "$@"'
 reqarg="$op1arg;"'test -z "${1+1}" &&echo opt -$op requires arg. &&echo "$USAGE" &&exit'
-args= do_help= do_jdi_help= do_om=1 auto_mode=0 do_db=1;
+args= do_help= do_jdi_help= do_om=1 auto_mode=0 do_db=0;
 while [ -n "${1-}" ];do
     if expr "x${1-}" : 'x-' >/dev/null;then
         op=`expr "x$1" : 'x-\(.*\)'`; shift   # done with $1
@@ -84,7 +84,7 @@ while [ -n "${1-}" ];do
             \?*|h*)     eval $op1chr; do_help=1;;
             x*)         eval $op1chr; set -x;;
             -help)      do_help=1;;
-	    -just_do_it_help) eval $op1arg; do_jdi_help=1;;
+            -just_do_it_help) eval $op1arg; do_jdi_help=1;;
             -basedir)   eval $reqarg; basedir=$1; shift;;
             -toolsdir)  eval $reqarg; toolsdir=$1; shift;;
             -brlist)    eval $reqarg; brlist=$1; shift;;
@@ -166,57 +166,57 @@ test -n "$ARTDAQ_PARTITION_NUMBER" && \
     export DAQINTERFACE_PARTITION_NUMBER=$ARTDAQ_PARTITION_NUMBER
 
 if [ -n "${do_jdi_help-}" ]; then
-    cd ${daqintdir}
-    source ./mock_ups_setup.sh	
+	cd ${daqintdir}
+	source ./mock_ups_setup.sh	
 	source $ARTDAQ_DAQINTERFACE_DIR/source_me
 	just_do_it.sh --help
 	exit
 fi
 
 function wait_for_state() {
-    local stateName=$1
+	local stateName=$1
 
-    # 20-Mar-2018, KAB
-    # The DAQInterface setup uses a dynamic way to determine which PORT to use for communication.
-    # This means that we need to allow sufficient time between when DAQInterface is started and
-    # when we run 'source_me' so that they agree on the port that should be used.
-    # The way that we work around this here is to catch what appears to be a port mis-match
-    # (the status.sh call returns an empty string), wait a bit, and then re-run source_me in the
-    # hope that it will pick up the correct port.
-    # An important piece of this is the un-setting of the DAQINTERFACE_STANDARD_SOURCEFILE_SOURCED
-    # env var so that source_me will go through the process of re-determining which port to use.
+	# 20-Mar-2018, KAB
+	# The DAQInterface setup uses a dynamic way to determine which PORT to use for communication.
+	# This means that we need to allow sufficient time between when DAQInterface is started and
+	# when we run 'source_me' so that they agree on the port that should be used.
+	# The way that we work around this here is to catch what appears to be a port mis-match
+	# (the status.sh call returns an empty string), wait a bit, and then re-run source_me in the
+	# hope that it will pick up the correct port.
+	# An important piece of this is the un-setting of the DAQINTERFACE_STANDARD_SOURCEFILE_SOURCED
+	# env var so that source_me will go through the process of re-determining which port to use.
 
-    cd ${daqintdir}
-    source ./mock_ups_setup.sh
-    source $ARTDAQ_DAQINTERFACE_DIR/source_me > /dev/null
+	cd ${daqintdir}
+	source ./mock_ups_setup.sh
+	source $ARTDAQ_DAQINTERFACE_DIR/source_me > /dev/null
 
-    while [[ "1" ]]; do
-      sleep 1
+	while [[ "1" ]]; do
+	    sleep 1
 
-      # 19-Apr-2018, KAB: removed the redirection of stderr for the status.sh call
-      # so that we will see problems like 'unable to find installed package' when
-      # we install the demo on one node in a cluster and try to run it on another
-      # node that has a different set of external disks mounted.
-      res=$( status.sh | tail -1 | tr "'" " " | awk '{print $2}' )
+	    # 19-Apr-2018, KAB: removed the redirection of stderr for the status.sh call
+	    # so that we will see problems like 'unable to find installed package' when
+	    # we install the demo on one node in a cluster and try to run it on another
+	    # node that has a different set of external disks mounted.
+	    res=$( status.sh | tail -1 | tr "'" " " | awk '{print $2}' )
 
-      if [[ "$res" == "" ]]; then
-          sleep 2
-          unset DAQINTERFACE_STANDARD_SOURCEFILE_SOURCED
-          source $ARTDAQ_DAQINTERFACE_DIR/source_me > /dev/null
-      fi
+	    if [[ "$res" == "" ]]; then
+			sleep 2
+			unset DAQINTERFACE_STANDARD_SOURCEFILE_SOURCED
+			source $ARTDAQ_DAQINTERFACE_DIR/source_me > /dev/null
+	    fi
 
-      if [[ "$res" == "$stateName" ]]; then
-          break
-      fi
-    done
+	    if [[ "$res" == "$stateName" ]]; then
+			break
+	    fi
+	done
 }
 
 function get_run_record_dir() {
-    cd ${daqintdir}
-    source ./mock_ups_setup.sh
-    source $ARTDAQ_DAQINTERFACE_DIR/source_me > /dev/null
+	cd ${daqintdir}
+	source ./mock_ups_setup.sh
+	source $ARTDAQ_DAQINTERFACE_DIR/source_me > /dev/null
 
-    source $ARTDAQ_DAQINTERFACE_DIR/bin/diagnostic_tools.sh
+	source $ARTDAQ_DAQINTERFACE_DIR/bin/diagnostic_tools.sh
 
 	thisrecorddir="$recorddir/`ls -t $recorddir|head -1`"
 
@@ -228,7 +228,7 @@ function get_dispatcher_port() {
 		get_run_record_dir
 	fi
 
-    #echo "Reading $recorddir/$thisdir/ranks.txt"
+	#echo "Reading $recorddir/$thisdir/ranks.txt"
 	dispatcherPort=`grep -i dispatcher $thisrecorddir/ranks.txt|head -1|awk '{print $2}'`
 
 	echo "Dispatcher found at port $dispatcherPort"
@@ -243,32 +243,32 @@ $(dirname $(readlink --canonicalize-existing $0))/configure_artdaq_database.sh \
 # https://cdcvs.fnal.gov/redmine/projects/artdaq-utilities/wiki/Artdaq-daqinterface
 
 xt_pids=
-    $toolsdir/xt_cmd.sh $daqintdir --geom '132x33 -sl 2500' \
-        -c 'source mock_ups_setup.sh' \
+$toolsdir/xt_cmd.sh $daqintdir --geom '132x33 -sl 2500' \
+    -c 'source mock_ups_setup.sh' \
     -c 'export DAQINTERFACE_USER_SOURCEFILE='"$DAQINTERFACE_USER_SOURCEFILE" \
     ${ARTDAQ_PARTITION_NUMBER:+-c"export DAQINTERFACE_PARTITION_NUMBER=$ARTDAQ_PARTITION_NUMBER"}\
     ${DAQINTERFACE_PROCESS_MANAGEMENT_METHOD:+-c"export DAQINTERFACE_PROCESS_MANAGEMENT_METHOD=$DAQINTERFACE_PROCESS_MANAGEMENT_METHOD"}\
-	-c 'source $ARTDAQ_DAQINTERFACE_DIR/source_me' \
+    -c 'source $ARTDAQ_DAQINTERFACE_DIR/source_me' \
     -c 'DAQInterface' --exec &
 xt_pids="$xt_pids $!"
 
-    sleep 3
-    echo ""
-    echo "Waiting for DAQInterface to reached the 'stopped' state before continuing..."
-    wait_for_state "stopped"
-    echo "Done waiting."
+sleep 3
+echo ""
+echo "Waiting for DAQInterface to reached the 'stopped' state before continuing..."
+wait_for_state "stopped"
+echo "Done waiting."
 
-    $toolsdir/xt_cmd.sh $daqintdir --geom 132 \
-        -c 'source mock_ups_setup.sh' \
+$toolsdir/xt_cmd.sh $daqintdir --geom 132 \
+    -c 'source mock_ups_setup.sh' \
     -c 'export DAQINTERFACE_USER_SOURCEFILE='"$DAQINTERFACE_USER_SOURCEFILE" \
     ${ARTDAQ_PARTITION_NUMBER:+-c"export DAQINTERFACE_PARTITION_NUMBER=$ARTDAQ_PARTITION_NUMBER"} \
-	-c 'source $ARTDAQ_DAQINTERFACE_DIR/source_me' \
-	-c 'if [[ -n $DAQINTERFACE_MESSAGEFACILITY_FHICL ]]; then msgfacfile=$DAQINTERFACE_MESSAGEFACILITY_FHICL ; else msgfacfile=MessageFacility.fcl ; fi' \
-	-c 'if [[ -e $msgfacfile ]]; then sed -r -i  "s/(host\s*:\s*)\"\S+\"/\1\""$HOSTNAME"\"/g" $msgfacfile ; fi' \
+    -c 'source $ARTDAQ_DAQINTERFACE_DIR/source_me' \
+    -c 'if [[ -n $DAQINTERFACE_MESSAGEFACILITY_FHICL ]]; then msgfacfile=$DAQINTERFACE_MESSAGEFACILITY_FHICL ; else msgfacfile=MessageFacility.fcl ; fi' \
+    -c 'if [[ -e $msgfacfile ]]; then sed -r -i  "s/(host\s*:\s*)\"\S+\"/\1\""$HOSTNAME"\"/g" $msgfacfile ; fi' \
     -c "just_do_it.sh -v $* $jdibootfile $jdiduration" --exec &
 xt_pids="$xt_pids $!"
 
-	if [ $do_om -eq 1 ]; then
+if [ $do_om -eq 1 ]; then
     sleep 8;
     echo ""
     echo "Waiting for the run to start before starting online monitor apps..."
@@ -278,39 +278,44 @@ xt_pids="$xt_pids $!"
     get_run_record_dir
     get_dispatcher_port
 
-	if [[ "x$dispatcherPort" != "x" ]]; then
-	
-		cp ${fhicldir}/${om_fhicl}.fcl ${thisrecorddir}
-		cp ${fhicldir}/${om_fhicl}.fcl ${thisrecorddir}/${om_fhicl}2.fcl
+    if [[ "x$dispatcherPort" != "x" ]]; then
+
+        save_perm=`stat -c'%a' ${thisrecorddir}`
+        chmod +w ${thisrecorddir}
+
+	cp ${fhicldir}/${om_fhicl}.fcl ${thisrecorddir}
+	cp ${fhicldir}/${om_fhicl}.fcl ${thisrecorddir}/${om_fhicl}2.fcl
 		
-		sed -r -i "s/dispatcherPort:.*/dispatcherPort: ${dispatcherPort}/" ${thisrecorddir}/${om_fhicl}.fcl
-		sed -r -i "s/dispatcherPort:.*/dispatcherPort: ${dispatcherPort}/" ${thisrecorddir}/${om_fhicl}2.fcl
-		sed -r -i "s/.*modulus.*[0-9]+.*/modulus: 100/" ${thisrecorddir}/${om_fhicl}2.fcl
-		sed -r -i "/end_paths:/s/a3/a1/" ${thisrecorddir}/${om_fhicl}2.fcl
-		sed -r -i "/shm_key:/s/.*/shm_key: 0x40471453/" ${thisrecorddir}/${om_fhicl}2.fcl
-		sed -r -i "s/shmem1/shmem2/"  ${thisrecorddir}/${om_fhicl}2.fcl
-		sed -r -i "s/destination_rank: 6/destination_rank: 7/" ${thisrecorddir}/${om_fhicl}2.fcl
+	sed -r -i "s/dispatcherPort:.*/dispatcherPort: ${dispatcherPort}/" ${thisrecorddir}/${om_fhicl}.fcl
+	sed -r -i "s/dispatcherPort:.*/dispatcherPort: ${dispatcherPort}/" ${thisrecorddir}/${om_fhicl}2.fcl
+	sed -r -i "s/.*modulus.*[0-9]+.*/modulus: 100/" ${thisrecorddir}/${om_fhicl}2.fcl
+	sed -r -i "/end_paths:/s/a3/a1/" ${thisrecorddir}/${om_fhicl}2.fcl
+	sed -r -i "/shm_key:/s/.*/shm_key: 0x40471453/" ${thisrecorddir}/${om_fhicl}2.fcl
+	sed -r -i "s/shmem1/shmem2/"  ${thisrecorddir}/${om_fhicl}2.fcl
+	sed -r -i "s/destination_rank: 6/destination_rank: 7/" ${thisrecorddir}/${om_fhicl}2.fcl
 
-    xrdbproc=$( which xrdb )
+        chmod $save_perm ${thisrecorddir}
 
-    xloc=
-    if [[ -e $xrdbproc ]]; then
-    	xloc=$( xrdb -symbols | grep DWIDTH | awk 'BEGIN {FS="="} {pixels = $NF; print pixels/2}' )
-    else
-    	xloc=800
-    fi
+	xrdbproc=$( which xrdb )
 
-    $toolsdir/xt_cmd.sh $basedir --geom '150x33+'$xloc'+0 -sl 2500' \
-        -c '. ./setupARTDAQDEMO' \
+        xloc=
+        if [[ -e $xrdbproc ]]; then
+    	    xloc=$( xrdb -symbols | grep DWIDTH | awk 'BEGIN {FS="="} {pixels = $NF; print pixels/2}' )
+        else
+    	    xloc=800
+        fi
+
+	$toolsdir/xt_cmd.sh $basedir --geom '150x33+'$xloc'+0 -sl 2500' \
+			-c '. ./setupARTDAQDEMO' \
 			-c 'art -c '$thisrecorddir'/'$om_fhicl'.fcl' --exec &
-                xt_pids="$xt_pids $!"
+        xt_pids="$xt_pids $!"
 
-    sleep 4;
+	sleep 4;
 
-    $toolsdir/xt_cmd.sh $basedir --geom '100x33+0+0 -sl 2500' \
-        -c '. ./setupARTDAQDEMO' \
+	$toolsdir/xt_cmd.sh $basedir --geom '100x33+0+0 -sl 2500' \
+			-c '. ./setupARTDAQDEMO' \
 			-c 'art -c  '$thisrecorddir'/'$om_fhicl'2.fcl' --exec &
-                xt_pids="$xt_pids $!"
+        xt_pids="$xt_pids $!"
     fi
 fi
 
@@ -319,7 +324,7 @@ if [ $auto_mode -eq 1 ];then
        echo ""
        echo "Waiting for the run to start"
        wait_for_state "running"
-	fi
+    fi
     
     echo ""
     echo "Waiting for DAQInterface to reached the 'stopped' state before exiting..."
