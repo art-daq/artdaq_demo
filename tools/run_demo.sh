@@ -90,6 +90,7 @@ while [ -n "${1-}" ];do
             -brlist)    eval $reqarg; brlist=$1; shift;;
 	    -no_om)        do_om=0;;
 	    -no_db)        do_db=0;;
+	    -do_db)        do_db=1;;
 	    -om_fhicl)  eval $reqarg; om_fhicl=$1; shift;;
             -auto)         auto_mode=1;;
             -partition) eval $reqarg; export ARTDAQ_PARTITION_NUMBER=$1; export DAQINTERFACE_PARTITION_NUMBER=$1; shift;;

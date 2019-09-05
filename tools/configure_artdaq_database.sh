@@ -14,8 +14,6 @@
 
 
 #defines
-def_extra_products=/cvmfs/fermilab.opensciencegrid.org/products/artdaq
-#def_extra_products=/mnt/sde/products
 def_toolsdir_dir=/srcs/artdaq_demo/tools
 def_ignore_database="export DAQINTERFACE_FHICL_DIRECTORY=IGNORED"
 def_timestamp=$(date -d "today" +"%Y%m%d%H%M%S")
@@ -41,7 +39,7 @@ Usage: $(basename $0) [options]
    --database-data-dir=<dir-path> Full path to the \"filesytem\" database data files (default is \$MRB_TOP/database)
    --basedir=<dir-path>           Base directory (default is \$MRB_TOP)
    --toolsdir=<dir-path>          artdaq_demo/tools directory (default is \$MRB_TOP$def_toolsdir_dir)
-   --extra-products=<dir-list>    Additional UPS products directories (default is $def_extra_products)
+   --extra-products=<dir-list>    Additional UPS products directories
 
 "
 }
@@ -66,6 +64,7 @@ ret_msg=$value_notset
 
 for opt in "$@"; do case $opt in
     \?*|-h|--help)            arg_do_help=1                     ;;
+    -x)                       set -x                            ;;
     --setup-script=*)         arg_setup_script="${opt#*=}"      ;;
     --database-version=*)     arg_database_version="${opt#*=}"  ;;
     --database-qualifiers=*)  arg_database_quals="${opt#*=}"    ;;
@@ -111,6 +110,33 @@ function trim()
     echo -n "$var"
 }
 
+  #function setup() {
+  #  local this_ups=$(which ups 2>/dev/null)
+  #  [[ -x $this_ups ]] && source $($this_ups setup "$@") || echo "Error: UPS is not setup."
+  #}
+
+grab_DAQINTERFACE_FHICL_DIRECTORY_from_file()
+{   file=$1
+    set +x
+    echo $( \
+        cd $glb_daqintdir; \
+        source ./mock_ups_setup.sh; \
+        export DAQINTERFACE_USER_SOURCEFILE=$PWD/$def_usersourcefile; \
+        source $ARTDAQ_DAQINTERFACE_DIR/source_me >/dev/null; \
+        echo $DAQINTERFACE_FHICL_DIRECTORY )
+}
+
+#
+# Inputs: arg_setup_script      - main demo setup script i.e. setupARTDAQDEMO
+#         arg_basedir           - demo base - i.e. $MRB_TOP (after . setupARTDAQDEMO) and where DAQInterface dir is
+#         arg_database_data_dir - where to put filesystem database data - default: basedir/database
+#         arg_toolsdir          - default: basedir/srcs/artdaq_demo/tools
+#         def_usersourcefile    - user_sourcefile_example
+#
+# Need to: 1) determine if database product is setup via setupARTDAQDEMO
+#          2) determine DAQINTERFACE_FHICL_DIRECTORY from orig usersourcefile
+#          3) if necessary, determine PRODUCTS and QUAL and artdaq_database product version to setup
+#          4) go through all configs in DAQINTERFACE_FHICL_DIRECTORY and load_configs
 function configure_artdaq_database()
 {
     echo "Info: Running configure_artdaq_database()"
@@ -124,8 +150,15 @@ function configure_artdaq_database()
     fi
 
     [[ "$arg_basedir" == "$value_notset" ]] && unset arg_basedir
-    local this_basedir=${arg_basedir:-$(source $this_setup_script > /dev/null 2>&1 \
-          && echo $MRB_TOP || echo $error_val)}
+    flags=$-; set +x # incase -x
+    demo_env_info=$(source $this_setup_script > /dev/null 2>&1;\
+        echo MRB_TOP=$MRB_TOP;\
+        echo MRB_QUALS=$MRB_QUALS;\
+        echo ARTDAQ_DATABASE_VERSION=$ARTDAQ_DATABASE_VERSION;\
+        echo PRODUCTS=$PRODUCTS)
+    local this_basedir=${arg_basedir:-$(echo "$demo_env_info" \
+        | awk -n '/^MRB_TOP=/{print gensub(/^[^=]+=/,"","");x=1}END{if(!x)print"'"$error_val"'"}')}
+    set -$flags
     if [[ ! -d $this_basedir ]]; then
       ret_msg="Error: \"$this_basedir\" does not exist."
        return 2
@@ -142,43 +175,117 @@ function configure_artdaq_database()
     glb_daqintdir=$this_daqintdir
 
     #return is the database directory exists already
-    [[ -d $this_database_data_dir ]] && return 0
+    [[ -d $this_database_data_dir ]] && return 0      #  <-------------------<<<*** early return - previously configured
+
 
     [[ "$arg_database_quals" == "$value_notset" ]] && unset arg_database_quals
-    local this_database_quals=${arg_database_quals:-$(source $this_setup_script > /dev/null 2>&1 && \
-          echo $MRB_QUALS || echo $error_val)}
+    local this_database_quals=${arg_database_quals:-$(echo "$demo_env_info" \
+        | awk -n '/^MRB_QUALS=/{print gensub(/^[^=]+=/,"","");x=1}END{if(!x)print"'"$error_val"'"}')}
     if [[ "$this_database_quals" == "$error_val" ]]; then
       ret_msg="Error: \"source $this_setup_script\" did not export MRB_QUALS."
       return 4
     fi
 
-    [[ "$arg_extra_products" == "$value_notset" ]] && unset arg_extra_products
-    local this_extra_products=${arg_extra_products:-$def_extra_products}
-
-    if [[ "$this_extra_products" != "$value_notset" && ! -f $this_extra_products/setup ]]; then
-      ret_msg="Error: Invalid UPS repository, \"$this_extra_products/setup\" does not exist."
-      return 5
+    if [[ ! -f $this_daqintdir/$def_usersourcefile ]]; then
+      ret_msg="Error: \"$this_daqintdir/$def_usersourcefile\" does not exist."
+      return 10
     fi
 
-    [[ "$arg_database_version" == "$value_notset" ]] && unset arg_database_version
-    local this_database_version=${arg_database_version:-$( \
-       if [[ "$this_extra_products" != "$value_notset" ]]; then source $this_extra_products/setup; fi && \
-          source $this_setup_script > /dev/null 2>&1 && \
-          ups list -aK+ artdaq_database -q $this_database_quals |cut -d" " -f2 |tr -d '"'| sort |tail -1 || echo $error_val)}
-    if [[ -z $this_database_version ]] || [[ "$this_database_version" == "$error_val" ]]; then
-      ret_msg="Error: artdaq_database with qualifiers $this_database_quals was not found."
-      return 6
-    fi
+    DAQINTERFACE_USER_SOURCEFILE=$this_daqintdir/$def_usersourcefile
 
-    local this_database_upsrepo=$( \
-      if [[ "$this_extra_products" != "$value_notset" ]]; then source $this_extra_products/setup; fi && \
-         source $this_setup_script > /dev/null 2>&1 && \
-         ups list -a artdaq_database $this_database_version -q $this_database_quals |grep -B1 "Version=" | \
-         grep "DATABASE="  |cut -d "=" -f 2 | head -1 || echo $error_val)
-    this_database_upsrepo=$(trim $this_database_upsrepo)
-    if [[ -z $this_database_upsrepo ]] || [[ "$this_database_upsrepo" == "$error_val" ]] || [[ ! -f $this_database_upsrepo/setup ]]; then
-      ret_msg="Error: Unable to determine the UPS path for artdaq_database $this_database_version with qualifiers $this_database_quals."
-      return 7
+    # See if database is setup in the demo environment
+    demo_env_database_ver=$(echo "$demo_env_info" \
+        | awk -n '/^ARTDAQ_DATABASE_VERSION=/{print gensub(/^[^=]+=/,"","");x=1}END{if(!x)print"'"$error_val"'"}')
+
+    if [ -n "$demo_env_database_ver" ];then #-a -n "" ];then
+        # EASY!!!!  database already setup in demo environment
+        flags=$-; set +x # incase -x
+        source $this_setup_script > /dev/null 2>&1
+        set -$flags
+
+        export PYTHONPATH=`find $this_basedir/build* -name conftoolp.py -exec dirname \{} \;`
+        PYTHONPATH="$PYTHONPATH:`find $this_basedir/build* -name _conftoolp.so -exec dirname \{} \;`"
+        echo PYTHONPATH=$PYTHONPATH
+
+        echo Info: adjusting $DAQINTERFACE_USER_SOURCEFILE
+        [[ ! -f $DAQINTERFACE_USER_SOURCEFILE.orig ]] \
+            && cp -f $DAQINTERFACE_USER_SOURCEFILE{,.orig} ||  cp -f $DAQINTERFACE_USER_SOURCEFILE{.orig,}
+
+        # grab DAQINTERFACE_FHICL_DIRECTORY from orig USER_SOURCEFILE -- NEED TO SAVE THIS FOR LATER
+        DAQINTERFACE_FHICL_DIRECTORY=`grab_DAQINTERFACE_FHICL_DIRECTORY_from_file $this_daqintdir/$def_usersourcefile`
+        echo DAQINTERFACE_FHICL_DIRECTORY=$DAQINTERFACE_FHICL_DIRECTORY
+
+        local match_string=$(cat $DAQINTERFACE_USER_SOURCEFILE|grep "Put code here which sets up the database environment")
+        sed -i -e "/$match_string/a\\" \
+            -e "   source $this_setup_script\\" \
+            -e "   export PYTHONPATH=$PYTHONPATH\\" \
+            -e "   export ARTDAQ_DATABASE_URI=filesystemdb://$arg_database_data_dir/online_config_db" $DAQINTERFACE_USER_SOURCEFILE
+        sed -i -e '/DAQINTERFACE_FHICL_DIRECTORY=/a\' -e "$def_ignore_database" $DAQINTERFACE_USER_SOURCEFILE
+        echo Info: done adjusting $DAQINTERFACE_USER_SOURCEFILE
+
+    else
+        # HARDER -- find an artdaq_database product
+        export PRODUCTS=$(echo "$demo_env_info" \
+            | awk -n '/^PRODUCTS=/{print gensub(/^[^=]+=/,"","");x=1}END{if(!x)print"'"$error_val"'"}')
+        if [[ "$arg_extra_products" != "$value_notset" ]];then
+            IFSsav=$IFS IFS=:; for pp in $arg_extra_products;do IFS=$IFSsav
+                if [ ! -d $pp ];then
+                    ret_msg="Error: Invalid UPS repository(ies), \"$this_extra_products\"; \"$pp\" does not exist."
+                    return 5
+                fi
+            done; IFS=$IFSsav
+            export PRODUCTS=$arg_extra_products:$PRODUCTS
+        fi
+        # find upsrepo for running setup
+        IFSsav=$IFS IFS=:; for pp in $PRODUCTS;do IFS=$IFSsav
+            if [ -f $pp/setup -a -d $pp/ups ];then
+                flags=$-; set +x # incase -x
+                source $pp/setup
+                set -$flags
+                break
+            fi
+        done; IFS=$IFSsav
+
+
+        [[ "$arg_database_version" == "$value_notset" ]] && unset arg_database_version
+        local this_database_version=${arg_database_version:-$( \
+            ups list -aK+ artdaq_database -q $this_database_quals | awk '{print$2}' |sed 's/"//g'| sort -V |tail -1 || echo $error_val)}
+        if [[ -z $this_database_version ]] || [[ "$this_database_version" == "$error_val" ]]; then
+            ret_msg="Error: artdaq_database with qualifiers $this_database_quals was not found."
+            return 6
+        fi
+
+        local this_database_upsrepo=$( \
+            ups list -a artdaq_database $this_database_version -q $this_database_quals |grep -B1 "Version=" | \
+            grep "DATABASE="  |cut -d "=" -f 2 | head -1 || echo $error_val)
+        this_database_upsrepo=$(trim $this_database_upsrepo)
+        if [[ -z $this_database_upsrepo ]] || [[ "$this_database_upsrepo" == "$error_val" ]] || [[ ! -f $this_database_upsrepo/setup ]]; then
+            ret_msg="Error: Unable to determine the UPS path for artdaq_database $this_database_version with qualifiers $this_database_quals."
+            return 7
+        fi
+
+        flags=$-; set +x
+        echo setup artdaq_database $this_database_version -q $this_database_quals
+        setup artdaq_database $this_database_version -q $this_database_quals
+        set -$flags
+
+        [[ ! -f $DAQINTERFACE_USER_SOURCEFILE.orig ]] \
+            && cp -f $DAQINTERFACE_USER_SOURCEFILE{,.orig} ||  cp -f $DAQINTERFACE_USER_SOURCEFILE{.orig,}
+
+        # grab DAQINTERFACE_FHICL_DIRECTORY from orig USER_SOURCEFILE -- NEED TO SAVE THIS FOR LATER
+        DAQINTERFACE_FHICL_DIRECTORY=`grab_DAQINTERFACE_FHICL_DIRECTORY_from_file $this_daqintdir/$def_usersourcefile`
+        echo DAQINTERFACE_FHICL_DIRECTORY=$DAQINTERFACE_FHICL_DIRECTORY
+
+        #local this_database_setup_cmd=$(ups active |grep artdaq_database\
+        #                         |awk '{printf "   source %s/setup;setup %s %s %s %s", $8,$1,$2,$5,$6}')
+        local match_string=$(cat $DAQINTERFACE_USER_SOURCEFILE|grep "Put code here which sets up the database environment")
+        sed -i -e "/$match_string/a\\" \
+            -e "   export PRODUCTS=$PRODUCTS\\" \
+            -e "   source $this_database_upsrepo/setup\\" \
+            -e "   setup artdaq_database $this_database_version -q $this_database_quals\\" \
+            -e "   export ARTDAQ_DATABASE_URI=filesystemdb://$arg_database_data_dir/online_config_db" $DAQINTERFACE_USER_SOURCEFILE
+        sed -i -e '/DAQINTERFACE_FHICL_DIRECTORY=/a\' -e "$def_ignore_database" $DAQINTERFACE_USER_SOURCEFILE
+
     fi
 
     [[ "$arg_toolsdir" == "$value_notset" ]] && unset arg_toolsdir
@@ -186,16 +293,6 @@ function configure_artdaq_database()
     if [[ ! -d $this_toolsdir ]]; then
       ret_msg="Error: \"$this_toolsdir\" does not exist."
       return 8
-    fi
-
-    if [[ ! -f $this_toolsdir/xt_cmd.sh ]]; then
-      ret_msg="Error: \"$this_toolsdir/xt_cmd.sh\" does not exist."
-      return 9
-    fi
-
-    if [[ ! -f $this_daqintdir/$def_usersourcefile ]]; then
-      ret_msg="Error: \"$this_daqintdir/$def_usersourcefile\" does not exist."
-      return 10
     fi
 
     local this_script_fullpath=$value_notset
@@ -223,28 +320,7 @@ function configure_artdaq_database()
 
     echo "Info: Configuring artdaq_database $this_database_version with qualifiers $this_database_quals in $this_database_data_dir."
 
-    [[ ! -f $this_daqintdir/$def_usersourcefile.orig ]] \
-       && cp -f $this_daqintdir/$def_usersourcefile{,.orig} || cp -f $this_daqintdir/$def_usersourcefile{.orig,}
-
-    local database_available=$( \
-      if [[ -f $this_database_upsrepo/setup ]]; then source $this_database_upsrepo/setup; fi && \
-         source $this_setup_script > /dev/null 2>&1 && \
-         setup  artdaq_database $this_database_version -q $this_database_quals || echo $error_val)
-    if [[ "$database_available" == "$error_val" ]]; then
-      ret_msg="Error: Unable to setup artdaq_database $this_database_version with qualifiers $this_database_quals from UPS."
-      return 11
-    fi
-
-    $( $this_toolsdir/xt_cmd.sh $this_daqintdir --geom '132x33 -sl 2500' \
-        -c "source $this_database_upsrepo/setup" \
-        -c "export PRODUCTS=\$PRODUCTS:$this_extra_products" \
-        -c "source mock_ups_setup.sh" \
-        -c "export DAQINTERFACE_USER_SOURCEFILE=$this_daqintdir/$def_usersourcefile" \
-        -c 'source $ARTDAQ_DAQINTERFACE_DIR/source_me' \
-        -c "setup artdaq_database $this_database_version -q $this_database_quals" \
-        -c "RUNSINCLEANSHELL=TRUE CLOSEWINDOWONEXIT=TRUE $this_script_fullpath \
-            --load-configs --database-data-dir=$this_database_data_dir" )
-
+    load_configs 
 }
 
 
@@ -281,7 +357,9 @@ function delete_database()
    done
  fi
 
+ flags=$-; set +x
  source $this_daqint_settings_dir/$def_usersourcefile || return 0
+ set -$flags
  if [[ $? != 0 ]]; then 
     ret_msg+="Error: Unable to source $this_daqint_settings_dir/$def_usersourcefile"
     ((error_count+=1))
@@ -292,7 +370,8 @@ function delete_database()
 
 function create_schema_fcl()
 {
-cat > schema.fcl <<EOF
+    test $arg_verbose == 1 && echo Info: create_schema_fcl
+    cat > schema.fcl <<EOF
 artdaq_processes: [{
 collection: SimpleTestConfig 
 pattern: "^(?!.*config_includes)(.*/)(.*)(\.fcl$)" 
@@ -312,8 +391,22 @@ pattern: "^(?!.*config_includes)(.*)(schema)(\.fcl$)"
 EOF
 }
 
+function adjust_user_sourcefile()
+{ :
+}
+
+#        get_FHICL_DIRECTORY_from_orig_user_sourcefile
+function get_info_from_orig_user_sourcefile()
+{ :
+}
+
+
+#
+# Input: DAQINTERFACE_FHICL_DIRECTORY  - from DAQINTERFACE_USER_SOURCEFILE.orig
+#
 function load_configs()
 {
+  test $arg_verbose == 1 && echo Info: load_configs
   [[ $DAQINTERFACE_FHICL_DIRECTORY == "IGNORED" ]] && return 0
 
   local error_count=0
@@ -322,32 +415,14 @@ function load_configs()
 
   echo "Info: Running load_configs()"
 
-  [[ ! -f $DAQINTERFACE_USER_SOURCEFILE.orig ]] \
-    && cp -f $DAQINTERFACE_USER_SOURCEFILE{,.orig} ||  cp -f $DAQINTERFACE_USER_SOURCEFILE{.orig,}
 
-  local this_database_setup_cmd=$(ups active |grep artdaq_database|awk '{printf "   source %s/setup;setup %s %s %s %s", $8,$1,$2,$5,$6}')
-  local match_string=$(cat $DAQINTERFACE_USER_SOURCEFILE|grep "Put code here which sets up the database environment")
-  local source_config_dir=$DAQINTERFACE_FHICL_DIRECTORY
-  sed -i "s#$match_string#$this_database_setup_cmd#g" $DAQINTERFACE_USER_SOURCEFILE
-  sed -i -e '/setup artdaq_database/a\' \
-      -e "   export ARTDAQ_DATABASE_URI=filesystemdb://$arg_database_data_dir/online_config_db" $DAQINTERFACE_USER_SOURCEFILE
-  sed -i -e '/DAQINTERFACE_FHICL_DIRECTORY=/a\' -e "$def_ignore_database" $DAQINTERFACE_USER_SOURCEFILE
+  export ARTDAQ_DATABASE_URI=filesystemdb://$this_database_data_dir/online_config_db
 
-  function setup() {
-    local this_ups=$(which ups 2>/dev/null)
-    [[ -x $this_ups ]] && source $($this_ups setup "$@") || echo "Error: UPS is not setup."
-  }
-
-  source $DAQINTERFACE_USER_SOURCEFILE
-  if [[ $? != 0 ]]; then 
-    ret_msg+="Error: Unable to source $DAQINTERFACE_USER_SOURCEFILE. "
-    ((error_count+=1))
-    return $error_count
-  fi
 
   local expected_config_count=0
   echo "Info: ARTDAQ_DATABASE_URI=$ARTDAQ_DATABASE_URI"
-  for d in $source_config_dir/*; do
+
+  for d in $DAQINTERFACE_FHICL_DIRECTORY/*; do
     [[ -d $d ]] || continue
 
     local config_name=$(basename $d)
@@ -369,7 +444,9 @@ function load_configs()
 
     echo "Info: Importing $config_name"
     local message=$(conftool.py  importConfiguration $config_name 2>&1)
-    if [[ ! $message =~ ^.*True$ ]]; then 
+    #if [[ ! $message =~ ^.*True$ ]]; then 
+    if [[ ! $message =~ None$ && ! $message =~ True$ ]]; then
+        test -f $this_basedir/message.out || echo "$message" >$this_basedir/message.out
       echo "Error: Unable to import \"$config_name\"."
       ret_msg+="Error: Unable to import the \"$config_name\" configuration into ardaq_database. "
       ret_msg+="Details: $message. "
@@ -387,6 +464,7 @@ function load_configs()
         ((error_count+=1))
       fi
     fi
+
   done
 
   local actual_config_count=$(conftool.py getListOfAvailableRunConfigurations |wc -l)
@@ -402,9 +480,11 @@ function load_configs()
   echo "Info: Finished load_configs()"
 
   return $error_count
-}
+} # load_configs
+
 
 function stop_daqinterface_if_running(){
+    test $arg_verbose == 1 && echo Info: stop_daqinterface_if_runnin
     local error_count=0
     ret_msg=""
 
@@ -471,7 +551,9 @@ function stop_daqinterface_if_running(){
         if [[ "$res" == "" ]]; then
           sleep 2
           unset DAQINTERFACE_STANDARD_SOURCEFILE_SOURCED
+          flags=$-; set +x # incase -x
           source $ARTDAQ_DAQINTERFACE_DIR/source_me > /dev/null
+          set -$flags
         fi
 
         if [[ "$res" == "$1" ]]; then
@@ -503,11 +585,11 @@ function stop_daqinterface_if_running(){
 
     cd $glb_daqintdir
 
-    source $this_basedir/$(basename $this_setup_script) > /dev/null
-    [[ ! -z $arg_extra_products ]] && export PRODUCTS="$PRODUCTS:$arg_extra_products"
+    flags=$-; set +x # incase -x
     source $glb_daqintdir/mock_ups_setup.sh
     export DAQINTERFACE_USER_SOURCEFILE=$glb_daqintdir/$def_usersourcefile
     source $ARTDAQ_DAQINTERFACE_DIR/source_me > /dev/null
+    set -$flags
 
     if [[ $( which listdaqinterfaces.sh >/dev/null 2>&1; echo $? ) != 0 ]]; then
       echo "Error: listdaqinterfaces.sh was not setup."
@@ -565,16 +647,15 @@ function stop_daqinterface_if_running(){
       fi
       return 0
     done
-}
+}   # stop_daqinterface_if_running
 
 function disable_database() 
 {
+  test $arg_verbose == 1 && echo Info: disable_database
   local error_count=0
   ret_msg=""
 
-  function setup() { :; }
-  source $glb_daqintdir/mock_ups_setup.sh
-  source $glb_daqintdir/$def_usersourcefile
+  DAQINTERFACE_FHICL_DIRECTORY=`grab_DAQINTERFACE_FHICL_DIRECTORY_from_file $glb_daqintdir/$def_usersourcefile`
 
   if [[ $DAQINTERFACE_FHICL_DIRECTORY != "IGNORED" ]]; then
      echo "Info: artdaq_database is alreday disabled."
@@ -592,16 +673,15 @@ function disable_database()
   fi
 
   return $error_count
-}
+} # disable_database
 
 function enable_database()
 {
+  test $arg_verbose == 1 && echo Info: enable_database
   local error_count=0
   ret_msg=""
 
-  function setup() { :; }
-  source $glb_daqintdir/mock_ups_setup.sh
-  source $glb_daqintdir/$def_usersourcefile
+  DAQINTERFACE_FHICL_DIRECTORY=`grab_DAQINTERFACE_FHICL_DIRECTORY_from_file $glb_daqintdir/$def_usersourcefile`
 
   if [[ $DAQINTERFACE_FHICL_DIRECTORY == "IGNORED" ]]; then
      echo "Info: artdaq_database is alreday enabled."
@@ -619,23 +699,23 @@ function enable_database()
   fi
 
   return $error_count
-}
+} # enable_database
 
 ## main program
 if [[ $arg_load_configs == 0 ]]; then
   configure_artdaq_database
   if [[ $? != 0 ]];then
    [[ $arg_verbose == 1 ]] &&  echo $ret_msg
-   [[ "$0" != "$BASH_SOURCE" ]] && return 1 ||exit 1
+   #[[ "$0" != "$BASH_SOURCE" ]] && return 1 ||exit 1
   fi
   stop_daqinterface_if_running
   if [[ $arg_do_db == 1 ]]; then
-    enable_database
+      enable_database
       if [[ $? != 0 ]];then
         [[ $arg_verbose == 1 ]] &&  echo $ret_msg
         [[ "$0" != "$BASH_SOURCE" ]] && return 2 ||exit 2
       fi
-    else
+  else
       disable_database
       if [[ $? != 0 ]];then
         [[ $arg_verbose == 1 ]] && echo $ret_msg
@@ -654,11 +734,10 @@ else
        #[[ $arg_verbose == 1 ]] && echo $ret_msg
        echo "Info: $error_count errors were reported."
     else
-       [[ $CLOSEWINDOWONEXIT == "TRUE" ]] && kill -INT $(ps -o ppid= $(ps -o ppid= $$))
+       :;#[[ $CLOSEWINDOWONEXIT == "TRUE" ]] && kill -INT $(ps -o ppid= $(ps -o ppid= $$))
     fi
 
-    sleep 5
-    [[ $CLOSEWINDOWONEXIT == "TRUE" ]] && kill -INT $(ps -o ppid= $(ps -o ppid= $$))
+    #[[ $CLOSEWINDOWONEXIT == "TRUE" ]] && kill -INT $(ps -o ppid= $(ps -o ppid= $$))
    fi
 fi
 
