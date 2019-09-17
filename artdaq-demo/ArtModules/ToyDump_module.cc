@@ -137,7 +137,7 @@ void demo::ToyDump::analyze(art::Event const& evt)
 
 		TLOG(TLVL_INFO) << fragmentTypeToString(static_cast<demo::detail::FragmentType>(frag.type())) << " fragment " << frag.fragmentID()
 			<< " w/ seqID " << frag.sequenceID() << " and timestamp " << frag.timestamp()
-			<< " has total ADC counts = " << bb.total_adc_values() << ", trig # = " << bb.hdr_trigger_number() << ", dist_type = " << bb.hdr_distribution_type();
+			<< " has total ADC counts = " << bb.total_adc_values() << ", trig # = " << bb.hdr_trigger_number() << ", dist_type = " << static_cast<int>(bb.hdr_distribution_type());
 
 		if (frag.hasMetadata())
 		{
