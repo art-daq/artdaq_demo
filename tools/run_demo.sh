@@ -236,8 +236,10 @@ function get_dispatcher_port() {
 }
 
 
-$(dirname $(readlink --canonicalize-existing $0))/configure_artdaq_database.sh \
-  --setup-script=$basedir/setupARTDAQDEMO $( [[ $do_db == 0 ]] && echo "--no-db" )
+if [ $do_db -eq 1 ];then
+    $(dirname $(readlink --canonicalize-existing $0))/configure_artdaq_database.sh \
+        --setup-script=$basedir/setupARTDAQDEMO $( [[ $do_db == 0 ]] && echo "--no-db" )
+fi
 
 
 # And now, actually run DAQInterface as described in
