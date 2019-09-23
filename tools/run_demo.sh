@@ -13,9 +13,9 @@ validate_basedir()
 {
 	valid_basedir=0
 	if [ -d $basedir/artdaq-utilities-daqinterface ] || [ -d $ARTDAQ_DAQINTERFACE_DIR ]; then
-	if [ -d $basedir/DAQInterface ]; then
+	    if [ -d $basedir/DAQInterface ]; then
 		valid_basedir=1
-	fi
+	    fi
 	fi
 }
 
@@ -23,7 +23,7 @@ validate_toolsdir()
 {
 	valid_toolsdir=0
 	if [ -f $toolsdir/xt_cmd.sh ]; then
-	valid_toolsdir=1
+		valid_toolsdir=1
 	fi
 }
 
@@ -31,7 +31,7 @@ validate_fhicldir()
 {
 	valid_fhicldir=0
 	if [ -f $fhicldir/TransferInputShmem.fcl ]; then
-	valid_fhicldir=1
+		valid_fhicldir=1
 	fi
 }
 
@@ -53,8 +53,8 @@ env_opts_var=`basename $0 | sed 's/\.sh$//' | tr 'a-z-' 'A-Z_'`_OPTS
 USAGE="\
    usage: `basename $0` [options] [just_do_it.sh options]
 examples: `basename $0` 
-		  `basename $0` --om --om_fhicl TransferInputShmemWithDelay
-		  `basename $0` --om --config demo_largesystem --compfile $PWD/DAQInterface/comps.list --runduration 40
+          `basename $0` --om --om_fhicl TransferInputShmemWithDelay
+          `basename $0` --om --config demo_largesystem --compfile $PWD/DAQInterface/comps.list --runduration 40
 --help        This help message
 --just_do_it_help Help message from just_do_it.sh
 --basedir	  Base directory ($basedir, valid=$valid_basedir)
@@ -62,6 +62,7 @@ examples: `basename $0`
 --fhicldir    Directory where Online Monitor FHiCL files reside (TransferInputShmem.fcl, etc) ($fhicldir, valid=$valid_fhicldir)
 --brlist      File that describes known boardreaders (ex. known_boardreaders_list_example)
 --no_om       Do *NOT* run Online Monitoring
+--no_db       Do *NOT* use Online Database
 --om_fhicl    Name of Fhicl file to use for online monitoring ($om_fhicl)
 --partition=<N> set a partition number -- to allow multiple demos
 --auto        Close DAQInterface windows after run. Do not exit this script until run complete
@@ -73,7 +74,7 @@ eval "set -- $env_opts \"\$@\""
 op1chr='rest=`expr "$op" : "[^-]\(.*\)"`   && set -- "-$rest" "$@"'
 op1arg='rest=`expr "$op" : "[^-]\(.*\)"`   && set --  "$rest" "$@"'
 reqarg="$op1arg;"'test -z "${1+1}" &&echo opt -$op requires arg. &&echo "$USAGE" &&exit'
-args= do_help= do_jdi_help= do_om=1 auto_mode=0;
+args= do_help= do_jdi_help= do_om=1 auto_mode=0 do_db=0;
 while [ -n "${1-}" ];do
     if expr "x${1-}" : 'x-' >/dev/null;then
         op=`expr "x$1" : 'x-\(.*\)'`; shift   # done with $1
@@ -87,8 +88,10 @@ while [ -n "${1-}" ];do
             -basedir)   eval $reqarg; basedir=$1; shift;;
             -toolsdir)  eval $reqarg; toolsdir=$1; shift;;
             -brlist)    eval $reqarg; brlist=$1; shift;;
-            -no_om)        do_om=0;;
-            -om_fhicl)  eval $reqarg; om_fhicl=$1; shift;;
+	    -no_om)        do_om=0;;
+	    -no_db)        do_db=0;;
+	    -do_db)        do_db=1;;
+	    -om_fhicl)  eval $reqarg; om_fhicl=$1; shift;;
             -auto)         auto_mode=1;;
             -partition) eval $reqarg; export ARTDAQ_PARTITION_NUMBER=$1; export DAQINTERFACE_PARTITION_NUMBER=$1; shift;;
             *)          aa=`echo "-$op" | sed -e"s/'/'\"'\"'/g"` args="$args '$aa'";
@@ -118,14 +121,14 @@ if [ $valid_toolsdir -eq 0 ]; then
 	toolsdir="$basedir/srcs/artdaq_demo/tools"
 	validate_toolsdir
 	if [ $valid_toolsdir -eq 0 ]; then
-	toolsdir="$ARTDAQ_DEMO_FQ_DIR/bin"
-	validate_toolsdir
-	
-	if [ $valid_toolsdir -eq 0 ]; then
-		echo "Provided tools directory (${toolsdir_save}) is not valid!"
-		return 2
-		exit 2
-	fi
+		toolsdir="$ARTDAQ_DEMO_FQ_DIR/bin"
+		validate_toolsdir
+		
+		if [ $valid_toolsdir -eq 0 ]; then
+			echo "Provided tools directory (${toolsdir_save}) is not valid!"
+			return 2
+			exit 2
+		fi
 	fi
 fi
 
@@ -134,14 +137,14 @@ if [ $valid_fhicldir -eq 0 ]; then
 	fhicldir="$basedir/srcs/artdaq_demo/tools/fcl"
 	validate_fhicldir
 	if [ $valid_fhicldir -eq 0 ]; then
-	fhicldir="$ARTDAQ_DEMO_DIR/fcl"
-	validate_fhicldir
-	
-	if [ $valid_fhicldir -eq 0 ]; then
-		echo "Provided FHiCL directory (${fhicldir_save}) is not valid!"
-		return 2
-		exit 2
-	fi
+		fhicldir="$ARTDAQ_DEMO_DIR/fcl"
+		validate_fhicldir
+		
+		if [ $valid_fhicldir -eq 0 ]; then
+			echo "Provided FHiCL directory (${fhicldir_save}) is not valid!"
+			return 2
+			exit 2
+		fi
 	fi
 fi
 
@@ -231,6 +234,13 @@ function get_dispatcher_port() {
 
 	echo "Dispatcher found at port $dispatcherPort"
 }
+
+
+if [ $do_db -eq 1 ];then
+    $(dirname $(readlink --canonicalize-existing $0))/configure_artdaq_database.sh \
+        --setup-script=$basedir/setupARTDAQDEMO $( [[ $do_db == 0 ]] && echo "--no-db" )
+fi
+
 
 # And now, actually run DAQInterface as described in
 # https://cdcvs.fnal.gov/redmine/projects/artdaq-utilities/wiki/Artdaq-daqinterface
