@@ -38,6 +38,14 @@ c2:s85:prof  	   c2:s85:prof  	 c2:s85:prof
 c2:s85:debug  	   c2:s85:debug 	 c2:s85:debug
 e17:s85:prof   	   e17:s85:prof  	 e17:s85:prof
 e17:s85:debug  	   e17:s85:debug 	 e17:s85:debug
+c7:s83:prof  	   c7:s83:prof  	 c7:s83:prof
+c7:s83:debug  	   c7:s83:debug 	 c7:s83:debug
+c2:s83:prof  	   c2:s83:prof  	 c2:s83:prof
+c2:s83:debug  	   c2:s83:debug 	 c2:s83:debug
+e19:s83:prof   	   e19:s83:prof  	 e19:s83:prof
+e19:s83:debug  	   e19:s83:debug 	 e19:s83:debug
+e17:s83:prof   	   e17:s83:prof  	 e17:s83:prof
+e17:s83:debug  	   e17:s83:debug 	 e17:s83:debug
 c7:s82:prof  	   c7:s82:prof  	 c7:s82:prof
 c7:s82:debug  	   c7:s82:debug 	 c7:s82:debug
 c2:s82:prof  	   c2:s82:prof  	 c2:s82:prof
