@@ -15,7 +15,7 @@
 #include "artdaq-core/Data/ContainerFragment.hh"
 #include "artdaq-core/Data/Fragment.hh"
 
-#include "tracemf.h"			// TLOG
+#include "tracemf.h"  // TLOG
 #define TRACE_NAME "CheckIntegrity"
 
 #include <algorithm>
@@ -23,12 +23,11 @@
 #include <cmath>
 #include <fstream>
 #include <iomanip>
-#include <vector>
 #include <iostream>
+#include <vector>
 
-namespace demo
-{
-	class CheckIntegrity;
+namespace demo {
+class CheckIntegrity;
 }
 
 /**
@@ -45,7 +44,7 @@ public:
 	 * "raw_data_label": The label applied to data (usually "daq")
 	 * "frag_type": The fragment type to analyze ("TOY1" or "TOY2")
 	 */
-	explicit CheckIntegrity(fhicl::ParameterSet const& pset);
+	explicit CheckIntegrity( fhicl::ParameterSet const& pset );
 
 	/**
 	 * \brief Default destructor
@@ -53,112 +52,111 @@ public:
 	virtual ~CheckIntegrity() = default;
 
 	/**
-	* \brief Analyze an event. Called by art for each event in run (based on command line options)
-	* \param evt The art::Event object containing ToyFragments to check
-	*/
-	virtual void analyze(art::Event const& evt);
+	 * \brief Analyze an event. Called by art for each event in run (based on command line options)
+	 * \param evt The art::Event object containing ToyFragments to check
+	 */
+	virtual void analyze( art::Event const& evt );
 
 private:
 	std::string raw_data_label_;
 };
 
-
-demo::CheckIntegrity::CheckIntegrity(fhicl::ParameterSet const& pset)
-	: EDAnalyzer(pset)
-	, raw_data_label_(pset.get<std::string>("raw_data_label"))
+demo::CheckIntegrity::CheckIntegrity( fhicl::ParameterSet const& pset )
+    : EDAnalyzer( pset ), raw_data_label_( pset.get<std::string>( "raw_data_label" ) )
 {}
 
-void demo::CheckIntegrity::analyze(art::Event const& evt)
+void demo::CheckIntegrity::analyze( art::Event const& evt )
 {
-
-
 	artdaq::Fragments fragments;
 	artdaq::FragmentPtrs containerFragments;
-	std::vector<std::string> fragment_type_labels{ "TOY1", "TOY2", "ContainerTOY1", "ContainerTOY2" };
+	std::vector<std::string> fragment_type_labels{"TOY1", "TOY2", "ContainerTOY1", "ContainerTOY2"};
 
-	for (auto label : fragment_type_labels)
+	for ( auto label : fragment_type_labels )
 	{
 		art::Handle<artdaq::Fragments> fragments_with_label;
 
-		evt.getByLabel(raw_data_label_, label, fragments_with_label);
-		if (!fragments_with_label.isValid()) continue;
+		evt.getByLabel( raw_data_label_, label, fragments_with_label );
+		if ( !fragments_with_label.isValid() ) continue;
 
-		if (label == "Container" || label == "ContainerTOY1" || label == "ContainerTOY2")
+		if ( label == "Container" || label == "ContainerTOY1" || label == "ContainerTOY2" )
 		{
-			for (auto cont : *fragments_with_label)
+			for ( auto cont : *fragments_with_label )
 			{
-				artdaq::ContainerFragment contf(cont);
-				for (size_t ii = 0; ii < contf.block_count(); ++ii)
+				artdaq::ContainerFragment contf( cont );
+				for ( size_t ii = 0; ii < contf.block_count(); ++ii )
 				{
-					containerFragments.push_back(contf[ii]);
-					fragments.push_back(*containerFragments.back());
+					containerFragments.push_back( contf[ ii ] );
+					fragments.push_back( *containerFragments.back() );
 				}
 			}
 		}
 		else
 		{
-			for (auto frag : *fragments_with_label)
-			{
-				fragments.emplace_back(frag);
-			}
+			for ( auto frag : *fragments_with_label ) { fragments.emplace_back( frag ); }
 		}
 	}
 
-	TLOG(TLVL_INFO) << "Run " << evt.run() << ", subrun " << evt.subRun()
-		<< ", event " << evt.event() << " has " << fragments.size()
-		<< " fragment(s) of type TOY1 or TOY2";
+	TLOG( TLVL_INFO ) << "Run " << evt.run() << ", subrun " << evt.subRun() << ", event " << evt.event() << " has "
+	                  << fragments.size() << " fragment(s) of type TOY1 or TOY2";
 
 	bool err = false;
-	for (const auto& frag : fragments)
+	for ( const auto& frag : fragments )
 	{
-		ToyFragment bb(frag);
+		ToyFragment bb( frag );
 
-		if (bb.hdr_event_size() * sizeof(ToyFragment::Header::data_t) != frag.dataSize() * sizeof(artdaq::RawDataType))
+		if ( bb.hdr_event_size() * sizeof( ToyFragment::Header::data_t ) !=
+		     frag.dataSize() * sizeof( artdaq::RawDataType ) )
 		{
-			TLOG(TLVL_ERROR) << "Error: in run " << evt.run() << ", subrun " << evt.subRun() <<
-				", event " << evt.event() << ", seqID " << frag.sequenceID() <<
-				", fragID " << frag.fragmentID() << ": Size mismatch!" <<
-				" ToyFragment Header reports size of " << bb.hdr_event_size() * sizeof(ToyFragment::Header::data_t) << " bytes, Fragment report size of " << frag.dataSize() * sizeof(artdaq::RawDataType) << " bytes.";
+			TLOG( TLVL_ERROR ) << "Error: in run " << evt.run() << ", subrun " << evt.subRun() << ", event "
+			                   << evt.event() << ", seqID " << frag.sequenceID() << ", fragID " << frag.fragmentID()
+			                   << ": Size mismatch!"
+			                   << " ToyFragment Header reports size of "
+			                   << bb.hdr_event_size() * sizeof( ToyFragment::Header::data_t )
+			                   << " bytes, Fragment report size of " << frag.dataSize() * sizeof( artdaq::RawDataType )
+			                   << " bytes.";
 			continue;
 		}
-
 
 		{
 			auto adc_iter = bb.dataBeginADCs();
 			ToyFragment::adc_t expected_adc = 1;
 
-			for (; adc_iter != bb.dataEndADCs(); adc_iter++, expected_adc++)
+			for ( ; adc_iter != bb.dataEndADCs(); adc_iter++, expected_adc++ )
 			{
-				if (expected_adc > bb.adc_range(frag.metadata<ToyFragment::Metadata>()->num_adc_bits)) expected_adc = 0;
+				if ( expected_adc > bb.adc_range( frag.metadata<ToyFragment::Metadata>()->num_adc_bits ) )
+					expected_adc = 0;
 
 				// ELF 7/10/18: Distribution type 2 is the monotonically-increasing one
-				if (bb.hdr_distribution_type() == 2 && *adc_iter != expected_adc)
+				if ( bb.hdr_distribution_type() == 2 && *adc_iter != expected_adc )
 				{
-					TLOG(TLVL_ERROR) << "Error: in run " << evt.run() << ", subrun " << evt.subRun() <<
-						", event " << evt.event() << ", seqID " << frag.sequenceID() <<
-						", fragID " << frag.fragmentID() << ": expected an ADC value of " << expected_adc <<
-						", got " << *adc_iter;
+					TLOG( TLVL_ERROR ) << "Error: in run " << evt.run() << ", subrun " << evt.subRun() << ", event "
+					                   << evt.event() << ", seqID " << frag.sequenceID() << ", fragID "
+					                   << frag.fragmentID() << ": expected an ADC value of " << expected_adc << ", got "
+					                   << *adc_iter;
 					err = true;
 					break;
 				}
 
-				// ELF 7/10/18: As of now, distribution types 3 and 4 are uninitialized, and can therefore produce out-of-range counts.
-				if (bb.hdr_distribution_type() < 3 && *adc_iter > bb.adc_range(frag.metadata<ToyFragment::Metadata>()->num_adc_bits))
+				// ELF 7/10/18: As of now, distribution types 3 and 4 are uninitialized, and can therefore produce
+				// out-of-range counts.
+				if ( bb.hdr_distribution_type() < 3 &&
+				     *adc_iter > bb.adc_range( frag.metadata<ToyFragment::Metadata>()->num_adc_bits ) )
 				{
-					TLOG(TLVL_ERROR) << "Error: in run " << evt.run() << ", subrun " << evt.subRun() <<
-						", event " << evt.event() << ", seqID " << frag.sequenceID() <<
-						", fragID " << frag.fragmentID() << ": " << *adc_iter << " is out-of-range for this Fragment type";
+					TLOG( TLVL_ERROR ) << "Error: in run " << evt.run() << ", subrun " << evt.subRun() << ", event "
+					                   << evt.event() << ", seqID " << frag.sequenceID() << ", fragID "
+					                   << frag.fragmentID() << ": " << *adc_iter
+					                   << " is out-of-range for this Fragment type";
 					err = true;
 					break;
 				}
 			}
-
 		}
 	}
-	if (!err) {
-		TLOG(TLVL_DEBUG) << "In run " << evt.run() << ", subrun " << evt.subRun() <<
-			", event " << evt.event() << ", everything is fine";
+	if ( !err )
+	{
+		TLOG( TLVL_DEBUG ) << "In run " << evt.run() << ", subrun " << evt.subRun() << ", event " << evt.event()
+		                   << ", everything is fine";
 	}
 }
 
-DEFINE_ART_MODULE(demo::CheckIntegrity)
+DEFINE_ART_MODULE( demo::CheckIntegrity )

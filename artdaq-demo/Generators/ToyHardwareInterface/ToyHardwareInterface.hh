@@ -5,8 +5,8 @@
 
 #include "fhiclcpp/fwd.h"
 
-#include <random>
 #include <chrono>
+#include <random>
 
 /**
  * \brief JCF, Mar-17-2016: ToyHardwareInterface is meant to mimic a vendor-provided hardware
@@ -21,14 +21,13 @@
 class ToyHardwareInterface
 {
 public:
-
-	typedef uint16_t data_t; ///< The type used to represent ADC counts (which are 12 or 14 bits, for TOY1 or TOY2)
+	typedef uint16_t data_t;  ///< The type used to represent ADC counts (which are 12 or 14 bits, for TOY1 or TOY2)
 
 	/**
 	 * \brief Construct and configure ToyHardwareInterface
 	 * \param ps fhicl::ParameterSet with configuration options for ToyHardwareInterface
 	 */
-	explicit ToyHardwareInterface(fhicl::ParameterSet const& ps);
+	explicit ToyHardwareInterface( fhicl::ParameterSet const& ps );
 
 	/**
 	 * \brief  "StartDatataking" is meant to mimic actions one would take when
@@ -47,19 +46,19 @@ public:
 	 * \param buffer Buffer to fill
 	 * \param bytes_read Number of bytes to fill
 	 */
-	void FillBuffer(char* buffer, size_t* bytes_read);
+	void FillBuffer( char* buffer, size_t* bytes_read );
 
 	/**
 	 * \brief Request a buffer from the hardware
 	 * \param buffer (output) Pointer to buffer
 	 */
-	void AllocateReadoutBuffer(char** buffer);
+	void AllocateReadoutBuffer( char** buffer );
 
 	/**
 	 * \brief Release the given buffer to the hardware
 	 * \param buffer Buffer to release
 	 */
-	void FreeReadoutBuffer(char* buffer);
+	void FreeReadoutBuffer( char* buffer );
 
 	/**
 	 * \brief Gets the serial number of the simulated hardware
@@ -84,15 +83,14 @@ public:
 	 */
 	enum class DistributionType
 	{
-		uniform, ///< A uniform distribution
-		gaussian, ///< A Gaussian distribution
-		monotonic, ///< A monotonically-increasing distribution
-		uninitialized, ///< A use-after-free expliot distribution
-		uninit2		   // like uninitialized, but do memcpy
+		uniform,        ///< A uniform distribution
+		gaussian,       ///< A Gaussian distribution
+		monotonic,      ///< A monotonically-increasing distribution
+		uninitialized,  ///< A use-after-free expliot distribution
+		uninit2         // like uninitialized, but do memcpy
 	};
 
 private:
-
 	bool taking_data_;
 
 	std::size_t nADCcounts_;
@@ -108,7 +106,7 @@ private:
 	std::size_t usecs_between_sends_;
 	DistributionType distribution_type_;
 
-	using time_type = decltype(std::chrono::steady_clock::now());
+	using time_type = decltype( std::chrono::steady_clock::now() );
 
 	const time_type fake_time_ = std::numeric_limits<time_type>::max();
 
@@ -122,6 +120,5 @@ private:
 	int send_calls_;
 	int serial_number_;
 };
-
 
 #endif
