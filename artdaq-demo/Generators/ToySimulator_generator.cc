@@ -24,27 +24,26 @@
 #include "cetlib_except/exception.h"
 #include "tracemf.h"  // TRACE, TLOG*
 
-demo::ToySimulator::ToySimulator(fhicl::ParameterSet const& ps)
+demo::ToySimulator::ToySimulator( fhicl::ParameterSet const& ps )
     : CommandableFragmentGenerator( ps )
-	, hardware_interface_(new ToyHardwareInterface(ps))
-	, timestamp_(0)
-    , starting_timestamp_(0)
-	, timestampScale_(ps.get<int>("timestamp_scale_factor", 1))
-	, rollover_subrun_interval_(ps.get<int>("rollover_subrun_interval", 0))
-	, metadata_({ 0,0,0 })
-	, readout_buffer_(nullptr)
-	, fragment_type_(static_cast<decltype(fragment_type_)>(artdaq::Fragment::InvalidFragmentType))
-	, distribution_type_(static_cast<ToyHardwareInterface::DistributionType>(ps.get<int>("distribution_type")))
-    , generated_fragments_per_event_(ps.get<int>("generated_fragments_per_event", 1))
-    , exception_on_config_(ps.get<bool>("exception_on_config", false))             
-	, dies_on_config_(ps.get<bool>("dies_on_config", false))
+    , hardware_interface_( new ToyHardwareInterface( ps ) )
+    , timestamp_( 0 )
+    , starting_timestamp_( 0 )
+    , timestampScale_( ps.get<int>( "timestamp_scale_factor", 1 ) )
+    , rollover_subrun_interval_( ps.get<int>( "rollover_subrun_interval", 0 ) )
+    , metadata_( {0, 0, 0} )
+    , readout_buffer_( nullptr )
+    , fragment_type_( static_cast<decltype( fragment_type_ )>( artdaq::Fragment::InvalidFragmentType ) )
+    , distribution_type_( static_cast<ToyHardwareInterface::DistributionType>( ps.get<int>( "distribution_type" ) ) )
+    , generated_fragments_per_event_( ps.get<int>( "generated_fragments_per_event", 1 ) )
+    , exception_on_config_( ps.get<bool>( "exception_on_config", false ) )
+    , dies_on_config_( ps.get<bool>( "dies_on_config", false ) )
 
 {
-	hardware_interface_->AllocateReadoutBuffer(&readout_buffer_);
+	hardware_interface_->AllocateReadoutBuffer( &readout_buffer_ );
 
 	auto ts = ps.get<int>( "starting_timestamp", 0 );
-	if (ts < 0)
-	{ starting_timestamp_ = artdaq::Fragment::InvalidTimestamp; }
+	if ( ts < 0 ) { starting_timestamp_ = artdaq::Fragment::InvalidTimestamp; }
 	else
 	{
 		starting_timestamp_ = static_cast<artdaq::Fragment::timestamp_t>( ts );
@@ -58,8 +57,8 @@ demo::ToySimulator::ToySimulator(fhicl::ParameterSet const& ps)
 	}
 	else if ( dies_on_config_ )
 	{
-	  TLOG(TLVL_ERROR) << "This is an engineered process death, set by the dies_on_config FHiCL variable";
-	  std::exit(1);
+		TLOG( TLVL_ERROR ) << "This is an engineered process death, set by the dies_on_config FHiCL variable";
+		std::exit( 1 );
 	}
 
 	metadata_.board_serial_number = hardware_interface_->SerialNumber() & 0xFFFF;
@@ -67,22 +66,22 @@ demo::ToySimulator::ToySimulator(fhicl::ParameterSet const& ps)
 	TLOG( TLVL_INFO ) << "Constructor: metadata_.unused = 0x" << std::hex << metadata_.unused
 	                  << " sizeof(metadata_) = " << std::dec << sizeof( metadata_ );
 
-	switch (hardware_interface_->BoardType())
+	switch ( hardware_interface_->BoardType() )
 	{
-	case 1002:
-		fragment_type_ = toFragmentType("TOY1");
-		break;
-	case 1003:
-		fragment_type_ = toFragmentType("TOY2");
-		break;
-	default:
-		throw cet::exception("ToySimulator") << "Unable to determine board type supplied by hardware";
+		case 1002:
+			fragment_type_ = toFragmentType( "TOY1" );
+			break;
+		case 1003:
+			fragment_type_ = toFragmentType( "TOY2" );
+			break;
+		default:
+			throw cet::exception( "ToySimulator" ) << "Unable to determine board type supplied by hardware";
 	}
 }
 
 demo::ToySimulator::~ToySimulator() { hardware_interface_->FreeReadoutBuffer( readout_buffer_ ); }
 
-bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
+bool demo::ToySimulator::getNext_( artdaq::FragmentPtrs& frags )
 {
 	if ( should_stop() ) { return false; }
 
@@ -98,44 +97,44 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 	// pointer (which is what happens here with readout_buffer_)
 
 	std::size_t bytes_read = 0;
-	hardware_interface_->FillBuffer(readout_buffer_, &bytes_read);
+	hardware_interface_->FillBuffer( readout_buffer_, &bytes_read );
 
-	// We'll use the static factory function 
+	// We'll use the static factory function
 
 	// artdaq::Fragment::FragmentBytes(std::size_t payload_size_in_bytes, sequence_id_t sequence_id,
 	//  fragment_id_t fragment_id, type_t type, const T & metadata)
 
 	// which will then return a unique_ptr to an artdaq::Fragment
-	// object. 
+	// object.
 
 	for ( auto& id : fragmentIDs() )
 	{
-	  // The offset logic below is designed to both ensure
-	  // backwards compatibility and to (help) avoid collisions
-	  // with fragment_ids from other boardreaders if more than
-	  // one fragment is generated per event
+		// The offset logic below is designed to both ensure
+		// backwards compatibility and to (help) avoid collisions
+		// with fragment_ids from other boardreaders if more than
+		// one fragment is generated per event
 
-	  std::unique_ptr<artdaq::Fragment> fragptr(
+		std::unique_ptr<artdaq::Fragment> fragptr(
 		    artdaq::Fragment::FragmentBytes( bytes_read, ev_counter(), id, fragment_type_, metadata_, timestamp_ ) );
-	  frags.emplace_back(std::move(fragptr));
+		frags.emplace_back( std::move( fragptr ) );
 
-	  if (distribution_type_ != ToyHardwareInterface::DistributionType::uninitialized)
-		  memcpy(frags.back()->dataBeginBytes(), readout_buffer_, bytes_read);
-	  else
-	  {
-		  // Must preserve the Header!
-		  memcpy(frags.back()->dataBeginBytes(), readout_buffer_, sizeof(ToyFragment::Header));
-	  }
+		if ( distribution_type_ != ToyHardwareInterface::DistributionType::uninitialized )
+			memcpy( frags.back()->dataBeginBytes(), readout_buffer_, bytes_read );
+		else
+		{
+			// Must preserve the Header!
+			memcpy( frags.back()->dataBeginBytes(), readout_buffer_, sizeof( ToyFragment::Header ) );
+		}
 
-	  TLOG(50) << "getNext_ after memcpy " << bytes_read
+		TLOG( 50 ) << "getNext_ after memcpy " << bytes_read
 		           << " bytes and std::move dataSizeBytes()=" << frags.back()->sizeBytes()
 		           << " metabytes=" << sizeof( metadata_ );
 	}
 
-	if (metricMan != nullptr)
+	if ( metricMan != nullptr )
 	{ metricMan->sendMetric( "Fragments Sent", ev_counter(), "Events", 3, artdaq::MetricMode::LastPoint ); }
 
-	if (rollover_subrun_interval_ > 0 && ev_counter() % rollover_subrun_interval_ == 0 && fragment_id() == 0)
+	if ( rollover_subrun_interval_ > 0 && ev_counter() % rollover_subrun_interval_ == 0 && fragment_id() == 0 )
 	{
 		bool fragmentIdZero = false;
 		for ( auto& id : fragmentIDs() )
@@ -146,13 +145,13 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 		{
 			artdaq::FragmentPtr endOfSubrunFrag( new artdaq::Fragment( static_cast<size_t>(
 			    ceil( sizeof( my_rank ) / static_cast<double>( sizeof( artdaq::Fragment::value_type ) ) ) ) ) );
-			endOfSubrunFrag->setSystemType(artdaq::Fragment::EndOfSubrunFragmentType);
+			endOfSubrunFrag->setSystemType( artdaq::Fragment::EndOfSubrunFragmentType );
 
-		endOfSubrunFrag->setSequenceID(ev_counter() + 1);
-		endOfSubrunFrag->setTimestamp(1 + (ev_counter() / rollover_subrun_interval_));
+			endOfSubrunFrag->setSequenceID( ev_counter() + 1 );
+			endOfSubrunFrag->setTimestamp( 1 + ( ev_counter() / rollover_subrun_interval_ ) );
 
 			*endOfSubrunFrag->dataBegin() = my_rank;
-			frags.emplace_back(std::move(endOfSubrunFrag));
+			frags.emplace_back( std::move( endOfSubrunFrag ) );
 		}
 	}
 
@@ -171,4 +170,4 @@ void demo::ToySimulator::start()
 void demo::ToySimulator::stop() { hardware_interface_->StopDatataking(); }
 
 // The following macro is defined in artdaq's GeneratorMacros.hh header
-DEFINE_ARTDAQ_COMMANDABLE_GENERATOR(demo::ToySimulator)
+DEFINE_ARTDAQ_COMMANDABLE_GENERATOR( demo::ToySimulator )
