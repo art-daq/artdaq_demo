@@ -1,41 +1,40 @@
 #include "art/Framework/Core/EDAnalyzer.h"
-#include "art/Framework/Principal/Handle.h"
-#include "art/Framework/Principal/Event.h"
-#include "art/Framework/Principal/Run.h"
 #include "art/Framework/Core/ModuleMacros.h"
+#include "art/Framework/Principal/Event.h"
+#include "art/Framework/Principal/Handle.h"
+#include "art/Framework/Principal/Run.h"
 #include "canvas/Utilities/InputTag.h"
 
-#include "artdaq-core/Data/Fragment.hh"
 #include "artdaq-core/Data/ContainerFragment.hh"
+#include "artdaq-core/Data/Fragment.hh"
 
 #include "artdaq-core-demo/Overlays/FragmentType.hh"
 #include "artdaq-core-demo/Overlays/ToyFragment.hh"
 
 #include "cetlib_except/exception.h"
 
-#include <TFile.h>
-#include <TRootCanvas.h>
-#include <TCanvas.h>
-#include <TGraph.h>
 #include <TAxis.h>
+#include <TCanvas.h>
+#include <TFile.h>
+#include <TGraph.h>
 #include <TH1D.h>
+#include <TRootCanvas.h>
 #include <TStyle.h>
 
-#include <numeric>
-#include <vector>
-#include <functional>
 #include <algorithm>
-#include <iostream>
-#include <sstream>
+#include <functional>
 #include <initializer_list>
+#include <iostream>
 #include <limits>
+#include <numeric>
+#include <sstream>
+#include <vector>
 
-using std::cout;
 using std::cerr;
+using std::cout;
 using std::endl;
 
-namespace demo
-{
+namespace demo {
 	/**
 	 * \brief An example art analysis module which plots events both as histograms and event snapshots (plot of ADC value vs ADC number)
 	 */
@@ -61,9 +60,9 @@ namespace demo
 		explicit WFViewer(fhicl::ParameterSet const& p);
 
 		/**
-		 * \brief WFViewer default Destructor
+	 * \brief WFViewer Destructor
 		 */
-		virtual ~WFViewer() = default;
+	virtual ~WFViewer();
 
 		/**
 		* \brief Analyze an event. Called by art for each event in run (based on command line options)
@@ -78,8 +77,7 @@ namespace demo
 		void beginRun(art::Run const&) override;
 
 	private:
-
-		std::unique_ptr<TCanvas> canvas_[2];
+	TCanvas* canvas_[ 2 ];
 		std::vector<Double_t> x_;
 		int prescale_;
 		bool digital_sum_only_;
@@ -92,8 +90,8 @@ namespace demo
 
 		std::string raw_data_label_;
 
-		std::unordered_map<artdaq::Fragment::fragment_id_t, std::unique_ptr<TGraph>> graphs_;
-		std::unordered_map<artdaq::Fragment::fragment_id_t, std::unique_ptr<TH1D>> histograms_;
+		std::unordered_map<artdaq::Fragment::fragment_id_t, TGraph*> graphs_;
+		std::unordered_map<artdaq::Fragment::fragment_id_t, TH1D*> histograms_;
 
 		std::map<artdaq::Fragment::fragment_id_t, std::size_t> id_to_index_;
 		std::string outputFileName_;
@@ -105,10 +103,10 @@ namespace demo
 		void getXYDims_();
 		void bookCanvas_();
 	};
-}
+}  // namespace demo
 
-demo::WFViewer::WFViewer(fhicl::ParameterSet const& ps) :
-	art::EDAnalyzer(ps)
+demo::WFViewer::WFViewer( fhicl::ParameterSet const& ps )
+    : art::EDAnalyzer( ps )
 	, prescale_(ps.get<int>("prescale"))
 	, digital_sum_only_(ps.get<bool>("digital_sum_only", false))
 	, current_run_(0)
@@ -173,21 +171,26 @@ void demo::WFViewer::getXYDims_()
 	{
 		switch (id_to_index_.size())
 		{
-		case 1: num_x_plots_ = num_y_plots_ = 1;
+			case 1:
+				num_x_plots_ = num_y_plots_ = 1;
 			break;
-		case 2: num_x_plots_ = 2;
+			case 2:
+				num_x_plots_ = 2;
 			num_y_plots_ = 1;
 			break;
 		case 3:
-		case 4: num_x_plots_ = 2;
+			case 4:
+				num_x_plots_ = 2;
 			num_y_plots_ = 2;
 			break;
 		case 5:
-		case 6: num_x_plots_ = 3;
+			case 6:
+				num_x_plots_ = 3;
 			num_y_plots_ = 2;
 			break;
 		case 7:
-		case 8: num_x_plots_ = 4;
+			case 8:
+				num_x_plots_ = 4;
 			num_y_plots_ = 2;
 			break;
 		default:
@@ -211,7 +214,7 @@ void demo::WFViewer::bookCanvas_()
 	getXYDims_();
 	for (int i = 0; (i < 2 && !digital_sum_only_) || i < 1; i++)
 	{
-		canvas_[i].reset(new TCanvas(Form("wf%d", i)));
+		canvas_[i] = new TCanvas(Form("wf%d", i));
 		canvas_[i]->Divide(num_x_plots_, num_y_plots_);
 		canvas_[i]->Update();
 		((TRootCanvas*)canvas_[i]->GetCanvasImp())->DontCallClose();
@@ -229,6 +232,17 @@ void demo::WFViewer::bookCanvas_()
 		canvas_[0]->Write();
 		canvas_[1]->Write();
 	}
+}
+
+demo::WFViewer::~WFViewer()
+{
+	// We're going to let ROOT's own garbage collection deal with histograms and Canvases...
+	for ( auto hist : histograms_ ) { hist.second = 0; }
+	for ( auto g : graphs_) { g.second = 0; }
+
+	canvas_[ 0 ] = 0;
+	canvas_[ 1 ] = 0;
+	fFile_ = 0;
 }
 
 void demo::WFViewer::analyze(art::Event const& e)
@@ -316,13 +330,12 @@ void demo::WFViewer::analyze(art::Event const& e)
 
 		//    if (i == 0) 
 		if (expected_sequence_id == std::numeric_limits<artdaq::Fragment::sequence_id_t>::max())
-		{
-			expected_sequence_id = frag.sequenceID();
-		}
+		{ expected_sequence_id = frag.sequenceID(); }
 
 		if (expected_sequence_id != frag.sequenceID())
 		{
-			cerr << "Warning in WFViewer: expected fragment with sequence ID " << expected_sequence_id << ", received one with sequence ID " << frag.sequenceID() << endl;
+			cerr << "Warning in WFViewer: expected fragment with sequence ID " << expected_sequence_id
+			     << ", received one with sequence ID " << frag.sequenceID() << endl;
 		}
 
 		FragmentType fragtype = static_cast<FragmentType>(frag.type());
@@ -348,15 +361,16 @@ void demo::WFViewer::analyze(art::Event const& e)
 		artdaq::Fragment::fragment_id_t fragment_id = frag.fragmentID();
 		if (!id_to_index_.count(fragment_id))
 		{
+			cerr << "Warning in WFViewer: unexpected Fragment with fragment_id " << std::to_string( fragment_id )
+			     << " encountered!";
 			continue;
 		}
-
 
 		// If a histogram doesn't exist for this board_id / fragment_id combo, create it
 
 		if (histograms_.count(fragment_id) == 0 || !histograms_[fragment_id])
 		{
-			histograms_[fragment_id] = std::unique_ptr<TH1D>(new TH1D(Form("Fragment_%d_hist", fragment_id), "", max_adc_count + 1, -0.5, max_adc_count + 0.5));
+			histograms_[fragment_id] = new TH1D(Form("Fragment_%d_hist", fragment_id), "", max_adc_count + 1, -0.5, max_adc_count + 0.5);
 
 			histograms_[fragment_id]->SetTitle(Form("Frag %d, Type %s", fragment_id, fragmentTypeToString(fragtype).c_str()));
 			histograms_[fragment_id]->GetXaxis()->SetTitle("ADC value");
@@ -379,10 +393,7 @@ void demo::WFViewer::analyze(art::Event const& e)
 			throw cet::exception("Error in WFViewer: unknown fragment type supplied");
 		}
 
-		if (evt_cntr % prescale_ - 1 && prescale_ > 1)
-		{
-			continue;
-		}
+		if ( evt_cntr % prescale_ - 1 && prescale_ > 1 ) { continue; }
 
 		std::size_t ind = id_to_index_[fragment_id];
 
@@ -405,7 +416,7 @@ void demo::WFViewer::analyze(art::Event const& e)
 
 			if (graphs_.count(fragment_id) == 0 || !graphs_[fragment_id] || static_cast<std::size_t>(graphs_[fragment_id]->GetN()) != total_adc_values)
 			{
-				graphs_[fragment_id] = std::unique_ptr<TGraph>(new TGraph(total_adc_values));
+				graphs_[fragment_id] = new TGraph(total_adc_values);
 				graphs_[fragment_id]->SetName(Form("Fragment_%d_graph", fragment_id));
 				graphs_[fragment_id]->SetLineColor(4);
 				std::copy(x_.begin(), x_.end(), graphs_[fragment_id]->GetX());
@@ -428,7 +439,6 @@ void demo::WFViewer::analyze(art::Event const& e)
 				throw cet::exception("Error in WFViewer: unknown fragment type supplied");
 			}
 
-
 			// And now prepare the graphics without actually drawing anything yet
 
 			canvas_[1]->cd(ind + 1);
@@ -444,7 +454,6 @@ void demo::WFViewer::analyze(art::Event const& e)
 
 			lo_y = -0.5;
 			hi_y = max_adc_count + 0.5;
-
 
 			TH1F* padframe = static_cast<TH1F*>(pad->DrawFrame(lo_x, lo_y, hi_x, hi_y));
 			padframe->SetTitle(Form("Frag %d, Type %s, SeqID %d", static_cast<int>(fragment_id),
@@ -502,6 +511,5 @@ void demo::WFViewer::beginRun(art::Run const& e)
 	newCanvas_ = true;
 	if (!dynamicMode_) bookCanvas_();
 }
-
 
 DEFINE_ART_MODULE(demo::WFViewer)

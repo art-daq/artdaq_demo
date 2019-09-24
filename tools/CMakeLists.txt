@@ -16,7 +16,7 @@ makeConfigs.rb
 multi_udp_send_artdaq.py 
 run_demo.sh xt_cmd.sh)
 
-
+cet_script(configure_artdaq_database.sh)
 #art_make_exec(demo_driver
 #  LIBRARIES
 #  artdaq_Application
