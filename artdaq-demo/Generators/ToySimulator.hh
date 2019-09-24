@@ -1,25 +1,23 @@
 #ifndef artdaq_demo_Generators_ToySimulator_hh
 #define artdaq_demo_Generators_ToySimulator_hh
 
-
 // Some C++ conventions used:
 
 // -Append a "_" to every private member function and variable
 
-#include "fhiclcpp/fwd.h"
+#include "artdaq-core-demo/Overlays/FragmentType.hh"
+#include "artdaq-core-demo/Overlays/ToyFragment.hh"
 #include "artdaq-core/Data/Fragment.hh"
 #include "artdaq/Generators/CommandableFragmentGenerator.hh"
-#include "artdaq-core-demo/Overlays/ToyFragment.hh"
-#include "artdaq-core-demo/Overlays/FragmentType.hh"
+#include "fhiclcpp/fwd.h"
 
 #include "ToyHardwareInterface/ToyHardwareInterface.hh"
 
+#include <atomic>
 #include <random>
 #include <vector>
-#include <atomic>
 
-namespace demo
-{
+namespace demo {
 	/**
 	 * \brief ToySimulator is a simple type of fragment generator intended to be
 	 * studied by new users of artdaq as an example of how to create such
@@ -43,8 +41,9 @@ namespace demo
 		 * 
 		 * The ToySimulator FragmentGenerator accepts the following configuration paramters:
 		 * "timestamp_scale_factor" (Default: 1): How much to increment the timestamp Fragment Header field for each event
-		 * "distribution_type" (REQUIRED): Which type of distribution to use when generating data. See ToyHardwareInterface for more information
-		 * "rollover_subrun_interval" (Default: 0): If this ToySimulator has fragment_id 0, will cause the system to rollover subruns every N events. 0 (default) disables.
+	 * "distribution_type" (REQUIRED): Which type of distribution to use when generating data. See ToyHardwareInterface
+	 * for more information "rollover_subrun_interval" (Default: 0): If this ToySimulator has fragment_id 0, will cause
+	 * the system to rollover subruns every N events. 0 (default) disables.
 		 */
 		explicit ToySimulator(fhicl::ParameterSet const& ps);
 
@@ -54,7 +53,6 @@ namespace demo
 		virtual ~ToySimulator();
 
 	private:
-		
 		/**
 		 * \brief The "getNext_" function is used to implement user-specific
 		 * functionality; it's a mandatory override of the pure virtual
@@ -109,6 +107,6 @@ namespace demo
 	        bool exception_on_config_;
 	        bool dies_on_config_;
 	};
-}
+}  // namespace demo
 
 #endif /* artdaq_demo_Generators_ToySimulator_hh */

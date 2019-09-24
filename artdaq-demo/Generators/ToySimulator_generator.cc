@@ -6,27 +6,26 @@
 
 #include "canvas/Utilities/Exception.h"
 
-#include "artdaq/Generators/GeneratorMacros.hh"
 #include "artdaq-core/Utilities/SimpleLookupPolicy.hh"
+#include "artdaq/Generators/GeneratorMacros.hh"
 
-#include "artdaq-core-demo/Overlays/ToyFragment.hh"
 #include "artdaq-core-demo/Overlays/FragmentType.hh"
+#include "artdaq-core-demo/Overlays/ToyFragment.hh"
 
 #include "fhiclcpp/ParameterSet.h"
 
 #include <fstream>
 #include <iomanip>
-#include <iterator>
 #include <iostream>
+#include <iterator>
 
 #include <unistd.h>
 #define TRACE_NAME "ToySimulator"
-#include "tracemf.h"		// TRACE, TLOG*
 #include "cetlib_except/exception.h"
+#include "tracemf.h"  // TRACE, TLOG*
 
 demo::ToySimulator::ToySimulator(fhicl::ParameterSet const& ps)
-	:
-	CommandableFragmentGenerator(ps)
+    : CommandableFragmentGenerator( ps )
 	, hardware_interface_(new ToyHardwareInterface(ps))
 	, timestamp_(0)
     , starting_timestamp_(0)
@@ -52,16 +51,21 @@ demo::ToySimulator::ToySimulator(fhicl::ParameterSet const& ps)
 	}
 	timestamp_ = starting_timestamp_;
 
-	if (exception_on_config_) {
-	  throw cet::exception("ToySimulator") << "This is an engineered exception designed for testing purposes, set by the exception_on_config FHiCL variable";
-	} else if (dies_on_config_) {
+	if ( exception_on_config_ )
+	{
+		throw cet::exception( "ToySimulator" ) << "This is an engineered exception designed for testing purposes, set "
+		                                          "by the exception_on_config FHiCL variable";
+	}
+	else if ( dies_on_config_ )
+	{
 	  TLOG(TLVL_ERROR) << "This is an engineered process death, set by the dies_on_config FHiCL variable";
 	  std::exit(1);
 	}
 
 	metadata_.board_serial_number = hardware_interface_->SerialNumber() & 0xFFFF;
 	metadata_.num_adc_bits = hardware_interface_->NumADCBits();
-	TLOG(TLVL_INFO) << "Constructor: metadata_.unused = 0x" << std::hex << metadata_.unused << " sizeof(metadata_) = " << std::dec << sizeof(metadata_);
+	TLOG( TLVL_INFO ) << "Constructor: metadata_.unused = 0x" << std::hex << metadata_.unused
+	                  << " sizeof(metadata_) = " << std::dec << sizeof( metadata_ );
 
 	switch (hardware_interface_->BoardType())
 	{
@@ -76,17 +80,11 @@ demo::ToySimulator::ToySimulator(fhicl::ParameterSet const& ps)
 	}
 }
 
-demo::ToySimulator::~ToySimulator()
-{
-	hardware_interface_->FreeReadoutBuffer(readout_buffer_);
-}
+demo::ToySimulator::~ToySimulator() { hardware_interface_->FreeReadoutBuffer( readout_buffer_ ); }
 
 bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 {
-	if (should_stop())
-	{
-		return false;
-	}
+	if ( should_stop() ) { return false; }
 
 	// ToyHardwareInterface (an instance to which "hardware_interface_"
 	// is a unique_ptr object) is just one example of the sort of
@@ -110,19 +108,15 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 	// which will then return a unique_ptr to an artdaq::Fragment
 	// object. 
 
-	for (auto& id : fragmentIDs()) {
-
+	for ( auto& id : fragmentIDs() )
+	{
 	  // The offset logic below is designed to both ensure
 	  // backwards compatibility and to (help) avoid collisions
 	  // with fragment_ids from other boardreaders if more than
 	  // one fragment is generated per event
 
 	  std::unique_ptr<artdaq::Fragment> fragptr(
-						    artdaq::Fragment::FragmentBytes(bytes_read,
-										    ev_counter(), 
-										    id,
-										    fragment_type_,
-										    metadata_, timestamp_));
+		    artdaq::Fragment::FragmentBytes( bytes_read, ev_counter(), id, fragment_type_, metadata_, timestamp_ ) );
 	  frags.emplace_back(std::move(fragptr));
 
 	  if (distribution_type_ != ToyHardwareInterface::DistributionType::uninitialized)
@@ -134,20 +128,24 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 	  }
 
 	  TLOG(50) << "getNext_ after memcpy " << bytes_read
-		  << " bytes and std::move dataSizeBytes()=" << frags.back()->sizeBytes() << " metabytes=" << sizeof(metadata_);
+		           << " bytes and std::move dataSizeBytes()=" << frags.back()->sizeBytes()
+		           << " metabytes=" << sizeof( metadata_ );
 	}
 
 	if (metricMan != nullptr)
-	{
-		metricMan->sendMetric("Fragments Sent", ev_counter(), "Events", 3, artdaq::MetricMode::LastPoint);
-	}
+	{ metricMan->sendMetric( "Fragments Sent", ev_counter(), "Events", 3, artdaq::MetricMode::LastPoint ); }
 
 	if (rollover_subrun_interval_ > 0 && ev_counter() % rollover_subrun_interval_ == 0 && fragment_id() == 0)
 	{
 		bool fragmentIdZero = false;
-		for (auto& id : fragmentIDs()) { if (id == 0) fragmentIdZero = true; }
-		if (fragmentIdZero) {
-			artdaq::FragmentPtr endOfSubrunFrag(new artdaq::Fragment(static_cast<size_t>(ceil(sizeof(my_rank) / static_cast<double>(sizeof(artdaq::Fragment::value_type))))));
+		for ( auto& id : fragmentIDs() )
+		{
+			if ( id == 0 ) fragmentIdZero = true;
+		}
+		if ( fragmentIdZero )
+		{
+			artdaq::FragmentPtr endOfSubrunFrag( new artdaq::Fragment( static_cast<size_t>(
+			    ceil( sizeof( my_rank ) / static_cast<double>( sizeof( artdaq::Fragment::value_type ) ) ) ) ) );
 			endOfSubrunFrag->setSystemType(artdaq::Fragment::EndOfSubrunFragmentType);
 
 		endOfSubrunFrag->setSequenceID(ev_counter() + 1);
@@ -170,10 +168,7 @@ void demo::ToySimulator::start()
 	timestamp_ = starting_timestamp_;
 }
 
-void demo::ToySimulator::stop()
-{
-	hardware_interface_->StopDatataking();
-}
+void demo::ToySimulator::stop() { hardware_interface_->StopDatataking(); }
 
 // The following macro is defined in artdaq's GeneratorMacros.hh header
 DEFINE_ARTDAQ_COMMANDABLE_GENERATOR(demo::ToySimulator)
