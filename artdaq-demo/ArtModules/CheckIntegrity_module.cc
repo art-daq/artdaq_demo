@@ -106,7 +106,10 @@ void demo::CheckIntegrity::analyze( art::Event const& evt )
 	bool err = false;
 	for ( const auto& frag : fragments )
 	{
+		// These methods take significantly more time when processing non-CurrentVersion Fragments, so cache them here
 		ToyFragment bb( frag );
+		auto dist_type = bb.hdr_distribution_type();
+		auto adc_range = bb.adc_range( frag.metadata<ToyFragment::Metadata>()->num_adc_bits );
 
 		if ( bb.hdr_event_size() * sizeof( ToyFragment::Header::data_t ) !=
 		     frag.dataSize() * sizeof( artdaq::RawDataType ) )
@@ -116,8 +119,8 @@ void demo::CheckIntegrity::analyze( art::Event const& evt )
 			                   << ": Size mismatch!"
 			                   << " ToyFragment Header reports size of "
 			                   << bb.hdr_event_size() * sizeof( ToyFragment::Header::data_t )
-			                   << " bytes, but Fragment reports size of " << frag.dataSize() * sizeof( artdaq::RawDataType )
-			                   << " bytes.";
+			                   << " bytes, but Fragment reports size of "
+			                   << frag.dataSize() * sizeof( artdaq::RawDataType ) << " bytes.";
 
 			if ( exception_on_integrity_failure_ )
 			{
@@ -125,8 +128,9 @@ void demo::CheckIntegrity::analyze( art::Event const& evt )
 				    << "Error: in run " << evt.run() << ", subrun " << evt.subRun() << ", event " << evt.event()
 				    << ", seqID " << frag.sequenceID() << ", fragID " << frag.fragmentID() << ": Size mismatch!"
 				    << " ToyFragment Header reports size of "
-				    << bb.hdr_event_size() * sizeof( ToyFragment::Header::data_t ) << " bytes, but Fragment reports size of "
-				    << frag.dataSize() * sizeof( artdaq::RawDataType ) << " bytes.";
+				    << bb.hdr_event_size() * sizeof( ToyFragment::Header::data_t )
+				    << " bytes, but Fragment reports size of " << frag.dataSize() * sizeof( artdaq::RawDataType )
+				    << " bytes.";
 			}
 			continue;
 		}
@@ -157,15 +161,15 @@ void demo::CheckIntegrity::analyze( art::Event const& evt )
 
 		{
 			auto adc_iter = bb.dataBeginADCs();
+			auto adc_end = bb.dataEndADCs();
 			ToyFragment::adc_t expected_adc = 1;
 
-			for ( ; adc_iter != bb.dataEndADCs(); adc_iter++, expected_adc++ )
+			for ( ; adc_iter != adc_end; adc_iter++, expected_adc++ )
 			{
-				if ( expected_adc > bb.adc_range( frag.metadata<ToyFragment::Metadata>()->num_adc_bits ) )
-					expected_adc = 0;
+				if ( expected_adc > adc_range ) expected_adc = 0;
 
 				// ELF 7/10/18: Distribution type 2 is the monotonically-increasing one
-				if ( bb.hdr_distribution_type() == 2 && *adc_iter != expected_adc )
+				if ( dist_type == 2 && *adc_iter != expected_adc )
 				{
 					TLOG( TLVL_ERROR ) << "Error: in run " << evt.run() << ", subrun " << evt.subRun() << ", event "
 					                   << evt.event() << ", seqID " << frag.sequenceID() << ", fragID "
@@ -184,8 +188,7 @@ void demo::CheckIntegrity::analyze( art::Event const& evt )
 
 				// ELF 7/10/18: As of now, distribution types 3 and 4 are uninitialized, and can therefore produce
 				// out-of-range counts.
-				if ( bb.hdr_distribution_type() < 3 &&
-				     *adc_iter > bb.adc_range( frag.metadata<ToyFragment::Metadata>()->num_adc_bits ) )
+				if ( dist_type < 3 && *adc_iter > adc_range )
 				{
 					TLOG( TLVL_ERROR ) << "Error: in run " << evt.run() << ", subrun " << evt.subRun() << ", event "
 					                   << evt.event() << ", seqID " << frag.sequenceID() << ", fragID "
