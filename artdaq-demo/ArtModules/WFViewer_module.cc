@@ -57,7 +57,7 @@ public:
 	 * "write_to_file": (Default: false): Whether to write output histograms to "fileName"
 	 * \endverbatim
 	 */
-	explicit WFViewer( fhicl::ParameterSet const& p );
+	explicit WFViewer(fhicl::ParameterSet const& p);
 
 	/**
 	 * \brief WFViewer Destructor
@@ -68,16 +68,16 @@ public:
 	 * \brief Analyze an event. Called by art for each event in run (based on command line options)
 	 * \param e The art::Event object to process, and display if it passes the prescale
 	 */
-	void analyze( art::Event const& e ) override;
+	void analyze(art::Event const& e) override;
 
 	/**
 	 * \brief Art calls this function at the beginning of the run. Used for set-up of ROOT histogram objects
 	 * and to open the output file if one is specified.
 	 */
-	void beginRun( art::Run const& ) override;
+	void beginRun(art::Run const&) override;
 
 private:
-	TCanvas* canvas_[ 2 ];
+	TCanvas* canvas_[2];
 	std::vector<Double_t> x_;
 	int prescale_;
 	bool digital_sum_only_;
@@ -105,34 +105,34 @@ private:
 };
 }  // namespace demo
 
-demo::WFViewer::WFViewer( fhicl::ParameterSet const& ps )
-    : art::EDAnalyzer( ps )
-    , prescale_( ps.get<int>( "prescale" ) )
-    , digital_sum_only_( ps.get<bool>( "digital_sum_only", false ) )
-    , current_run_( 0 )
-    , max_num_x_plots_( ps.get<std::size_t>( "num_x_plots", std::numeric_limits<std::size_t>::max() ) )
-    , max_num_y_plots_( ps.get<std::size_t>( "num_y_plots", std::numeric_limits<std::size_t>::max() ) )
-    , num_x_plots_( 0 )
-    , num_y_plots_( 0 )
-    , raw_data_label_( ps.get<std::string>( "raw_data_label", "daq" ) )
+demo::WFViewer::WFViewer(fhicl::ParameterSet const& ps)
+    : art::EDAnalyzer(ps)
+    , prescale_(ps.get<int>("prescale"))
+    , digital_sum_only_(ps.get<bool>("digital_sum_only", false))
+    , current_run_(0)
+    , max_num_x_plots_(ps.get<std::size_t>("num_x_plots", std::numeric_limits<std::size_t>::max()))
+    , max_num_y_plots_(ps.get<std::size_t>("num_y_plots", std::numeric_limits<std::size_t>::max()))
+    , num_x_plots_(0)
+    , num_y_plots_(0)
+    , raw_data_label_(ps.get<std::string>("raw_data_label", "daq"))
     , graphs_()
     , histograms_()
-    , outputFileName_( ps.get<std::string>( "fileName", "artdaqdemo_onmon.root" ) )
-    , writeOutput_( ps.get<bool>( "write_to_file", false ) )
-    , newCanvas_( true )
-    , dynamicMode_( ps.get<bool>( "dynamic_mode", true ) )
+    , outputFileName_(ps.get<std::string>("fileName", "artdaqdemo_onmon.root"))
+    , writeOutput_(ps.get<bool>("write_to_file", false))
+    , newCanvas_(true)
+    , dynamicMode_(ps.get<bool>("dynamic_mode", true))
 {
-	gStyle->SetOptStat( "irm" );
-	gStyle->SetMarkerStyle( 22 );
-	gStyle->SetMarkerColor( 4 );
+	gStyle->SetOptStat("irm");
+	gStyle->SetMarkerStyle(22);
+	gStyle->SetMarkerColor(4);
 
-	if ( ps.has_key( "fragment_ids" ) )
+	if (ps.has_key("fragment_ids"))
 	{
-		auto fragment_ids = ps.get<std::vector<artdaq::Fragment::fragment_id_t>>( "fragment_ids" );
-		for ( auto& id : fragment_ids )
+		auto fragment_ids = ps.get<std::vector<artdaq::Fragment::fragment_id_t>>("fragment_ids");
+		for (auto& id : fragment_ids)
 		{
 			auto index = id_to_index_.size();
-			id_to_index_[ id ] = index;
+			id_to_index_[id] = index;
 		}
 	}
 }
@@ -140,21 +140,21 @@ demo::WFViewer::WFViewer( fhicl::ParameterSet const& ps )
 void demo::WFViewer::getXYDims_()
 {
 	// Enforce positive maxes
-	if ( max_num_x_plots_ == 0 ) max_num_x_plots_ = std::numeric_limits<size_t>::max();
-	if ( max_num_y_plots_ == 0 ) max_num_y_plots_ = std::numeric_limits<size_t>::max();
+	if (max_num_x_plots_ == 0) max_num_x_plots_ = std::numeric_limits<size_t>::max();
+	if (max_num_y_plots_ == 0) max_num_y_plots_ = std::numeric_limits<size_t>::max();
 
-	num_x_plots_ = num_y_plots_ = static_cast<std::size_t>( ceil( sqrt( id_to_index_.size() ) ) );
+	num_x_plots_ = num_y_plots_ = static_cast<std::size_t>(ceil(sqrt(id_to_index_.size())));
 
 	// Do trivial check first to avoid multipling max * max -> undefined
-	if ( id_to_index_.size() > max_num_x_plots_ && id_to_index_.size() > max_num_x_plots_ * max_num_y_plots_ )
+	if (id_to_index_.size() > max_num_x_plots_ && id_to_index_.size() > max_num_x_plots_ * max_num_y_plots_)
 	{
 		num_x_plots_ = max_num_x_plots_;
 		num_y_plots_ = max_num_y_plots_;
 		auto max = num_x_plots_ * num_y_plots_;
 		auto it = id_to_index_.begin();
-		while ( it != id_to_index_.end() )
+		while (it != id_to_index_.end())
 		{
-			if ( it->second >= max ) { it = id_to_index_.erase( it ); }
+			if (it->second >= max) { it = id_to_index_.erase(it); }
 			else
 			{
 				++it;
@@ -164,9 +164,9 @@ void demo::WFViewer::getXYDims_()
 
 	// Some predefined "nice looking" plotscapes...
 
-	if ( max_num_x_plots_ >= 4 && max_num_y_plots_ >= 2 )
+	if (max_num_x_plots_ >= 4 && max_num_y_plots_ >= 2)
 	{
-		switch ( id_to_index_.size() )
+		switch (id_to_index_.size())
 		{
 			case 1:
 				num_x_plots_ = num_y_plots_ = 1;
@@ -197,51 +197,51 @@ void demo::WFViewer::getXYDims_()
 	else
 	{
 		// Make sure we fit within specifications
-		while ( num_x_plots_ > max_num_x_plots_ )
+		while (num_x_plots_ > max_num_x_plots_)
 		{
 			num_x_plots_--;
-			num_y_plots_ = static_cast<size_t>( ceil( id_to_index_.size() / num_x_plots_ ) );
+			num_y_plots_ = static_cast<size_t>(ceil(id_to_index_.size() / num_x_plots_));
 		}
 	}
-	TLOG( TLVL_DEBUG ) << "id count: " << id_to_index_.size() << ", num_x_plots_: " << num_x_plots_ << " / "
-	                   << max_num_x_plots_ << ", num_y_plots_: " << num_y_plots_ << " / " << max_num_y_plots_;
+	TLOG(TLVL_DEBUG) << "id count: " << id_to_index_.size() << ", num_x_plots_: " << num_x_plots_ << " / "
+	                 << max_num_x_plots_ << ", num_y_plots_: " << num_y_plots_ << " / " << max_num_y_plots_;
 }
 
 void demo::WFViewer::bookCanvas_()
 {
 	newCanvas_ = false;
 	getXYDims_();
-	for ( int i = 0; ( i < 2 && !digital_sum_only_ ) || i < 1; i++ )
+	for (int i = 0; (i < 2 && !digital_sum_only_) || i < 1; i++)
 	{
-		canvas_[ i ] = new TCanvas( Form( "wf%d", i ) );
-		canvas_[ i ]->Divide( num_x_plots_, num_y_plots_ );
-		canvas_[ i ]->Update();
-		( (TRootCanvas*)canvas_[ i ]->GetCanvasImp() )->DontCallClose();
+		canvas_[i] = new TCanvas(Form("wf%d", i));
+		canvas_[i]->Divide(num_x_plots_, num_y_plots_);
+		canvas_[i]->Update();
+		((TRootCanvas*)canvas_[i]->GetCanvasImp())->DontCallClose();
 	}
 
-	canvas_[ 0 ]->SetTitle( "ADC Value Distribution" );
+	canvas_[0]->SetTitle("ADC Value Distribution");
 
-	if ( !digital_sum_only_ ) { canvas_[ 1 ]->SetTitle( "ADC Values, Event Snapshot" ); }
+	if (!digital_sum_only_) { canvas_[1]->SetTitle("ADC Values, Event Snapshot"); }
 
-	if ( writeOutput_ )
+	if (writeOutput_)
 	{
-		canvas_[ 0 ]->Write();
-		canvas_[ 1 ]->Write();
+		canvas_[0]->Write();
+		canvas_[1]->Write();
 	}
 }
 
 demo::WFViewer::~WFViewer()
 {
 	// We're going to let ROOT's own garbage collection deal with histograms and Canvases...
-	for ( auto hist : histograms_ ) { hist.second = 0; }
-	for ( auto g : graphs_ ) { g.second = 0; }
+	for (auto hist : histograms_) { hist.second = 0; }
+	for (auto g : graphs_) { g.second = 0; }
 
-	canvas_[ 0 ] = 0;
-	canvas_[ 1 ] = 0;
+	canvas_[0] = 0;
+	canvas_[1] = 0;
 	fFile_ = 0;
 }
 
-void demo::WFViewer::analyze( art::Event const& e )
+void demo::WFViewer::analyze(art::Event const& e)
 {
 	static std::size_t evt_cntr = -1;
 	evt_cntr++;
@@ -255,48 +255,48 @@ void demo::WFViewer::analyze( art::Event const& e )
 	artdaq::FragmentPtrs containerFragments;
 	std::vector<std::string> fragment_type_labels{"TOY1", "TOY2", "ContainerTOY1", "ContainerTOY2"};
 
-	for ( auto label : fragment_type_labels )
+	for (auto label : fragment_type_labels)
 	{
 		art::Handle<artdaq::Fragments> fragments_with_label;
-		e.getByLabel( "daq", label, fragments_with_label );
+		e.getByLabel("daq", label, fragments_with_label);
 
-		if ( !fragments_with_label.isValid() ) continue;
+		if (!fragments_with_label.isValid()) continue;
 		//    for (int i_l = 0; i_l < static_cast<int>(fragments_with_label->size()); ++i_l) {
 		//      fragments.emplace_back( (*fragments_with_label)[i_l] );
 		//    }
 
-		if ( label == "Container" || label == "ContainerTOY1" || label == "ContainerTOY2" )
+		if (label == "Container" || label == "ContainerTOY1" || label == "ContainerTOY2")
 		{
-			for ( auto cont : *fragments_with_label )
+			for (auto cont : *fragments_with_label)
 			{
-				artdaq::ContainerFragment contf( cont );
-				for ( size_t ii = 0; ii < contf.block_count(); ++ii )
+				artdaq::ContainerFragment contf(cont);
+				for (size_t ii = 0; ii < contf.block_count(); ++ii)
 				{
-					containerFragments.push_back( contf[ ii ] );
-					fragments.push_back( *containerFragments.back() );
-					if ( newCanvas_ && !id_to_index_.count( fragments.back().fragmentID() ) )
+					containerFragments.push_back(contf[ii]);
+					fragments.push_back(*containerFragments.back());
+					if (newCanvas_ && !id_to_index_.count(fragments.back().fragmentID()))
 					{
 						auto index = id_to_index_.size();
-						id_to_index_[ fragments.back().fragmentID() ] = index;
+						id_to_index_[fragments.back().fragmentID()] = index;
 					}
 				}
 			}
 		}
 		else
 		{
-			for ( auto frag : *fragments_with_label )
+			for (auto frag : *fragments_with_label)
 			{
-				fragments.emplace_back( frag );
-				if ( newCanvas_ && !id_to_index_.count( fragments.back().fragmentID() ) )
+				fragments.emplace_back(frag);
+				if (newCanvas_ && !id_to_index_.count(fragments.back().fragmentID()))
 				{
 					auto index = id_to_index_.size();
-					id_to_index_[ fragments.back().fragmentID() ] = index;
+					id_to_index_[fragments.back().fragmentID()] = index;
 				}
 			}
 		}
 	}
 
-	if ( newCanvas_ ) { bookCanvas_(); }
+	if (newCanvas_) { bookCanvas_(); }
 
 	// John F., 1/5/14
 
@@ -315,7 +315,7 @@ void demo::WFViewer::analyze( art::Event const& e )
 	artdaq::Fragment::sequence_id_t expected_sequence_id = std::numeric_limits<artdaq::Fragment::sequence_id_t>::max();
 
 	//  for (std::size_t i = 0; i < fragments.size(); ++i) {
-	for ( const auto& frag : fragments )
+	for (const auto& frag : fragments)
 	{
 		// Pointers to the types of fragment overlays WFViewer can handle;
 		// only one will be used per fragment, of course
@@ -325,53 +325,53 @@ void demo::WFViewer::analyze( art::Event const& e )
 		//  const auto& frag( fragments[i] );  // Basically a shorthand
 
 		//    if (i == 0)
-		if ( expected_sequence_id == std::numeric_limits<artdaq::Fragment::sequence_id_t>::max() )
+		if (expected_sequence_id == std::numeric_limits<artdaq::Fragment::sequence_id_t>::max())
 		{ expected_sequence_id = frag.sequenceID(); }
 
-		if ( expected_sequence_id != frag.sequenceID() )
+		if (expected_sequence_id != frag.sequenceID())
 		{
 			cerr << "Warning in WFViewer: expected fragment with sequence ID " << expected_sequence_id
 			     << ", received one with sequence ID " << frag.sequenceID() << endl;
 		}
 
-		FragmentType fragtype = static_cast<FragmentType>( frag.type() );
+		FragmentType fragtype = static_cast<FragmentType>(frag.type());
 		std::size_t max_adc_count = std::numeric_limits<std::size_t>::max();
 		std::size_t total_adc_values = std::numeric_limits<std::size_t>::max();
 
-		switch ( fragtype )
+		switch (fragtype)
 		{
 			case FragmentType::TOY1:
-				toyPtr.reset( new ToyFragment( frag ) );
+				toyPtr.reset(new ToyFragment(frag));
 				total_adc_values = toyPtr->total_adc_values();
-				max_adc_count = pow( 2, frag.template metadata<ToyFragment::Metadata>()->num_adc_bits ) - 1;
+				max_adc_count = pow(2, frag.template metadata<ToyFragment::Metadata>()->num_adc_bits) - 1;
 				break;
 			case FragmentType::TOY2:
-				toyPtr.reset( new ToyFragment( frag ) );
+				toyPtr.reset(new ToyFragment(frag));
 				total_adc_values = toyPtr->total_adc_values();
-				max_adc_count = pow( 2, frag.template metadata<ToyFragment::Metadata>()->num_adc_bits ) - 1;
+				max_adc_count = pow(2, frag.template metadata<ToyFragment::Metadata>()->num_adc_bits) - 1;
 				break;
 			default:
-				throw cet::exception( "Error in WFViewer: unknown fragment type supplied" );
+				throw cet::exception("Error in WFViewer: unknown fragment type supplied");
 		}
 
 		artdaq::Fragment::fragment_id_t fragment_id = frag.fragmentID();
-		if ( !id_to_index_.count( fragment_id ) )
+		if (!id_to_index_.count(fragment_id))
 		{
-			cerr << "Warning in WFViewer: unexpected Fragment with fragment_id " << std::to_string( fragment_id )
+			cerr << "Warning in WFViewer: unexpected Fragment with fragment_id " << std::to_string(fragment_id)
 			     << " encountered!";
 			continue;
 		}
 
 		// If a histogram doesn't exist for this board_id / fragment_id combo, create it
 
-		if ( histograms_.count( fragment_id ) == 0 || !histograms_[ fragment_id ] )
+		if (histograms_.count(fragment_id) == 0 || !histograms_[fragment_id])
 		{
-			histograms_[ fragment_id ] =
-			    new TH1D( Form( "Fragment_%d_hist", fragment_id ), "", max_adc_count + 1, -0.5, max_adc_count + 0.5 );
+			histograms_[fragment_id] =
+			    new TH1D(Form("Fragment_%d_hist", fragment_id), "", max_adc_count + 1, -0.5, max_adc_count + 0.5);
 
-			histograms_[ fragment_id ]->SetTitle(
-			    Form( "Frag %d, Type %s", fragment_id, fragmentTypeToString( fragtype ).c_str() ) );
-			histograms_[ fragment_id ]->GetXaxis()->SetTitle( "ADC value" );
+			histograms_[fragment_id]->SetTitle(
+			    Form("Frag %d, Type %s", fragment_id, fragmentTypeToString(fragtype).c_str()));
+			histograms_[fragment_id]->GetXaxis()->SetTitle("ADC value");
 		}
 
 		// For every event, fill the histogram (prescale is ignored here)
@@ -379,75 +379,75 @@ void demo::WFViewer::analyze( art::Event const& e )
 		// Is there some way to templatize an ART module? If not, we're
 		// stuck with this switch code...
 
-		switch ( fragtype )
+		switch (fragtype)
 		{
 			case FragmentType::TOY1:
 			case FragmentType::TOY2:
-				for ( auto val = toyPtr->dataBeginADCs(); val != toyPtr->dataEndADCs(); ++val )
-					histograms_[ fragment_id ]->Fill( *val );
+				for (auto val = toyPtr->dataBeginADCs(); val != toyPtr->dataEndADCs(); ++val)
+					histograms_[fragment_id]->Fill(*val);
 				break;
 
 			default:
-				throw cet::exception( "Error in WFViewer: unknown fragment type supplied" );
+				throw cet::exception("Error in WFViewer: unknown fragment type supplied");
 		}
 
-		if ( evt_cntr % prescale_ - 1 && prescale_ > 1 ) { continue; }
+		if (evt_cntr % prescale_ - 1 && prescale_ > 1) { continue; }
 
-		std::size_t ind = id_to_index_[ fragment_id ];
+		std::size_t ind = id_to_index_[fragment_id];
 
 		// If we pass the prescale, then if we're not going with
 		// digital_sum_only, plot the ADC counts for this particular event/board/fragment_id
 
-		if ( !digital_sum_only_ )
+		if (!digital_sum_only_)
 		{
 			// Create the graph's x-axis
 
-			if ( x_.size() != total_adc_values )
+			if (x_.size() != total_adc_values)
 			{
-				x_.resize( total_adc_values );
+				x_.resize(total_adc_values);
 
-				std::iota( x_.begin(), x_.end(), 0 );
+				std::iota(x_.begin(), x_.end(), 0);
 			}
 
 			// If the graph doesn't exist, create it. Not sure whether to
 			// make it an error if the total_adc_values is new
 
-			if ( graphs_.count( fragment_id ) == 0 || !graphs_[ fragment_id ] ||
-			     static_cast<std::size_t>( graphs_[ fragment_id ]->GetN() ) != total_adc_values )
+			if (graphs_.count(fragment_id) == 0 || !graphs_[fragment_id] ||
+			    static_cast<std::size_t>(graphs_[fragment_id]->GetN()) != total_adc_values)
 			{
-				graphs_[ fragment_id ] = new TGraph( total_adc_values );
-				graphs_[ fragment_id ]->SetName( Form( "Fragment_%d_graph", fragment_id ) );
-				graphs_[ fragment_id ]->SetLineColor( 4 );
-				std::copy( x_.begin(), x_.end(), graphs_[ fragment_id ]->GetX() );
+				graphs_[fragment_id] = new TGraph(total_adc_values);
+				graphs_[fragment_id]->SetName(Form("Fragment_%d_graph", fragment_id));
+				graphs_[fragment_id]->SetLineColor(4);
+				std::copy(x_.begin(), x_.end(), graphs_[fragment_id]->GetX());
 			}
 
 			// Get the data from the fragment
 
 			// Is there some way to templatize an ART module? If not, we're stuck with this awkward switch code...
 
-			switch ( fragtype )
+			switch (fragtype)
 			{
 				case FragmentType::TOY1:
 				case FragmentType::TOY2:
 				{
-					std::copy( toyPtr->dataBeginADCs(), toyPtr->dataBeginADCs() + total_adc_values,
-					           graphs_[ fragment_id ]->GetY() );
+					std::copy(toyPtr->dataBeginADCs(), toyPtr->dataBeginADCs() + total_adc_values,
+					          graphs_[fragment_id]->GetY());
 				}
 				break;
 
 				default:
-					throw cet::exception( "Error in WFViewer: unknown fragment type supplied" );
+					throw cet::exception("Error in WFViewer: unknown fragment type supplied");
 			}
 
 			// And now prepare the graphics without actually drawing anything yet
 
-			canvas_[ 1 ]->cd( ind + 1 );
-			TVirtualPad* pad = static_cast<TVirtualPad*>( canvas_[ 1 ]->GetPad( ind + 1 ) );
+			canvas_[1]->cd(ind + 1);
+			TVirtualPad* pad = static_cast<TVirtualPad*>(canvas_[1]->GetPad(ind + 1));
 
 			Double_t lo_x, hi_x, lo_y, hi_y, dummy;
 
-			graphs_[ fragment_id ]->GetPoint( 0, lo_x, dummy );
-			graphs_[ fragment_id ]->GetPoint( graphs_[ fragment_id ]->GetN() - 1, hi_x, dummy );
+			graphs_[fragment_id]->GetPoint(0, lo_x, dummy);
+			graphs_[fragment_id]->GetPoint(graphs_[fragment_id]->GetN() - 1, hi_x, dummy);
 
 			lo_x -= 0.5;
 			hi_x += 0.5;
@@ -455,61 +455,61 @@ void demo::WFViewer::analyze( art::Event const& e )
 			lo_y = -0.5;
 			hi_y = max_adc_count + 0.5;
 
-			TH1F* padframe = static_cast<TH1F*>( pad->DrawFrame( lo_x, lo_y, hi_x, hi_y ) );
-			padframe->SetTitle( Form( "Frag %d, Type %s, SeqID %d", static_cast<int>( fragment_id ),
-			                          fragmentTypeToString( fragtype ).c_str(),
-			                          static_cast<int>( expected_sequence_id ) ) );
-			padframe->GetXaxis()->SetTitle( "ADC #" );
+			TH1F* padframe = static_cast<TH1F*>(pad->DrawFrame(lo_x, lo_y, hi_x, hi_y));
+			padframe->SetTitle(Form("Frag %d, Type %s, SeqID %d", static_cast<int>(fragment_id),
+			                        fragmentTypeToString(fragtype).c_str(),
+			                        static_cast<int>(expected_sequence_id)));
+			padframe->GetXaxis()->SetTitle("ADC #");
 			pad->SetGrid();
-			padframe->Draw( "SAME" );
+			padframe->Draw("SAME");
 		}
 
 		// Draw the histogram
 
-		canvas_[ 0 ]->cd( ind + 1 );
-		histograms_[ fragment_id ]->Draw();
+		canvas_[0]->cd(ind + 1);
+		histograms_[fragment_id]->Draw();
 
-		canvas_[ 0 ]->Modified();
-		canvas_[ 0 ]->Update();
+		canvas_[0]->Modified();
+		canvas_[0]->Update();
 
 		// And, if desired, the Nth event's ADC counts
 
-		if ( !digital_sum_only_ )
+		if (!digital_sum_only_)
 		{
-			canvas_[ 1 ]->cd( ind + 1 );
+			canvas_[1]->cd(ind + 1);
 
-			graphs_[ fragment_id ]->Draw( "PSAME" );
+			graphs_[fragment_id]->Draw("PSAME");
 
-			canvas_[ 1 ]->Modified();
-			canvas_[ 1 ]->Update();
+			canvas_[1]->Modified();
+			canvas_[1]->Update();
 		}
 
-		if ( writeOutput_ )
+		if (writeOutput_)
 		{
-			canvas_[ 0 ]->Write( "wf0", TObject::kOverwrite );
-			canvas_[ 1 ]->Write( "wf1", TObject::kOverwrite );
+			canvas_[0]->Write("wf0", TObject::kOverwrite);
+			canvas_[1]->Write("wf1", TObject::kOverwrite);
 			fFile_->Write();
 		}
 	}
 }
 
-void demo::WFViewer::beginRun( art::Run const& e )
+void demo::WFViewer::beginRun(art::Run const& e)
 {
-	if ( e.run() == current_run_ ) return;
+	if (e.run() == current_run_) return;
 	current_run_ = e.run();
 
-	if ( writeOutput_ )
+	if (writeOutput_)
 	{
-		fFile_ = new TFile( outputFileName_.c_str(), "RECREATE" );
+		fFile_ = new TFile(outputFileName_.c_str(), "RECREATE");
 		fFile_->cd();
 	}
 
-	for ( int i = 0; i < 2; i++ ) canvas_[ i ] = 0;
-	for ( auto& x : graphs_ ) x.second.reset( nullptr );
-	for ( auto& x : histograms_ ) x.second.reset( nullptr );
+	for (int i = 0; i < 2; i++) canvas_[i] = 0;
+	for (auto& x : graphs_) x.second.reset(nullptr);
+	for (auto& x : histograms_) x.second.reset(nullptr);
 
 	newCanvas_ = true;
-	if ( !dynamicMode_ ) bookCanvas_();
+	if (!dynamicMode_) bookCanvas_();
 }
 
-DEFINE_ART_MODULE( demo::WFViewer )
+DEFINE_ART_MODULE(demo::WFViewer)
