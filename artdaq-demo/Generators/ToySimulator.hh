@@ -45,7 +45,7 @@ public:
 	 * for more information "rollover_subrun_interval" (Default: 0): If this ToySimulator has fragment_id 0, will cause
 	 * the system to rollover subruns every N events. 0 (default) disables.
 	 */
-	explicit ToySimulator( fhicl::ParameterSet const& ps );
+	explicit ToySimulator(fhicl::ParameterSet const& ps);
 
 	/**
 	 * \brief Shutdown the ToySimulator
@@ -60,7 +60,7 @@ private:
 	 * \param output New FragmentPtrs will be added to this container
 	 * \return True if data-taking should continue
 	 */
-	bool getNext_( artdaq::FragmentPtrs& output ) override;
+	bool getNext_(artdaq::FragmentPtrs& output) override;
 
 	// The start, stop and stopNoMutex methods are declared pure
 	// virtual in CommandableFragmentGenerator and therefore MUST be
