@@ -29,4 +29,4 @@ namespace demo {
 typedef art::Source<artdaq::detail::SharedMemoryReader<demo::makeFragmentTypeMap>> DemoInput;
 }  // namespace demo
 
-DEFINE_ART_INPUT_SOURCE( demo::DemoInput )
+DEFINE_ART_INPUT_SOURCE(demo::DemoInput)
