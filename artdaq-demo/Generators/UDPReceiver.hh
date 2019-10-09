@@ -66,10 +66,10 @@ enum class DataType : uint8_t
  */
 struct CommandPacket
 {
-	CommandType type;      ///< The type of this CommandPacket
-	uint8_t dataSize;      ///< How many words of data are in the packet
-	uint64_t address;      ///< The destination of the CommandPacket
-	uint64_t data[ 182 ];  ///< The data for the CommandPacket
+	CommandType type;    ///< The type of this CommandPacket
+	uint8_t dataSize;    ///< How many words of data are in the packet
+	uint64_t address;    ///< The destination of the CommandPacket
+	uint64_t data[182];  ///< The data for the CommandPacket
 };
 
 typedef std::array<uint8_t, 1500> packetBuffer_t;       ///< An array of 1500 bytes (MTU length)
@@ -94,14 +94,14 @@ public:
 	 * "raw_output_path" (Default: "/tmp"): Directory to save raw output file (UDPReceiver-[ip]:[port].bin)
 	 * \endverbatim
 	 */
-	explicit UDPReceiver( fhicl::ParameterSet const& ps );
+	explicit UDPReceiver(fhicl::ParameterSet const& ps);
 
 private:
 	// The "getNext_" function is used to implement user-specific
 	// functionality; it's a mandatory override of the pure virtual
 	// getNext_ function declared in CommandableFragmentGenerator
 
-	bool getNext_( artdaq::FragmentPtrs& output ) override;
+	bool getNext_(artdaq::FragmentPtrs& output) override;
 
 	void start() override;
 
@@ -112,10 +112,10 @@ private:
 
 	void resume() override;
 
-	DataType getDataType( uint8_t byte ) { return static_cast<DataType>( ( byte & 0xF0 ) >> 4 ); }
-	ReturnCode getReturnCode( uint8_t byte ) { return static_cast<ReturnCode>( byte & 0xF ); }
+	DataType getDataType(uint8_t byte) { return static_cast<DataType>((byte & 0xF0) >> 4); }
+	ReturnCode getReturnCode(uint8_t byte) { return static_cast<ReturnCode>(byte & 0xF); }
 
-	void send( CommandType flag );
+	void send(CommandType flag);
 
 	// FHiCL-configurable variables. Note that the C++ variable names
 	// are the FHiCL variable names with a "_" appended

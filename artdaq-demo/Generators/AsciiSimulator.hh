@@ -30,7 +30,7 @@ public:
 	 * "throttle_usecs", how long to pause at the beginning of each call to getNext_, "string1" and "string2", strings
 	 * to alternately put into the AsciiFragment
 	 */
-	explicit AsciiSimulator( fhicl::ParameterSet const& ps );
+	explicit AsciiSimulator(fhicl::ParameterSet const& ps);
 
 private:
 	/**
@@ -42,7 +42,7 @@ private:
 	 * functionality; it's a mandatory override of the pure virtual
 	 * getNext_ function declared in CommandableFragmentGenerator
 	 */
-	bool getNext_( artdaq::FragmentPtrs& output ) override;
+	bool getNext_(artdaq::FragmentPtrs& output) override;
 
 	// Explicitly declare that there is nothing special to be done
 	// by the start, stop, and stopNoMutex methods in this class
