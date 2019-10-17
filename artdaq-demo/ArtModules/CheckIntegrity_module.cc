@@ -96,7 +96,7 @@ void demo::CheckIntegrity::analyze(art::Event const& evt)
 		}
 	}
 
-	TLOG(TLVL_INFO) << "Run " << evt.run() << ", subrun " << evt.subRun() << ", event " << evt.event() << " has "
+	TLOG(TLVL_DEBUG) << "Run " << evt.run() << ", subrun " << evt.subRun() << ", event " << evt.event() << " has "
 	                << fragments.size() << " fragment(s) of type TOY1 or TOY2";
 
 	bool err = false;
