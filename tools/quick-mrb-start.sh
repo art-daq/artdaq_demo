@@ -14,7 +14,7 @@ starttime=`date`
 Base=$PWD
 test -d products || mkdir products
 test -d download || mkdir download
-test -d log || mkdir log
+test -d qms-log || mkdir qms-log
 
 env_opts_var=`basename $0 | sed 's/\.sh$//' | tr 'a-z-' 'A-Z_'`_OPTS
 USAGE="\
@@ -95,8 +95,8 @@ fi
 # "quick-start.sh_Fri_Jan_16_13:58:27_stderr.script"
 alloutput_file=$( date | awk -v "SCRIPTNAME=$(basename $0)" '{print SCRIPTNAME"_"$1"_"$2"_"$3"_"$4".script"}' )
 stderr_file=$( date | awk -v "SCRIPTNAME=$(basename $0)" '{print SCRIPTNAME"_"$1"_"$2"_"$3"_"$4"_stderr.script"}' )
-exec  > >(tee "$Base/log/$alloutput_file")
-exec 2> >(tee "$Base/log/$stderr_file")
+exec  > >(tee "$Base/qms-log/$alloutput_file")
+exec 2> >(tee "$Base/qms-log/$stderr_file")
 
 function detectAndPull() {
 	local startDir=$PWD
@@ -459,12 +459,15 @@ export yourArtdaqInstallationDir='$Base'  ' user_sourcefile_example
 sed -i -r "s!DAQINTERFACE_LOGDIR=.*!DAQINTERFACE_LOGDIR=$logdir!" user_sourcefile_example
 
 mkdir -p $Base/run_records
+chmod g+w $Base/run_records
 sed -i -r 's!^\s*record_directory.*!record_directory: '$Base/run_records'!' settings_example
 
 mkdir -p $logdir
+chmod g+w $logdir
 sed -i -r 's!^\s*log_directory.*!log_directory: '$logdir'!' settings_example
 
 mkdir -p $datadir
+chmod g+w $datadir
 sed -i -r 's!^\s*data_directory_override.*!data_directory_override: '$datadir'!' settings_example
 
 sed -i -r 's!^\s*DAQ setup script:.*!DAQ setup script: '$Base'/setupARTDAQDEMO!' boot*.txt
