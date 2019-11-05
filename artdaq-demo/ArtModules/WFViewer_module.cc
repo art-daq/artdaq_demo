@@ -30,9 +30,8 @@
 #include <sstream>
 #include <vector>
 
-using std::cerr;
-using std::cout;
-using std::endl;
+#include "tracemf.h"
+#define TRACE_NAME "WFViewer"
 
 namespace demo {
 /**
@@ -240,8 +239,8 @@ void demo::WFViewer::analyze(art::Event const& e)
 
 		if (expected_sequence_id != frag.sequenceID())
 		{
-			cerr << "Warning in WFViewer: expected fragment with sequence ID " << expected_sequence_id
-			     << ", received one with sequence ID " << frag.sequenceID() << endl;
+			TLOG(TLVL_WARNING) << "Warning in WFViewer: expected fragment with sequence ID " << expected_sequence_id
+			     << ", received one with sequence ID " << frag.sequenceID();
 		}
 
 		FragmentType fragtype = static_cast<FragmentType>(frag.type());
@@ -267,7 +266,7 @@ void demo::WFViewer::analyze(art::Event const& e)
 		artdaq::Fragment::fragment_id_t fragment_id = frag.fragmentID();
 		if (!id_to_index_.count(fragment_id))
 		{
-			cerr << "Warning in WFViewer: unexpected Fragment with fragment_id " << std::to_string(fragment_id)
+			TLOG(TLVL_WARNING) << "Warning in WFViewer: unexpected Fragment with fragment_id " << std::to_string(fragment_id)
 			     << " encountered!";
 			continue;
 		}
