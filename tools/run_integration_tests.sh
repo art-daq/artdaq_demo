@@ -6,6 +6,7 @@ brlistfile_name=${brlistfile_name:-"known_boardreaders_list_example"}
 ignoredConfigs="dune_sample_system|pdune_swtrig|subconfigs"
 extra_args="${extra_args}"
 daqinterface_rundir=${daqinterface_rundir:-"$PWD/DAQInterface"}
+only_print_cmdline=0
 
 if [ -d $ARTDAQ_DAQINTERFACE_DIR/simple_test_config ]; then
 	simple_test_config_dir=$ARTDAQ_DAQINTERFACE_DIR/simple_test_config
@@ -75,7 +76,10 @@ function run_simple_test_config() {
 	fi
 
 	echo "Command line: ./run_demo.sh --auto --config $config $bootfile $brlist $om --comps $brs -- ${extra_args}"
-	./run_demo.sh --auto --config $config $bootfile $brlist $om --comps $brs -- ${extra_args}
+
+    if [ $only_print_cmdline -ne 1 ]; then
+	    ./run_demo.sh --auto --config $config $bootfile $brlist $om --comps $brs -- ${extra_args}
+    fi
 
 	echo "=================LATEST FILE=================="
 	echo `ls -t daqdata|head -1`
@@ -96,6 +100,7 @@ examples: `basename $0`
 --boot_name   Name of the DAQInterface boot file (ex. boot.txt) (Default: $bootfile_name)
 --config      Name of a single config to run (otherwise all simple_test_config will be run)
 --ignoredConfig If --config is not specified, ignore this configuration (may be repeated) Defaults: $ignoredConfigs
+--cmdline     Print the run_demo.sh command line only, do not actually run the demo
 "
 
 # Process script arguments and options
@@ -118,6 +123,7 @@ while [ -n "${1-}" ];do
 			-boot_name) eval $reqarg;bootfile_name=$1; shift;;
 			-config) eval $reqarg; requested_config=$1; single_mode=1;shift;;
 			-ignoredConfig) eval $reqarg; ignoredConfigs="${ignoredConfigs:+$ignoredConfigs|}$1"; shift;;
+            -cmdline) only_print_cmdline=1;;
             *)          aa=`echo "-$op" | sed -e"s/'/'\"'\"'/g"` args="$args '$aa'";
         esac
     else
