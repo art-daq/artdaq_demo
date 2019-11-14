@@ -105,6 +105,9 @@ private:
 	int generated_fragments_per_event_;
 	bool exception_on_config_;
 	bool dies_on_config_;
+
+        bool lazy_mode_;   // See Issue #22810
+        artdaq::Fragment::timestamp_t last_request_timestamp_;
 };
 }  // namespace demo
 

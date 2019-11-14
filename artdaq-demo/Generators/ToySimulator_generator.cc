@@ -37,8 +37,14 @@ demo::ToySimulator::ToySimulator(fhicl::ParameterSet const& ps)
     , generated_fragments_per_event_(ps.get<int>("generated_fragments_per_event", 1))
     , exception_on_config_(ps.get<bool>("exception_on_config", false))
     , dies_on_config_(ps.get<bool>("dies_on_config", false))
+    , lazy_mode_(ps.get<bool>("lazy_mode", false))
+    , last_request_timestamp_(std::numeric_limits<artdaq::Fragment::timestamp_t>::max())
 
 {
+        if (lazy_mode_ && request_mode() == artdaq::RequestMode::Ignored) {
+	  throw cet::exception("ToySimulator") << "The request mode has been set to \"Ignored\"; this is inconsistent with this ToySimulator's lazy mode set to \"true\"";
+        }
+
 	hardware_interface_->AllocateReadoutBuffer(&readout_buffer_);
 
 	if (exception_on_config_)
@@ -89,6 +95,22 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 
 	std::size_t bytes_read = 0;
 	hardware_interface_->FillBuffer(readout_buffer_, &bytes_read);
+
+	if (lazy_mode_) {
+	  auto request = GetNextRequest();
+
+	  if (request.first != 0) {
+	    last_request_timestamp_ = request.second;
+	  }
+
+	  TLOG(TLVL_INFO) << "Timestamp is " << timestamp_ << ", last request timestamp is " << last_request_timestamp_ ;
+
+	  if (last_request_timestamp_ != timestamp_) {
+	    timestamp_ += timestampScale_;
+	    return true;
+	  }
+	}
+
 
 	// We'll use the static factory function
 
