@@ -38,7 +38,6 @@ demo::ToySimulator::ToySimulator(fhicl::ParameterSet const& ps)
     , exception_on_config_(ps.get<bool>("exception_on_config", false))
     , dies_on_config_(ps.get<bool>("dies_on_config", false))
     , lazy_mode_(ps.get<bool>("lazy_mode", false))
-    , last_request_timestamp_(std::numeric_limits<artdaq::Fragment::timestamp_t>::max())
 
 {
         if (lazy_mode_ && request_mode() == artdaq::RequestMode::Ignored) {
@@ -93,24 +92,28 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 	// rather than sticking the data in the location pointed to by your
 	// pointer (which is what happens here with readout_buffer_)
 
-	std::size_t bytes_read = 0;
-	hardware_interface_->FillBuffer(readout_buffer_, &bytes_read);
-
+	// 15-Nov-2019, KAB, JCF: added handling of the 'lazy' mode.
+	// In this context, "lazy" is intended to mean "only generate data when
+	// it is requested".  With this code, we return before doing the work
+	// of filling the buffer (lazy!), and we overwrite whatever local
+	// calculation of the timestamp has been done with the very specific
+	// timestamp that is contained in the request.  We could also capture
+	// the sequence_id from the request and use it when creating the 
+	// artdaq::Fragment, but that isn't strictly necessary since the sequence_ids
+	// of pull-mode fragments get overwritten when they are matched to requests
+	// in CommandableFragmentGenerator.
 	if (lazy_mode_) {
-	  auto request = GetNextRequest();
+		auto request = GetNextRequest();
+		if (request.first == 0) {
+			usleep(10);
+			return true;
+		}
 
-	  if (request.first != 0) {
-	    last_request_timestamp_ = request.second;
-	  }
-
-	  TLOG(TLVL_INFO) << "Timestamp is " << timestamp_ << ", last request timestamp is " << last_request_timestamp_ ;
-
-	  if (last_request_timestamp_ != timestamp_) {
-	    timestamp_ += timestampScale_;
-	    return true;
-	  }
+		timestamp_ = request.second;
 	}
 
+	std::size_t bytes_read = 0;
+	hardware_interface_->FillBuffer(readout_buffer_, &bytes_read);
 
 	// We'll use the static factory function
 
