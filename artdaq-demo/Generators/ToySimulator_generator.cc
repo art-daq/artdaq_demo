@@ -102,7 +102,11 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 	// artdaq::Fragment, but that isn't strictly necessary since the sequence_ids
 	// of pull-mode fragments get overwritten when they are matched to requests
 	// in CommandableFragmentGenerator.
+	// For completeness, we include tests of both the GetNextRequest and
+	// GetRequest methods (controlled by the LAZY_MODEL pre-processor variable).
 	if (lazy_mode_) {
+#define LAZY_MODEL 0
+#if LAZY_MODEL == 0
 		auto request = GetNextRequest();
 		if (request.first == 0) {
 			usleep(10);
@@ -110,6 +114,32 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 		}
 
 		timestamp_ = request.second;
+		TLOG(51) << "Received a request for the fragment with timestamp " << timestamp_
+		         << " and sequenceId " << request.first << ". Proceeding to fill the fragment buffer, etc.";
+#else
+		auto requests = GetRequests();
+		auto request_iterator = requests.begin();
+		std::pair<artdaq::Fragment::sequence_id_t, artdaq::Fragment::timestamp_t> new_request(0,0);
+		TLOG(52) << "Looping through " << requests.size() << " requests to see if there is a new one.";
+		while (request_iterator != requests.end())
+		{
+			if (lazily_handled_requests_.find(request_iterator->first) == lazily_handled_requests_.end())
+			{
+				lazily_handled_requests_.insert(request_iterator->first);
+				new_request = *request_iterator;
+				break;
+			}
+			++request_iterator;
+		}
+		if (new_request.first == 0)
+		{
+			usleep(10);
+			return true;
+		}
+		timestamp_ = new_request.second;
+		TLOG(51) << "Found a new request for the fragment with timestamp " << timestamp_
+		         << " and sequenceId " << new_request.first << ". Proceeding to fill the fragment buffer, etc.";
+#endif
 	}
 
 	std::size_t bytes_read = 0;
