@@ -211,6 +211,7 @@ void demo::ToySimulator::start()
 {
 	hardware_interface_->StartDatataking();
 	timestamp_ = 0;
+	lazily_handled_requests_.clear();
 }
 
 void demo::ToySimulator::stop() { hardware_interface_->StopDatataking(); }
