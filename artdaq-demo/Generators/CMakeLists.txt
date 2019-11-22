@@ -4,6 +4,7 @@ simple_plugin(ToySimulator "generator"
   artdaq-core-demo_Overlays
   artdaq_Generators
   artdaq_DAQdata
+  artdaq_DAQrate
   artdaq-core_Utilities
   artdaq-core_Data
   artdaq-utilities_Plugins

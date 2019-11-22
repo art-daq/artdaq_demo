@@ -34,6 +34,12 @@ source:
   fragment_type_map: [[3, "TOY2"]]
 }
 
+services: {
+  ArtdaqSharedMemoryServiceInterface: {
+	service_provider: ArtdaqSharedMemoryService
+  }
+}
+
 physics: {
   analyzers: {}
   producers: {}
