@@ -240,7 +240,7 @@ void demo::WFViewer::analyze(art::Event const& e)
 		if (expected_sequence_id != frag.sequenceID())
 		{
 			TLOG(TLVL_WARNING) << "Warning in WFViewer: expected fragment with sequence ID " << expected_sequence_id
-			     << ", received one with sequence ID " << frag.sequenceID();
+			                   << ", received one with sequence ID " << frag.sequenceID();
 		}
 
 		FragmentType fragtype = static_cast<FragmentType>(frag.type());
@@ -267,7 +267,7 @@ void demo::WFViewer::analyze(art::Event const& e)
 		if (!id_to_index_.count(fragment_id))
 		{
 			TLOG(TLVL_WARNING) << "Warning in WFViewer: unexpected Fragment with fragment_id " << std::to_string(fragment_id)
-			     << " encountered!";
+			                   << " encountered!";
 			continue;
 		}
 		std::size_t ind = id_to_index_[fragment_id];
