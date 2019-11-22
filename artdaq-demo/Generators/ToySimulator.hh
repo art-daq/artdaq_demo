@@ -106,7 +106,7 @@ private:
 	bool exception_on_config_;
 	bool dies_on_config_;
 
-	bool lazy_mode_;   // See Issue #22810
+	bool lazy_mode_;  // See Issue #22810
 	std::set<artdaq::Fragment::sequence_id_t> lazily_handled_requests_;
 };
 }  // namespace demo

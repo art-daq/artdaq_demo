@@ -40,9 +40,10 @@ demo::ToySimulator::ToySimulator(fhicl::ParameterSet const& ps)
     , lazy_mode_(ps.get<bool>("lazy_mode", false))
 
 {
-        if (lazy_mode_ && request_mode() == artdaq::RequestMode::Ignored) {
-	  throw cet::exception("ToySimulator") << "The request mode has been set to \"Ignored\"; this is inconsistent with this ToySimulator's lazy mode set to \"true\"";
-        }
+	if (lazy_mode_ && request_mode() == artdaq::RequestMode::Ignored)
+	{
+		throw cet::exception("ToySimulator") << "The request mode has been set to \"Ignored\"; this is inconsistent with this ToySimulator's lazy mode set to \"true\"";
+	}
 
 	hardware_interface_->AllocateReadoutBuffer(&readout_buffer_);
 
@@ -98,17 +99,19 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 	// of filling the buffer (lazy!), and we overwrite whatever local
 	// calculation of the timestamp has been done with the very specific
 	// timestamp that is contained in the request.  We could also capture
-	// the sequence_id from the request and use it when creating the 
+	// the sequence_id from the request and use it when creating the
 	// artdaq::Fragment, but that isn't strictly necessary since the sequence_ids
 	// of pull-mode fragments get overwritten when they are matched to requests
 	// in CommandableFragmentGenerator.
 	// For completeness, we include tests of both the GetNextRequest and
 	// GetRequest methods (controlled by the LAZY_MODEL pre-processor variable).
-	if (lazy_mode_) {
+	if (lazy_mode_)
+	{
 #define LAZY_MODEL 0
 #if LAZY_MODEL == 0
 		auto request = GetNextRequest();
-		if (request.first == 0) {
+		if (request.first == 0)
+		{
 			usleep(10);
 			return true;
 		}
@@ -119,7 +122,7 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 #else
 		auto requests = GetRequests();
 		auto request_iterator = requests.begin();
-		std::pair<artdaq::Fragment::sequence_id_t, artdaq::Fragment::timestamp_t> new_request(0,0);
+		std::pair<artdaq::Fragment::sequence_id_t, artdaq::Fragment::timestamp_t> new_request(0, 0);
 		TLOG(52) << "Looping through " << requests.size() << " requests to see if there is a new one.";
 		while (request_iterator != requests.end())
 		{
