@@ -14,7 +14,7 @@ starttime=`date`
 Base=$PWD
 test -d products || mkdir products
 test -d download || mkdir download
-test -d log || mkdir log
+test -d qms-log || mkdir qms-log
 
 env_opts_var=`basename $0 | sed 's/\.sh$//' | tr 'a-z-' 'A-Z_'`_OPTS
 USAGE="\
@@ -33,6 +33,7 @@ prompted for this location.
 --tag         Install a specific tag of artdaq_demo
 --logdir      Set <dir> as the destination for log files
 --datadir     Set <dir> as the destination for data files
+--recordsdir  Set <dir> as the destination for run record information
 -e, -s, -c    Use specific qualifiers when building ARTDAQ
 -v            Be more verbose
 -x            set -x this script
@@ -44,6 +45,7 @@ prompted for this location.
 eval env_opts=\${$env_opts_var-} # can be args too
 datadir="${ARTDAQDEMO_DATA_DIR:-$Base/daqdata}"
 logdir="${ARTDAQDEMO_LOG_DIR:-$Base/daqlogs}"
+recordsdir="${ARTDAQDEMO_RECORD_DIR:-$Base/run_records}"
 eval "set -- $env_opts \"\$@\""
 op1chr='rest=`expr "$op" : "[^-]\(.*\)"`   && set -- "-$rest" "$@"'
 op1arg='rest=`expr "$op" : "[^-]\(.*\)"`   && set --  "$rest" "$@"'
@@ -69,6 +71,7 @@ while [ -n "${1-}" ];do
 			-viewer)    opt_viewer=--viewer;;
 			-logdir)    eval $op1arg; logdir=$1; shift;;
 			-datadir)   eval $op1arg; datadir=$1; shift;;
+			-recordsdir) eval $op1arg; recordsdir=$1; shift;;
 			-no-extra-products)  opt_skip_extra_products=1;;
 			-mfext)     opt_mfext=1;;
 			*)          echo "Unknown option -$op"; do_help=1;;
@@ -95,8 +98,8 @@ fi
 # "quick-start.sh_Fri_Jan_16_13:58:27_stderr.script"
 alloutput_file=$( date | awk -v "SCRIPTNAME=$(basename $0)" '{print SCRIPTNAME"_"$1"_"$2"_"$3"_"$4".script"}' )
 stderr_file=$( date | awk -v "SCRIPTNAME=$(basename $0)" '{print SCRIPTNAME"_"$1"_"$2"_"$3"_"$4"_stderr.script"}' )
-exec  > >(tee "$Base/log/$alloutput_file")
-exec 2> >(tee "$Base/log/$stderr_file")
+exec  > >(tee "$Base/qms-log/$alloutput_file")
+exec 2> >(tee "$Base/qms-log/$stderr_file")
 
 function detectAndPull() {
 	local startDir=$PWD
@@ -458,13 +461,16 @@ sed -i -r '/export DAQINTERFACE_USER_SOURCEFILE_ERRNO=0/i \
 export yourArtdaqInstallationDir='$Base'  ' user_sourcefile_example
 sed -i -r "s!DAQINTERFACE_LOGDIR=.*!DAQINTERFACE_LOGDIR=$logdir!" user_sourcefile_example
 
-mkdir -p $Base/run_records
-sed -i -r 's!^\s*record_directory.*!record_directory: '$Base/run_records'!' settings_example
+mkdir -p $recordsdir
+chmod g+w $recordsdir
+sed -i -r 's!^\s*record_directory.*!record_directory: '$recordsdir'!' settings_example
 
 mkdir -p $logdir
+chmod g+w $logdir
 sed -i -r 's!^\s*log_directory.*!log_directory: '$logdir'!' settings_example
 
 mkdir -p $datadir
+chmod g+w $datadir
 sed -i -r 's!^\s*data_directory_override.*!data_directory_override: '$datadir'!' settings_example
 
 sed -i -r 's!^\s*DAQ setup script:.*!DAQ setup script: '$Base'/setupARTDAQDEMO!' boot*.txt

@@ -37,8 +37,14 @@ demo::ToySimulator::ToySimulator(fhicl::ParameterSet const& ps)
     , generated_fragments_per_event_(ps.get<int>("generated_fragments_per_event", 1))
     , exception_on_config_(ps.get<bool>("exception_on_config", false))
     , dies_on_config_(ps.get<bool>("dies_on_config", false))
+    , lazy_mode_(ps.get<bool>("lazy_mode", false))
 
 {
+	if (lazy_mode_ && request_mode() == artdaq::RequestMode::Ignored)
+	{
+		throw cet::exception("ToySimulator") << "The request mode has been set to \"Ignored\"; this is inconsistent with this ToySimulator's lazy mode set to \"true\"";
+	}
+
 	hardware_interface_->AllocateReadoutBuffer(&readout_buffer_);
 
 	if (exception_on_config_)
@@ -86,6 +92,58 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 	// function which directly returns a pointer to the data buffer
 	// rather than sticking the data in the location pointed to by your
 	// pointer (which is what happens here with readout_buffer_)
+
+	// 15-Nov-2019, KAB, JCF: added handling of the 'lazy' mode.
+	// In this context, "lazy" is intended to mean "only generate data when
+	// it is requested".  With this code, we return before doing the work
+	// of filling the buffer (lazy!), and we overwrite whatever local
+	// calculation of the timestamp has been done with the very specific
+	// timestamp that is contained in the request.  We could also capture
+	// the sequence_id from the request and use it when creating the
+	// artdaq::Fragment, but that isn't strictly necessary since the sequence_ids
+	// of pull-mode fragments get overwritten when they are matched to requests
+	// in CommandableFragmentGenerator.
+	// For completeness, we include tests of both the GetNextRequest and
+	// GetRequest methods (controlled by the LAZY_MODEL pre-processor variable).
+	if (lazy_mode_)
+	{
+#define LAZY_MODEL 0
+#if LAZY_MODEL == 0
+		auto request = GetNextRequest();
+		if (request.first == 0)
+		{
+			usleep(10);
+			return true;
+		}
+
+		timestamp_ = request.second;
+		TLOG(51) << "Received a request for the fragment with timestamp " << timestamp_
+		         << " and sequenceId " << request.first << ". Proceeding to fill the fragment buffer, etc.";
+#else
+		auto requests = GetRequests();
+		auto request_iterator = requests.begin();
+		std::pair<artdaq::Fragment::sequence_id_t, artdaq::Fragment::timestamp_t> new_request(0, 0);
+		TLOG(52) << "Looping through " << requests.size() << " requests to see if there is a new one.";
+		while (request_iterator != requests.end())
+		{
+			if (lazily_handled_requests_.find(request_iterator->first) == lazily_handled_requests_.end())
+			{
+				lazily_handled_requests_.insert(request_iterator->first);
+				new_request = *request_iterator;
+				break;
+			}
+			++request_iterator;
+		}
+		if (new_request.first == 0)
+		{
+			usleep(10);
+			return true;
+		}
+		timestamp_ = new_request.second;
+		TLOG(51) << "Found a new request for the fragment with timestamp " << timestamp_
+		         << " and sequenceId " << new_request.first << ". Proceeding to fill the fragment buffer, etc.";
+#endif
+	}
 
 	std::size_t bytes_read = 0;
 	hardware_interface_->FillBuffer(readout_buffer_, &bytes_read);
@@ -156,6 +214,7 @@ void demo::ToySimulator::start()
 {
 	hardware_interface_->StartDatataking();
 	timestamp_ = 0;
+	lazily_handled_requests_.clear();
 }
 
 void demo::ToySimulator::stop() { hardware_interface_->StopDatataking(); }

@@ -11,9 +11,6 @@ simple_plugin(NthEvent "transfer"
   ${Boost_SYSTEM_LIBRARY}
   ${CETLIB}
   ${CETLIB_EXCEPT}
-  ${ROOT_RIO}
-  ${ROOT_NET}
-  ${ROOT_CORE}
 )
 
 install_headers()
