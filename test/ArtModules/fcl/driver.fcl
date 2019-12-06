@@ -1,8 +1,13 @@
+BEGIN_PROLOG
+num_events: 100
+END_PROLOG
+
+
 # FHiCL document used to run the "driver" executable. To learn more
 #  about the FHiCL language, please look at
 #  cdcvs.fnal.gov/redmine/documents/327 , the "FHiCL Quick Start Guide"
 
-events_to_generate: 10
+events_to_generate: @local::num_events
 run_number: 101
 transition_timeout: 30
 debug_cout: false
