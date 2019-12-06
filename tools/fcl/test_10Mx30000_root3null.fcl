@@ -46,6 +46,11 @@ metrics: {
 ######################################################################
 # The ART code
 ######################################################################
+art: {
+services: {
+   ArtdaqSharedMemoryServiceInterface: { service_provider: ArtdaqSharedMemoryService }
+#    TimeTracker: {}
+}
 
 source: {
   module_type: DemoInput
@@ -76,6 +81,6 @@ physics: {
 }
 
 process_name: Driver
-
+}
 
 
