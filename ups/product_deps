@@ -1,6 +1,6 @@
 # The parent line must be the first non-comment line in the file
 # This line defines the product name and version
-parent artdaq_demo	v3_07_01a
+parent artdaq_demo	v3_07_02
 defaultqual	e17:s85
 
 # These optional lines define the installed directories where
@@ -17,8 +17,8 @@ bindir      fq_dir      bin
 
 #
 product		 version	optional
-artdaq           v3_07_01a
-artdaq_core_demo v1_06_18a
+artdaq           v3_07_02
+artdaq_core_demo v1_06_19
 cetbuildtools    v7_14_00       -       only_for_build
 end_product_list
 
@@ -30,6 +30,10 @@ c7:s94:prof  	   c7:s94:prof  	 c7:s94:prof
 c7:s94:debug  	   c7:s94:debug 	 c7:s94:debug
 e19:s94:prof   	   e19:s94:prof  	 e19:s94:prof
 e19:s94:debug  	   e19:s94:debug 	 e19:s94:debug
+c7:s94:py2:prof  	   c7:s94:py2:prof  	 c7:s94:py2:prof
+c7:s94:py2:debug  	   c7:s94:py2:debug 	 c7:s94:py2:debug
+e19:s94:py2:prof   	   e19:s94:py2:prof  	 e19:s94:py2:prof
+e19:s94:py2:debug  	   e19:s94:py2:debug 	 e19:s94:py2:debug
 
 c7:s92:prof  	   c7:s92:prof  	 c7:s92:prof
 c7:s92:debug  	   c7:s92:debug 	 c7:s92:debug
