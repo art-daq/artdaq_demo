@@ -6,10 +6,6 @@ events_to_generate: 30000
 run_number: 101
 transition_timeout: 30
 
-#services: {
-#    TimeTracker: {}
-#}
-
 fragment_receiver: {
 
    # Parameters defining and configuring the fragment generator to be used
@@ -51,6 +47,11 @@ metrics: {
 ######################################################################
 # The ART code
 ######################################################################
+art: {
+services: {
+   ArtdaqSharedMemoryServiceInterface: { service_provider: ArtdaqSharedMemoryService }
+#    TimeTracker: {}
+}
 
 physics: {
   analyzers: {
@@ -68,7 +69,7 @@ physics: {
 
 outputs: {
   rootout: {
-    module_type: RootOutput
+    module_type: RootDAQOut
     fileName: "driver_test.root"
     compressionLevel: 0
   }
@@ -81,6 +82,6 @@ source: {
 }
 
 process_name: Driver
-
+}
 
 
