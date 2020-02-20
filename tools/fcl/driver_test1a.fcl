@@ -6,10 +6,6 @@ events_to_generate: 4000
 run_number: 101
 transition_timeout: 30
 
-#services: {
-#    TimeTracker: {}
-#}
-
 fragment_receiver: {
    # Parameters defining and configuring the fragment generator to be used
    generator: ToySimulator 
@@ -44,6 +40,11 @@ metrics: {
 ######################################################################
 # The ART code
 ######################################################################
+art: {
+services: {
+   ArtdaqSharedMemoryServiceInterface: { service_provider: ArtdaqSharedMemoryService }
+    TimeTracker: {}
+}
 physics:{
   analyzers:{
   }
@@ -59,7 +60,7 @@ physics:{
 outputs:{
   rootout:{
     module_type: RootDAQOut
-    #module_type: RootOutput
+    #module_type: RootDAQOut
     compressionLevel: 0
     #freeMB: 8192
     fileProperties:{ maxEvents:100 }
@@ -71,6 +72,6 @@ source:{
   resume_after_timeout: true
 }
 process_name: Driver
-
+}
 
 
