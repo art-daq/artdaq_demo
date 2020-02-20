@@ -39,6 +39,11 @@ event_builder: {
 # The ART code
 ######################################################################
 
+art: {
+services: {
+  ArtdaqSharedMemoryServiceInterface: { service_provider: ArtdaqSharedMemoryService }
+}
+
 physics:
 {
 
@@ -69,7 +74,7 @@ outputs:
 {
   evenOutput:
   {
-    module_type: RootOutput
+    module_type: RootDAQOut
     fileName: "splitter_even.root"
     compressionLevel: 0
 
@@ -78,7 +83,7 @@ outputs:
 
   oddOutput:
   {
-    module_type: RootOutput
+    module_type: RootDAQOut
     fileName: "splitter_odd.root"
     compressionLevel: 0
 
@@ -96,5 +101,5 @@ fragment_type_map: [[3, "V1720"], [4, "V1724"], [6, "TOY1"], [7, "TOY2"] ]
 
 process_name: Driver
 
-
+}
 
