@@ -6,9 +6,6 @@ events_to_generate: 10000
 run_number: 101
 transition_timeout: 30
 
-services: {
-    TimeTracker: {}
-}
 
 fragment_receiver: {
 
@@ -43,6 +40,11 @@ buffer_count: 20
 # The ART code
 ######################################################################
 
+art: {
+services: {
+   ArtdaqSharedMemoryServiceInterface: { service_provider: ArtdaqSharedMemoryService }
+    TimeTracker: {}
+}
 physics:
 {
   analyzers:
@@ -84,5 +86,5 @@ resume_after_timeout: true
 
 process_name: Driver
 
-
+}
 
