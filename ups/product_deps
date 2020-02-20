@@ -1,6 +1,6 @@
 # The parent line must be the first non-comment line in the file
 # This line defines the product name and version
-parent artdaq_demo	v3_07_00
+parent artdaq_demo	v3_07_02
 defaultqual	e17:s85
 
 # These optional lines define the installed directories where
@@ -17,8 +17,8 @@ bindir      fq_dir      bin
 
 #
 product		 version	optional
-artdaq           v3_07_00
-artdaq_core_demo v1_06_18
+artdaq           v3_07_02
+artdaq_core_demo v1_06_19
 cetbuildtools    v7_14_00       -       only_for_build
 end_product_list
 
@@ -30,6 +30,10 @@ c7:s94:prof  	   c7:s94:prof  	 c7:s94:prof
 c7:s94:debug  	   c7:s94:debug 	 c7:s94:debug
 e19:s94:prof   	   e19:s94:prof  	 e19:s94:prof
 e19:s94:debug  	   e19:s94:debug 	 e19:s94:debug
+c7:s94:py2:prof  	   c7:s94:py2:prof  	 c7:s94:py2:prof
+c7:s94:py2:debug  	   c7:s94:py2:debug 	 c7:s94:py2:debug
+e19:s94:py2:prof   	   e19:s94:py2:prof  	 e19:s94:py2:prof
+e19:s94:py2:debug  	   e19:s94:py2:debug 	 e19:s94:py2:debug
 
 c7:s92:prof  	   c7:s92:prof  	 c7:s92:prof
 c7:s92:debug  	   c7:s92:debug 	 c7:s92:debug
@@ -39,6 +43,15 @@ e19:s92:prof   	   e19:s92:prof  	 e19:s92:prof
 e19:s92:debug  	   e19:s92:debug 	 e19:s92:debug
 e17:s92:prof   	   e17:s92:prof  	 e17:s92:prof
 e17:s92:debug  	   e17:s92:debug 	 e17:s92:debug
+
+c7:s89:prof  	   c7:s89:prof  	 c7:s89:prof
+c7:s89:debug  	   c7:s89:debug 	 c7:s89:debug
+c2:s89:prof  	   c2:s89:prof  	 c2:s89:prof
+c2:s89:debug  	   c2:s89:debug 	 c2:s89:debug
+e19:s89:prof   	   e19:s89:prof  	 e19:s89:prof
+e19:s89:debug  	   e19:s89:debug 	 e19:s89:debug
+e17:s89:prof   	   e17:s89:prof  	 e17:s89:prof
+e17:s89:debug  	   e17:s89:debug 	 e17:s89:debug
 
 c7:s87:prof  	   c7:s87:prof  	 c7:s87:prof
 c7:s87:debug  	   c7:s87:debug 	 c7:s87:debug
