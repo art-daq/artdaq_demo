@@ -1,2 +1,3 @@
+add_subdirectory(ArtModules)
 add_subdirectory(Generators)
 add_subdirectory(RoutingPolicies)
