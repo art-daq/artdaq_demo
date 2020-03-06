@@ -53,6 +53,8 @@ demo::AsciiSimulator::AsciiSimulator(fhicl::ParameterSet const& ps)
     , throttle_usecs_(ps.get<size_t>("throttle_usecs", 100000))
     , string1_(ps.get<std::string>("string1", "All work and no play makes ARTDAQ a dull library"))
     , string2_(ps.get<std::string>("string2", "Hey, look at what ARTDAQ can do!"))
+    , timestamp_(0)
+    , timestampScale_(ps.get<int>("timestamp_scale_factor", 1))
 {}
 
 bool demo::AsciiSimulator::getNext_(artdaq::FragmentPtrs& frags)
@@ -110,7 +112,7 @@ bool demo::AsciiSimulator::getNext_(artdaq::FragmentPtrs& frags)
 	std::size_t initial_payload_size = 0;
 
 	std::unique_ptr<artdaq::Fragment> fragptr(artdaq::Fragment::FragmentBytes(
-	    initial_payload_size, ev_counter(), fragment_id(), FragmentType::ASCII, metadata));
+	    initial_payload_size, ev_counter(), fragment_id(), FragmentType::ASCII, metadata, timestamp_));
 	frags.emplace_back(std::move(fragptr));
 
 	// Then any overlay-specific quantities next; will need the
@@ -136,6 +138,7 @@ bool demo::AsciiSimulator::getNext_(artdaq::FragmentPtrs& frags)
 	//  output.close();
 
 	ev_counter_inc();
+	timestamp_ += timestampScale_;
 
 	return true;
 }
