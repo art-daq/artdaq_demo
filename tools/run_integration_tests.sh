@@ -30,6 +30,7 @@ function treset ()
 function cleanup() {
 	killall -9 art
 	ipcrm -a
+    rm out.bin >/dev/null 2>&1
 	treset
 }
 
@@ -81,6 +82,13 @@ function run_simple_test_config() {
 	echo `ls -t daqdata|head -1`
 	echo "=============================================="
 
+    if [ $do_om -ne 0 ]; then
+        echo "Moving out.bin to daqdata/${config}.bin"
+        touch daqdata/${config}.bin
+        mv out.bin daqdata/${config}.bin
+    else
+        touch daqdata/${config}_noom.bin
+    fi
 }
 
 
@@ -147,6 +155,7 @@ echo "=============================================="
 echo "demo (Hung online monitor)"
 echo "=============================================="
 ./run_demo.sh --auto --om_fhicl TransferInputShmemWithDelay --bootfile $daqinterface_rundir/$bootfile_name --brlist $daqinterface_rundir/$brlistfile_name ${extra_args}
+mv out.bin daqdata/demo_hung_om.bin
 echo "=================LATEST FILE=================="
 echo `ls -t daqdata|head -1`
 echo "=============================================="
