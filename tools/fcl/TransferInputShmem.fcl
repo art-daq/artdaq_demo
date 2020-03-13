@@ -52,6 +52,8 @@ physics: {
   end_paths: [ a3 ]
 }
 
+services: { ArtdaqSharedMemoryServiceInterface: { service_provider: ArtdaqSharedMemoryService }}
+
 outputs: {
   out1: {
     module_type: FileDumperOutput
