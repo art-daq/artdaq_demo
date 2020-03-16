@@ -30,7 +30,7 @@ function treset ()
 function cleanup() {
 	killall -9 art
 	ipcrm -a
-    rm out.bin >/dev/null 2>&1
+    rm out.bin om1.log om2.log >/dev/null 2>&1
 	treset
 }
 
@@ -86,6 +86,9 @@ function run_simple_test_config() {
         echo "Moving out.bin to daqdata/${config}.bin"
         touch daqdata/${config}.bin
         mv out.bin daqdata/${config}.bin
+	mkdir -p daqlogs/onlinemonitor >/dev/null 2>&1
+	mv om1.log daqlogs/onlinemonitor/${config}_om1.log
+	mv om2.log daqlogs/onlinemonitor/${config}_om2.log
     else
         touch daqdata/${config}_noom.bin
     fi
