@@ -310,14 +310,14 @@ if [ $do_om -eq 1 ]; then
 
 	$toolsdir/xt_cmd.sh $basedir --geom '150x33+'$xloc'+0 -sl 2500' \
 			-c '. ./setupARTDAQDEMO' \
-			-c 'art -c '$thisrecorddir'/'$om_fhicl'.fcl' --exec &
+			-c 'art -c '$thisrecorddir'/'$om_fhicl'.fcl|tee om1.log' --exec &
         xt_pids="$xt_pids $!"
 
 	sleep 4;
 
 	$toolsdir/xt_cmd.sh $basedir --geom '100x33+0+0 -sl 2500' \
 			-c '. ./setupARTDAQDEMO' \
-			-c 'art -c  '$thisrecorddir'/'$om_fhicl'2.fcl' --exec &
+			-c 'art -c  '$thisrecorddir'/'$om_fhicl'2.fcl|tee om2.log' --exec &
         xt_pids="$xt_pids $!"
     fi
 fi

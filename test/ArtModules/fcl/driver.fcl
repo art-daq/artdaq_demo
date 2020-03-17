@@ -36,6 +36,7 @@ event_builder: {
   buffer_count: 10
   use_art: true
   print_event_store_stats: false
+  send_init_fragments: false
   verbose: true
 }
 
@@ -45,7 +46,10 @@ event_builder: {
 art: {
     services: {
         TimeTracker: {}
-        ArtdaqSharedMemoryServiceInterface: { service_provider: ArtdaqSharedMemoryService }
+        ArtdaqSharedMemoryServiceInterface: { service_provider: ArtdaqSharedMemoryService 
+        waiting_time: 10
+        resume_after_timeout: true}
+        ArtdaqFragmentNamingServiceInterface: { service_provider: ArtdaqDemoFragmentNamingService }
     }
     physics:
     {
@@ -94,9 +98,7 @@ art: {
 
     source:
     {
-        module_type: DemoInput
-        waiting_time: 900
-        resume_after_timeout: true
+        module_type: ArtdaqInput
     }
 
     process_name: Driver
