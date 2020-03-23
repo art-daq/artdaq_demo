@@ -80,7 +80,8 @@ demo::ToySimulator::~ToySimulator() { hardware_interface_->FreeReadoutBuffer(rea
 
 bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 {
-	if (should_stop()) {
+	if (should_stop())
+	{
 		return false;
 	}
 

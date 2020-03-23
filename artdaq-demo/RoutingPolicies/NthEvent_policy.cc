@@ -49,7 +49,8 @@ detail::RoutingPacket NthEventPolicy::GetCurrentTable()
 {
 	auto tokens = getTokensSnapshot();
 	std::map<int, int> table;
-	for (auto token : *tokens.get()) {
+	for (auto token : *tokens.get())
+	{
 		table[token]++;
 	}
 	if (table.count(nth_rank_) == 0) table[nth_rank_] = 0;
@@ -93,7 +94,8 @@ detail::RoutingPacket NthEventPolicy::GetCurrentTable()
 
 	for (auto r : table)
 	{
-		for (auto i = 0; i < r.second; ++i) {
+		for (auto i = 0; i < r.second; ++i)
+		{
 			tokens->push_back(r.first);
 		}
 	}

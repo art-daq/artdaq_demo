@@ -147,7 +147,8 @@ demo::WFViewer::WFViewer(fhicl::ParameterSet const& ps)
 	// id_to_index_ will translate between a fragment's ID and where in
 	// the vector of graphs and histograms it's located
 
-	for (std::size_t i_f = 0; i_f < fragment_ids_.size(); ++i_f) {
+	for (std::size_t i_f = 0; i_f < fragment_ids_.size(); ++i_f)
+	{
 		id_to_index_[fragment_ids_[i_f]] = i_f;
 	}
 
@@ -159,10 +160,12 @@ demo::WFViewer::WFViewer(fhicl::ParameterSet const& ps)
 demo::WFViewer::~WFViewer()
 {
 	// We're going to let ROOT's own garbage collection deal with histograms and Canvases...
-	for (size_t ind = 0; ind < histograms_.size(); ++ind) {
+	for (size_t ind = 0; ind < histograms_.size(); ++ind)
+	{
 		histograms_[ind] = 0;
 	}
-	for (size_t ind = 0; ind < graphs_.size(); ++ind) {
+	for (size_t ind = 0; ind < graphs_.size(); ++ind)
+	{
 		graphs_[ind] = 0;
 	}
 
@@ -212,7 +215,8 @@ void demo::WFViewer::analyze(art::Event const& e)
 		{
 			if (handle->front().type() == demo::FragmentType::TOY1 || handle->front().type() == demo::FragmentType::TOY2)
 			{
-				for (auto frag : *handle) {
+				for (auto frag : *handle)
+				{
 					fragments.emplace_back(frag);
 				}
 			}
@@ -316,7 +320,8 @@ void demo::WFViewer::analyze(art::Event const& e)
 				throw cet::exception("Error in WFViewer: unknown fragment type supplied");
 		}
 
-		if (evt_cntr % prescale_ - 1 && prescale_ > 1) {
+		if (evt_cntr % prescale_ - 1 && prescale_ > 1)
+		{
 			continue;
 		}
 
@@ -443,7 +448,8 @@ void demo::WFViewer::beginRun(art::Run const& e)
 
 	canvas_[0]->SetTitle("ADC Value Distribution");
 
-	if (!digital_sum_only_) {
+	if (!digital_sum_only_)
+	{
 		canvas_[1]->SetTitle("ADC Values, Event Snapshot");
 	}
 

@@ -99,7 +99,8 @@ artdaq::detail::RoutingPacket MisbehaviorTest::GetCurrentTable()
 			if (misbehave_overload_event_builder_)
 			{
 				mf::LogError("MisbehaviorTest") << "Sending 100 events in a row to Rank " << tokens->at(0);
-				for (auto ii = 0; ii < 100; ++ii) {
+				for (auto ii = 0; ii < 100; ++ii)
+				{
 					output.emplace_back(next_sequence_id_++, tokens->at(0));
 				}
 			}

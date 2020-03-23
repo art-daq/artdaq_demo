@@ -96,7 +96,8 @@ void demo::ASCIIDump::analyze(art::Event const& evt)
 		{
 			if (handle->front().type() == demo::FragmentType::ASCII)
 			{
-				for (auto frag : *handle) {
+				for (auto frag : *handle)
+				{
 					fragments.emplace_back(frag);
 				}
 			}

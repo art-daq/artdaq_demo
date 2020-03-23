@@ -79,14 +79,16 @@ bool demo::AsciiSimulator::getNext_(artdaq::FragmentPtrs& frags)
 		{
 			usleep(throttle_usecs_ / 10000);
 
-			if (should_stop()) {
+			if (should_stop())
+			{
 				return false;
 			}
 		}
 	}
 	else
 	{
-		if (should_stop()) {
+		if (should_stop())
+		{
 			return false;
 		}
 	}

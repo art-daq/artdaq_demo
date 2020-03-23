@@ -122,7 +122,8 @@ void demo::ToyDump::analyze(art::Event const& evt)
 		{
 			if (handle->front().type() == demo::FragmentType::TOY1 || handle->front().type() == demo::FragmentType::TOY2)
 			{
-				for (auto frag : *handle) {
+				for (auto frag : *handle)
+				{
 					fragments.emplace_back(frag);
 				}
 			}
@@ -210,7 +211,8 @@ void demo::ToyDump::analyze(art::Event const& evt)
 				o << (idx * columns_to_display_on_screen_) << ": ";
 				for (uint32_t jdx = 0; jdx < columns_to_display_on_screen_; ++jdx)
 				{
-					if (adc_counter >= numAdcs) {
+					if (adc_counter >= numAdcs)
+					{
 						break;
 					}
 					o << std::setw(6) << std::setfill(' ');

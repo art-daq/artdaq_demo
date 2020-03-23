@@ -57,7 +57,8 @@ demo::UDPReceiver::UDPReceiver(fhicl::ParameterSet const &ps)
 
 bool demo::UDPReceiver::getNext_(artdaq::FragmentPtrs &frags)
 {
-	if (should_stop()) {
+	if (should_stop())
+	{
 		return false;
 	}
 
@@ -95,7 +96,8 @@ bool demo::UDPReceiver::getNext_(artdaq::FragmentPtrs &frags)
 	uint8_t droppedPackets = 0;
 	while (!haveData)
 	{
-		if (should_stop()) {
+		if (should_stop())
+		{
 			return false;
 		}
 		struct pollfd ufds[1];
@@ -148,7 +150,8 @@ bool demo::UDPReceiver::getNext_(artdaq::FragmentPtrs &frags)
 						packetBuffers_.push_back(buffer);
 						TLOG(TLVL_DEBUG) << "Now placing UDP packet with sequence number " << std::hex << (int)seqNum
 						                 << " into buffer.";
-						if (dataCode == ReturnCode::Read) {
+						if (dataCode == ReturnCode::Read)
+						{
 							haveData = true;
 						}
 						else
@@ -164,7 +167,8 @@ bool demo::UDPReceiver::getNext_(artdaq::FragmentPtrs &frags)
 						memset(&buffer[0], 0, sizeof(packetBuffer_t));
 						recvfrom(datasocket_, &buffer[0], sizeof(packetBuffer_t), 0, (struct sockaddr *)&si_data_,
 						         (socklen_t *)sizeof(si_data_));
-						if (droppedPackets == 0) {
+						if (droppedPackets == 0)
+						{
 							packetBuffers_.push_back(buffer);
 						}
 						else if (burst_end == -1 || seqNum < burst_end)
@@ -180,7 +184,8 @@ bool demo::UDPReceiver::getNext_(artdaq::FragmentPtrs &frags)
 									expectedPacketNumber_--;
 								}
 							}
-							if (!found) {
+							if (!found)
+							{
 								packetBuffers_.push_back(buffer);
 							}
 						}
@@ -240,7 +245,8 @@ bool demo::UDPReceiver::getNext_(artdaq::FragmentPtrs &frags)
 		for (int ii = 2; ii < 1500; ++ii)
 		{
 			// Null-terminate string types
-			if (jj[ii] == 0 && (dataType == DataType::JSON || dataType == DataType::String)) {
+			if (jj[ii] == 0 && (dataType == DataType::JSON || dataType == DataType::String))
+			{
 				break;
 			}
 

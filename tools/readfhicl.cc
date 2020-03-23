@@ -78,7 +78,8 @@ catch (std::string& x)
 catch (char const* m)
 {
 	std::cerr << "Exception (type char const*) caught in driver: " << std::endl;
-	if (m) {
+	if (m)
+	{
 		std::cerr << m;
 	}
 	else
