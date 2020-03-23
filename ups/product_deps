@@ -1,6 +1,6 @@
 # The parent line must be the first non-comment line in the file
 # This line defines the product name and version
-parent artdaq_demo	v3_07_02
+parent artdaq_demo	v3_08_00
 defaultqual	e17:s85
 
 # These optional lines define the installed directories where
@@ -17,8 +17,8 @@ bindir      fq_dir      bin
 
 #
 product		 version	optional
-artdaq           v3_07_02
-artdaq_core_demo v1_06_19
+artdaq           v3_08_00
+artdaq_core_demo v1_06_20
 cetbuildtools    v7_14_00       -       only_for_build
 end_product_list
 
