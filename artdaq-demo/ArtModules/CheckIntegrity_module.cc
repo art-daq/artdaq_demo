@@ -11,8 +11,8 @@
 #include "art/Framework/Principal/Handle.h"
 #include "canvas/Utilities/Exception.h"
 
-#include "artdaq-core-demo/Overlays/ToyFragment.hh"
 #include "artdaq-core-demo/Overlays/FragmentType.hh"
+#include "artdaq-core-demo/Overlays/ToyFragment.hh"
 #include "artdaq-core/Data/ContainerFragment.hh"
 #include "artdaq-core/Data/Fragment.hh"
 
@@ -99,7 +99,9 @@ void demo::CheckIntegrity::analyze(art::Event const& evt)
 		{
 			if (handle->front().type() == demo::FragmentType::TOY1 || handle->front().type() == demo::FragmentType::TOY2)
 			{
-				for (auto frag : *handle) { fragments.emplace_back(frag); }
+				for (auto frag : *handle) {
+					fragments.emplace_back(frag);
+				}
 			}
 		}
 	}
