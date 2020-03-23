@@ -28,7 +28,9 @@ template<typename T>
 T convertToASCII(std::string input)
 {
 	if (input.size() < sizeof(T) / sizeof(char))
-	{ input.insert(0, sizeof(T) / sizeof(char) - input.size(), ' '); }
+	{
+		input.insert(0, sizeof(T) / sizeof(char) - input.size(), ' ');
+	}
 	else if (input.size() > sizeof(T) / sizeof(char))
 	{
 		input.erase(0, input.size() - sizeof(T) / sizeof(char));
@@ -77,12 +79,18 @@ bool demo::AsciiSimulator::getNext_(artdaq::FragmentPtrs& frags)
 		{
 			usleep(throttle_usecs_ / 10000);
 
-			if (should_stop()) { return false; }
+			if (should_stop())
+			{
+				return false;
+			}
 		}
 	}
 	else
 	{
-		if (should_stop()) { return false; }
+		if (should_stop())
+		{
+			return false;
+		}
 	}
 
 	// Set fragment's metadata

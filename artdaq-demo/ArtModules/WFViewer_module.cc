@@ -147,7 +147,10 @@ demo::WFViewer::WFViewer(fhicl::ParameterSet const& ps)
 	// id_to_index_ will translate between a fragment's ID and where in
 	// the vector of graphs and histograms it's located
 
-	for (std::size_t i_f = 0; i_f < fragment_ids_.size(); ++i_f) { id_to_index_[fragment_ids_[i_f]] = i_f; }
+	for (std::size_t i_f = 0; i_f < fragment_ids_.size(); ++i_f)
+	{
+		id_to_index_[fragment_ids_[i_f]] = i_f;
+	}
 
 	gStyle->SetOptStat("irm");
 	gStyle->SetMarkerStyle(22);
@@ -157,8 +160,14 @@ demo::WFViewer::WFViewer(fhicl::ParameterSet const& ps)
 demo::WFViewer::~WFViewer()
 {
 	// We're going to let ROOT's own garbage collection deal with histograms and Canvases...
-	for (size_t ind = 0; ind < histograms_.size(); ++ind) { histograms_[ind] = 0; }
-	for (size_t ind = 0; ind < graphs_.size(); ++ind) { graphs_[ind] = 0; }
+	for (size_t ind = 0; ind < histograms_.size(); ++ind)
+	{
+		histograms_[ind] = 0;
+	}
+	for (size_t ind = 0; ind < graphs_.size(); ++ind)
+	{
+		graphs_[ind] = 0;
+	}
 
 	canvas_[0] = 0;
 	canvas_[1] = 0;
@@ -206,7 +215,10 @@ void demo::WFViewer::analyze(art::Event const& e)
 		{
 			if (handle->front().type() == demo::FragmentType::TOY1 || handle->front().type() == demo::FragmentType::TOY2)
 			{
-				for (auto frag : *handle) { fragments.emplace_back(frag); }
+				for (auto frag : *handle)
+				{
+					fragments.emplace_back(frag);
+				}
 			}
 		}
 	}
@@ -239,12 +251,14 @@ void demo::WFViewer::analyze(art::Event const& e)
 
 		//    if (i == 0)
 		if (expected_sequence_id == std::numeric_limits<artdaq::Fragment::sequence_id_t>::max())
-		{ expected_sequence_id = frag.sequenceID(); }
+		{
+			expected_sequence_id = frag.sequenceID();
+		}
 
 		if (expected_sequence_id != frag.sequenceID())
 		{
 			TLOG(TLVL_WARNING) << "Warning in WFViewer: expected fragment with sequence ID " << expected_sequence_id
-			     << ", received one with sequence ID " << frag.sequenceID();
+			                   << ", received one with sequence ID " << frag.sequenceID();
 		}
 
 		FragmentType fragtype = static_cast<FragmentType>(frag.type());
@@ -271,7 +285,7 @@ void demo::WFViewer::analyze(art::Event const& e)
 		if (!id_to_index_.count(fragment_id))
 		{
 			TLOG(TLVL_WARNING) << "Warning in WFViewer: unexpected Fragment with fragment_id " << std::to_string(fragment_id)
-			     << " encountered!";
+			                   << " encountered!";
 			continue;
 		}
 		std::size_t ind = id_to_index_[fragment_id];
@@ -306,7 +320,10 @@ void demo::WFViewer::analyze(art::Event const& e)
 				throw cet::exception("Error in WFViewer: unknown fragment type supplied");
 		}
 
-		if (evt_cntr % prescale_ - 1 && prescale_ > 1) { continue; }
+		if (evt_cntr % prescale_ - 1 && prescale_ > 1)
+		{
+			continue;
+		}
 
 		// If we pass the prescale, then if we're not going with
 		// digital_sum_only, plot the ADC counts for this particular event/board/fragment_id
@@ -431,7 +448,10 @@ void demo::WFViewer::beginRun(art::Run const& e)
 
 	canvas_[0]->SetTitle("ADC Value Distribution");
 
-	if (!digital_sum_only_) { canvas_[1]->SetTitle("ADC Values, Event Snapshot"); }
+	if (!digital_sum_only_)
+	{
+		canvas_[1]->SetTitle("ADC Values, Event Snapshot");
+	}
 
 	if (writeOutput_)
 	{

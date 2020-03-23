@@ -96,7 +96,10 @@ void demo::ASCIIDump::analyze(art::Event const& evt)
 		{
 			if (handle->front().type() == demo::FragmentType::ASCII)
 			{
-				for (auto frag : *handle) { fragments.emplace_back(frag); }
+				for (auto frag : *handle)
+				{
+					fragments.emplace_back(frag);
+				}
 			}
 		}
 	}
@@ -130,7 +133,9 @@ void demo::ASCIIDump::analyze(art::Event const& evt)
 
 		std::ofstream output("out.bin", std::ios::out | std::ios::app | std::ios::binary);
 		for (uint32_t i_adc = 0; i_adc < bb.total_line_characters(); ++i_adc)
-		{ output.write((char*)(bb.dataBegin() + i_adc), sizeof(char)); }
+		{
+			output.write((char*)(bb.dataBegin() + i_adc), sizeof(char));
+		}
 		output.close();
 		std::cout << std::endl;
 		std::cout << std::endl;

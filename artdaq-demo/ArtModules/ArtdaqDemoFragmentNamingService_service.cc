@@ -20,7 +20,7 @@ public:
 	 * \brief ArtdaqDemoFragmentNamingService Constructor
 	 */
 	ArtdaqDemoFragmentNamingService(fhicl::ParameterSet const&, art::ActivityRegistry&);
-	
+
 private:
 };
 
