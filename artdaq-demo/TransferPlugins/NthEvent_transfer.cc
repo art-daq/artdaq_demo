@@ -174,7 +174,9 @@ bool NthEventTransfer::pass(const artdaq::Fragment& fragment) const
 	bool passed = false;
 
 	if (fragment.type() == artdaq::Fragment::DataFragmentType)
-	{ passed = (fragment.sequenceID() + nth_ - offset_) % nth_ == 0 ? true : false; }
+	{
+		passed = (fragment.sequenceID() + nth_ - offset_) % nth_ == 0 ? true : false;
+	}
 	else
 	{
 		passed = true;

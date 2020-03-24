@@ -21,6 +21,7 @@ genToArt:
 	max_event_size_bytes: 1000
 	expected_fragments_per_event: 1
     timeout: 5.0
+    send_init_fragments: false
     print_stats: false
   }
 }
@@ -29,15 +30,15 @@ process_name: TEST
 
 source:
 {
-  module_type: RawInput
-  waiting_time: 25.0
-  fragment_type_map: [[3, "TOY2"]]
+  module_type: ArtdaqInput
 }
 
 services: {
   ArtdaqSharedMemoryServiceInterface: {
 	service_provider: ArtdaqSharedMemoryService
+  waiting_time: 25.0
   }
+   ArtdaqFragmentNamingService: { service_provider: ArtdaqDemoFragmentNamingService }
 }
 
 physics: {

@@ -57,7 +57,10 @@ demo::UDPReceiver::UDPReceiver(fhicl::ParameterSet const &ps)
 
 bool demo::UDPReceiver::getNext_(artdaq::FragmentPtrs &frags)
 {
-	if (should_stop()) { return false; }
+	if (should_stop())
+	{
+		return false;
+	}
 
 	demo::UDPFragment::Metadata metadata;
 	metadata.port = dataport_;
@@ -93,7 +96,10 @@ bool demo::UDPReceiver::getNext_(artdaq::FragmentPtrs &frags)
 	uint8_t droppedPackets = 0;
 	while (!haveData)
 	{
-		if (should_stop()) { return false; }
+		if (should_stop())
+		{
+			return false;
+		}
 		struct pollfd ufds[1];
 		ufds[0].fd = datasocket_;
 		ufds[0].events = POLLIN | POLLPRI;
@@ -144,7 +150,10 @@ bool demo::UDPReceiver::getNext_(artdaq::FragmentPtrs &frags)
 						packetBuffers_.push_back(buffer);
 						TLOG(TLVL_DEBUG) << "Now placing UDP packet with sequence number " << std::hex << (int)seqNum
 						                 << " into buffer.";
-						if (dataCode == ReturnCode::Read) { haveData = true; }
+						if (dataCode == ReturnCode::Read)
+						{
+							haveData = true;
+						}
 						else
 						{
 							droppedPackets = 0;
@@ -158,7 +167,10 @@ bool demo::UDPReceiver::getNext_(artdaq::FragmentPtrs &frags)
 						memset(&buffer[0], 0, sizeof(packetBuffer_t));
 						recvfrom(datasocket_, &buffer[0], sizeof(packetBuffer_t), 0, (struct sockaddr *)&si_data_,
 						         (socklen_t *)sizeof(si_data_));
-						if (droppedPackets == 0) { packetBuffers_.push_back(buffer); }
+						if (droppedPackets == 0)
+						{
+							packetBuffers_.push_back(buffer);
+						}
 						else if (burst_end == -1 || seqNum < burst_end)
 						{
 							bool found = false;
@@ -172,14 +184,19 @@ bool demo::UDPReceiver::getNext_(artdaq::FragmentPtrs &frags)
 									expectedPacketNumber_--;
 								}
 							}
-							if (!found) { packetBuffers_.push_back(buffer); }
+							if (!found)
+							{
+								packetBuffers_.push_back(buffer);
+							}
 						}
 						TLOG(TLVL_DEBUG) << "Now placing UDP packet with sequence number " << std::hex << (int)seqNum
 						                 << " into buffer.";
 						if (dataCode == ReturnCode::Last && droppedPackets == 0)
 						{
 							while (getReturnCode(packetBuffers_.back()[0]) != ReturnCode::Last)
-							{ packetBuffers_.pop_back(); }
+							{
+								packetBuffers_.pop_back();
+							}
 							haveData = true;
 						}
 						else if (dataCode == ReturnCode::Last)
@@ -189,7 +206,9 @@ bool demo::UDPReceiver::getNext_(artdaq::FragmentPtrs &frags)
 						else if (burst_end >= 0 && droppedPackets == 0)
 						{
 							while (getReturnCode(packetBuffers_.back()[0]) != ReturnCode::Last)
-							{ packetBuffers_.pop_back(); }
+							{
+								packetBuffers_.pop_back();
+							}
 							haveData = true;
 						}
 					}
@@ -226,7 +245,10 @@ bool demo::UDPReceiver::getNext_(artdaq::FragmentPtrs &frags)
 		for (int ii = 2; ii < 1500; ++ii)
 		{
 			// Null-terminate string types
-			if (jj[ii] == 0 && (dataType == DataType::JSON || dataType == DataType::String)) { break; }
+			if (jj[ii] == 0 && (dataType == DataType::JSON || dataType == DataType::String))
+			{
+				break;
+			}
 
 			if (rawOutput_) output.write((char *)&(jj[ii]), sizeof(uint8_t));
 			*(thisFrag.dataBegin() + pos) = jj[ii];

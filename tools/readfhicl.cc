@@ -78,7 +78,10 @@ catch (std::string& x)
 catch (char const* m)
 {
 	std::cerr << "Exception (type char const*) caught in driver: " << std::endl;
-	if (m) { std::cerr << m; }
+	if (m)
+	{
+		std::cerr << m;
+	}
 	else
 	{
 		std::cerr << "[the value was a null pointer, so no message is available]";

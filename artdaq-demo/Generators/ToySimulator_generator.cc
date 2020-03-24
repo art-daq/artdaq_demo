@@ -89,7 +89,10 @@ demo::ToySimulator::~ToySimulator() { hardware_interface_->FreeReadoutBuffer(rea
 
 bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 {
-	if (should_stop()) { return false; }
+	if (should_stop())
+	{
+		return false;
+	}
 
 	// ToyHardwareInterface (an instance to which "hardware_interface_"
 	// is a unique_ptr object) is just one example of the sort of
@@ -190,7 +193,9 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 	}
 
 	if (metricMan != nullptr)
-	{ metricMan->sendMetric("Fragments Sent", ev_counter(), "Events", 3, artdaq::MetricMode::LastPoint); }
+	{
+		metricMan->sendMetric("Fragments Sent", ev_counter(), "Events", 3, artdaq::MetricMode::LastPoint);
+	}
 
 	if (rollover_subrun_interval_ > 0 && ev_counter() % rollover_subrun_interval_ == 0 && fragment_id() == 0)
 	{

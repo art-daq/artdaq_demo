@@ -52,6 +52,8 @@ physics: {
   end_paths: [ a3 ]
 }
 
+services: { ArtdaqSharedMemoryServiceInterface: { service_provider: ArtdaqSharedMemoryService }}
+
 outputs: {
   out1: {
     module_type: FileDumperOutput
@@ -60,8 +62,10 @@ outputs: {
   }
 }
 
+
 source: {
   module_type: TransferInput
+  register_fragment_types: false
 
   # The timeout shouldn't be much smaller than the period between events, otherwise 
   # there's a spew of timeout messages
