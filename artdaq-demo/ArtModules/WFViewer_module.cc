@@ -360,7 +360,7 @@ void demo::WFViewer::analyze(art::Event const& e)
 		if (!id_to_index_.count(fragment_id))
 		{
 			TLOG(TLVL_WARNING) << "Warning in WFViewer: unexpected Fragment with fragment_id " << std::to_string(fragment_id)
-			     << " encountered!";
+			                   << " encountered!";
 			continue;
 		}
 
