@@ -68,24 +68,23 @@ void demo::ASCIIDump::analyze(art::Event const& evt)
 
 	artdaq::Fragments fragments;
 	artdaq::FragmentPtrs containerFragments;
-	std::vector<std::string> fragment_type_labels{"ASCII", "ContainerASCII"};
+	std::vector<art::Handle<artdaq::Fragments>> fragmentHandles;
+	evt.getManyByType(fragmentHandles);
 
-	for (auto label : fragment_type_labels)
+	for (auto handle : fragmentHandles)
 	{
-		art::Handle<artdaq::Fragments> fragments_with_label;
+		if (!handle.isValid() || handle->size() == 0) continue;
 
-		evt.getByLabel(raw_data_label_, label, fragments_with_label);
-		if (!fragments_with_label.isValid()) continue;
-
-		//    for (int i_l = 0; i_l < static_cast<int>(fragments_with_label->size()); ++i_l) {
-		//      fragments.emplace_back( (*fragments_with_label)[i_l] );
-		//    }
-
-		if (label == "Container" || label == "ContainerASCII")
+		if (handle->front().type() == artdaq::Fragment::ContainerFragmentType)
 		{
-			for (auto cont : *fragments_with_label)
+			for (auto cont : *handle)
 			{
 				artdaq::ContainerFragment contf(cont);
+				if (contf.fragment_type() != demo::FragmentType::ASCII)
+				{
+					break;
+				}
+
 				for (size_t ii = 0; ii < contf.block_count(); ++ii)
 				{
 					containerFragments.push_back(contf[ii]);
@@ -95,7 +94,13 @@ void demo::ASCIIDump::analyze(art::Event const& evt)
 		}
 		else
 		{
-			for (auto frag : *fragments_with_label) { fragments.emplace_back(frag); }
+			if (handle->front().type() == demo::FragmentType::ASCII)
+			{
+				for (auto frag : *handle)
+				{
+					fragments.emplace_back(frag);
+				}
+			}
 		}
 	}
 
@@ -128,7 +133,9 @@ void demo::ASCIIDump::analyze(art::Event const& evt)
 
 		std::ofstream output("out.bin", std::ios::out | std::ios::app | std::ios::binary);
 		for (uint32_t i_adc = 0; i_adc < bb.total_line_characters(); ++i_adc)
-		{ output.write((char*)(bb.dataBegin() + i_adc), sizeof(char)); }
+		{
+			output.write((char*)(bb.dataBegin() + i_adc), sizeof(char));
+		}
 		output.close();
 		std::cout << std::endl;
 		std::cout << std::endl;
