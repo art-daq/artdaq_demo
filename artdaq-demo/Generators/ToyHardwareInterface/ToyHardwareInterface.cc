@@ -105,7 +105,10 @@ void ToyHardwareInterface::FillBuffer(char* buffer, size_t* bytes_read)
 		}
 		else
 		{
-			if (abort_after_N_seconds_) { std::abort(); }
+			if (abort_after_N_seconds_)
+			{
+				std::abort();
+			}
 			else if (exit_after_N_seconds_)
 			{
 				std::exit(1);
@@ -122,7 +125,9 @@ void ToyHardwareInterface::FillBuffer(char* buffer, size_t* bytes_read)
 			else
 			{
 				// Pretend the hardware hangs
-				while (true) {}
+				while (true)
+				{
+				}
 			}
 		}
 

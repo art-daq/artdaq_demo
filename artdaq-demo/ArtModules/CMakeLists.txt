@@ -92,25 +92,14 @@ simple_plugin(CheckIntegrity "module"
   ${CETLIB_EXCEPT}
 )
 
-simple_plugin(DemoInput "source"
- artdaq-core-demo_Overlays
-  artdaq-core_Core
-  artdaq-core_Utilities
-  rt
-  artdaq_DAQdata
-  artdaq-utilities_Plugins
-  artdaq_ArtModules
-  artdaq_ArtModules_ArtdaqSharedMemoryService_service
-  art_Framework_Core
-  art_Framework_IO_Sources
-  art_Framework_Principal
+simple_plugin(ArtdaqDemoFragmentNamingService "service"
+artdaq_ArtModules_ArtdaqFragmentNamingService_service
+artdaq-core_Data
+artdaq-core-demo_Overlays
   art_Framework_Services_Registry
-  art_Persistency_Provenance
-  art_Utilities
   MF_MessageLogger
-  ${CETLIB_EXCEPT}
-)
-
+  fhiclcpp)
+  
 simple_plugin(EventReporterOutput "module"
   artdaq_ArtModules
   artdaq_DAQdata
