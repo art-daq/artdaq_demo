@@ -58,6 +58,9 @@ private:
 	// Members needed to generate the simulated data
 	std::string string1_;  ///< The first string to generate. Alternates with string2_ in output data
 	std::string string2_;  ///< The second string to generate. Alternates with string1_ in output data
+
+	artdaq::Fragment::timestamp_t timestamp_;
+	int timestampScale_;
 };
 }  // namespace demo
 

@@ -11,6 +11,7 @@
 #include "art/Framework/Principal/Handle.h"
 #include "canvas/Utilities/Exception.h"
 
+#include "artdaq-core-demo/Overlays/FragmentType.hh"
 #include "artdaq-core-demo/Overlays/ToyFragment.hh"
 #include "artdaq-core/Data/ContainerFragment.hh"
 #include "artdaq-core/Data/Fragment.hh"
@@ -69,20 +70,24 @@ void demo::CheckIntegrity::analyze(art::Event const& evt)
 {
 	artdaq::Fragments fragments;
 	artdaq::FragmentPtrs containerFragments;
-	std::vector<std::string> fragment_type_labels{"TOY1", "TOY2", "ContainerTOY1", "ContainerTOY2"};
 
-	for (auto label : fragment_type_labels)
+	std::vector<art::Handle<artdaq::Fragments>> fragmentHandles;
+	evt.getManyByType(fragmentHandles);
+
+	for (auto handle : fragmentHandles)
 	{
-		art::Handle<artdaq::Fragments> fragments_with_label;
+		if (!handle.isValid() || handle->size() == 0) continue;
 
-		evt.getByLabel(raw_data_label_, label, fragments_with_label);
-		if (!fragments_with_label.isValid()) continue;
-
-		if (label == "Container" || label == "ContainerTOY1" || label == "ContainerTOY2")
+		if (handle->front().type() == artdaq::Fragment::ContainerFragmentType)
 		{
-			for (auto cont : *fragments_with_label)
+			for (auto cont : *handle)
 			{
 				artdaq::ContainerFragment contf(cont);
+				if (contf.fragment_type() != demo::FragmentType::TOY1 && contf.fragment_type() != demo::FragmentType::TOY2)
+				{
+					break;
+				}
+
 				for (size_t ii = 0; ii < contf.block_count(); ++ii)
 				{
 					containerFragments.push_back(contf[ii]);
@@ -92,7 +97,13 @@ void demo::CheckIntegrity::analyze(art::Event const& evt)
 		}
 		else
 		{
-			for (auto frag : *fragments_with_label) { fragments.emplace_back(frag); }
+			if (handle->front().type() == demo::FragmentType::TOY1 || handle->front().type() == demo::FragmentType::TOY2)
+			{
+				for (auto frag : *handle)
+				{
+					fragments.emplace_back(frag);
+				}
+			}
 		}
 	}
 
