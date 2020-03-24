@@ -1,3 +1,6 @@
+#include "tracemf.h"
+#define TRACE_NAME "WFViewer"
+
 #include "art/Framework/Core/EDAnalyzer.h"
 #include "art/Framework/Core/ModuleMacros.h"
 #include "art/Framework/Principal/Event.h"
@@ -29,10 +32,6 @@
 #include <numeric>
 #include <sstream>
 #include <vector>
-
-using std::cerr;
-using std::cout;
-using std::endl;
 
 namespace demo {
 /**
@@ -253,23 +252,24 @@ void demo::WFViewer::analyze(art::Event const& e)
 
 	artdaq::Fragments fragments;
 	artdaq::FragmentPtrs containerFragments;
-	std::vector<std::string> fragment_type_labels{"TOY1", "TOY2", "ContainerTOY1", "ContainerTOY2"};
 
-	for (auto label : fragment_type_labels)
+	std::vector<art::Handle<artdaq::Fragments>> fragmentHandles;
+	e.getManyByType(fragmentHandles);
+
+	for (auto handle : fragmentHandles)
 	{
-		art::Handle<artdaq::Fragments> fragments_with_label;
-		e.getByLabel("daq", label, fragments_with_label);
+		if (!handle.isValid() || handle->size() == 0) continue;
 
-		if (!fragments_with_label.isValid()) continue;
-		//    for (int i_l = 0; i_l < static_cast<int>(fragments_with_label->size()); ++i_l) {
-		//      fragments.emplace_back( (*fragments_with_label)[i_l] );
-		//    }
-
-		if (label == "Container" || label == "ContainerTOY1" || label == "ContainerTOY2")
+		if (handle->front().type() == artdaq::Fragment::ContainerFragmentType)
 		{
-			for (auto cont : *fragments_with_label)
+			for (auto cont : *handle)
 			{
 				artdaq::ContainerFragment contf(cont);
+				if (contf.fragment_type() != demo::FragmentType::TOY1 && contf.fragment_type() != demo::FragmentType::TOY2)
+				{
+					break;
+				}
+
 				for (size_t ii = 0; ii < contf.block_count(); ++ii)
 				{
 					containerFragments.push_back(contf[ii]);
@@ -326,12 +326,14 @@ void demo::WFViewer::analyze(art::Event const& e)
 
 		//    if (i == 0)
 		if (expected_sequence_id == std::numeric_limits<artdaq::Fragment::sequence_id_t>::max())
-		{ expected_sequence_id = frag.sequenceID(); }
+		{
+			expected_sequence_id = frag.sequenceID();
+		}
 
 		if (expected_sequence_id != frag.sequenceID())
 		{
-			cerr << "Warning in WFViewer: expected fragment with sequence ID " << expected_sequence_id
-			     << ", received one with sequence ID " << frag.sequenceID() << endl;
+			TLOG(TLVL_WARNING) << "Warning in WFViewer: expected fragment with sequence ID " << expected_sequence_id
+			                   << ", received one with sequence ID " << frag.sequenceID();
 		}
 
 		FragmentType fragtype = static_cast<FragmentType>(frag.type());
@@ -357,7 +359,7 @@ void demo::WFViewer::analyze(art::Event const& e)
 		artdaq::Fragment::fragment_id_t fragment_id = frag.fragmentID();
 		if (!id_to_index_.count(fragment_id))
 		{
-			cerr << "Warning in WFViewer: unexpected Fragment with fragment_id " << std::to_string(fragment_id)
+			TLOG(TLVL_WARNING) << "Warning in WFViewer: unexpected Fragment with fragment_id " << std::to_string(fragment_id)
 			     << " encountered!";
 			continue;
 		}
@@ -388,10 +390,14 @@ void demo::WFViewer::analyze(art::Event const& e)
 				break;
 
 			default:
+				TLOG(TLVL_ERROR) << "Error in WFViewer: unknown fragment type supplied";
 				throw cet::exception("Error in WFViewer: unknown fragment type supplied");
 		}
 
-		if (evt_cntr % prescale_ - 1 && prescale_ > 1) { continue; }
+		if (evt_cntr % prescale_ - 1 && prescale_ > 1)
+		{
+			continue;
+		}
 
 		std::size_t ind = id_to_index_[fragment_id];
 
@@ -436,6 +442,7 @@ void demo::WFViewer::analyze(art::Event const& e)
 				break;
 
 				default:
+					TLOG(TLVL_ERROR) << "Error in WFViewer: unknown fragment type supplied";
 					throw cet::exception("Error in WFViewer: unknown fragment type supplied");
 			}
 
