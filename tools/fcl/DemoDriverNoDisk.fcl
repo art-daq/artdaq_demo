@@ -41,6 +41,7 @@ event_builder: {
 art: {
 services: {
    ArtdaqSharedMemoryServiceInterface: { service_provider: ArtdaqSharedMemoryService }
+  ArtdaqFragmentNamingServiceInterface: { service_provider: ArtdaqDemoFragmentNamingService }
     TimeTracker: {}
 }
 physics:
@@ -95,7 +96,7 @@ outputs:
 
 source:
 {
-  module_type: DemoInput
+  module_type: ArtdaqInput
 }
 
 process_name: DemoDriver

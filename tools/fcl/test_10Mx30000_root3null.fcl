@@ -48,14 +48,17 @@ metrics: {
 ######################################################################
 art: {
 services: {
-   ArtdaqSharedMemoryServiceInterface: { service_provider: ArtdaqSharedMemoryService }
+   ArtdaqSharedMemoryServiceInterface: { 
+     service_provider: ArtdaqSharedMemoryService
+     waiting_time: 900
+     resume_after_timeout: true
+  }
+  ArtdaqFragmentNamingServiceInterface: { service_provider: ArtdaqDemoFragmentNamingService }
 #    TimeTracker: {}
 }
 
 source: {
-  module_type: DemoInput
-  waiting_time: 900
-  resume_after_timeout: true
+  module_type: ArtdaqInput
 }
 
 outputs: {

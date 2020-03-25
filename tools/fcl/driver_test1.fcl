@@ -43,7 +43,12 @@ use_art: true
 
 art: {
 services: {
-   ArtdaqSharedMemoryServiceInterface: { service_provider: ArtdaqSharedMemoryService }
+   ArtdaqSharedMemoryServiceInterface: { 
+     service_provider: ArtdaqSharedMemoryService
+     waiting_time: 900
+     resume_after_timeout: true
+  }
+  ArtdaqFragmentNamingServiceInterface: { service_provider: ArtdaqDemoFragmentNamingService }
     TimeTracker: {}
 }
 physics:
@@ -87,9 +92,7 @@ outputs:
 
 source:
 {
-module_type: DemoInput
-waiting_time: 900
-resume_after_timeout: true
+module_type: ArtdaqInput
 }
 
 process_name: Driver
