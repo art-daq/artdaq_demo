@@ -33,6 +33,7 @@ event_builder: {
   print_event_store_stats: false
   verbose: true
   expected_art_event_processing_time_us: 2000000
+  init_fragment_count: 0
 }
 
 ######################################################################

@@ -32,6 +32,7 @@ event_builder: {
   use_art: true
   print_event_store_stats: false
   verbose: true
+  init_fragment_count: 0
 }
 
 ######################################################################
