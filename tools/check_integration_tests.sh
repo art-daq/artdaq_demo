@@ -54,7 +54,8 @@ function get_run_config {
 }
 
 function get_run_files {
-    run_files=`ls daqdata|grep "00${1}_"|grep -v dump`
+    run_files=`ls daqdata|grep -e "_r0*${1}_"|grep -v dump`
+    run_files_count=`ls daqdata|grep -e "_r0*${1}_"|grep -v dump|wc -l`
 }
 
 function get_run_dump_file {
@@ -145,11 +146,11 @@ for run in `ls -d run_records/*|sort -V`;do
 
     get_run_config $run
 
-    echo "Run $run_number with configuration $run_config_name"
     get_run_files $run_number
     #echo "Run files:"
     #echo "$run_files"
 
+    echo "Run $run_number with configuration $run_config_name has $run_files_count data file(s)"
     for file in $run_files;do
         #echo "    $file"
         check_event_count $file $run_config_name
