@@ -1,0 +1,158 @@
+#!/bin/bash
+
+setup_sourced=0
+
+min_events_ascii_simulator_example=10000
+min_events_circular_buffer_mode_example=60
+min_events_circular_buffer_mode_withRM=10
+min_events_complex_subsystems=600
+min_events_complicated_subsystems=60
+min_events_config_includes=600
+min_events_demo=600
+min_events_demo_largesystem=600
+min_events_eventbuilder_diskwriting=300
+min_events_file_closing_example=10
+min_events_mediumsystem_with_routing_master=100
+min_events_multiple_art_processes_example=600
+min_events_multiple_dataloggers=100
+min_events_request_based_dataflow_example=600
+min_events_routing_master_example=600
+min_events_simple_subsystems=600
+min_events_subrun_example=10
+
+min_fragments_ascii_simulator_example=0
+min_fragments_circular_buffer_mode_example=2000
+min_fragments_circular_buffer_mode_withRM=3000
+min_fragments_complex_subsystems=4
+min_fragments_complicated_subsystems=5
+min_fragments_config_includes=4
+min_fragments_demo=2
+min_fragments_demo_largesystem=19
+min_fragments_eventbuilder_diskwriting=2
+min_fragments_file_closing_example=2
+min_fragments_mediumsystem_with_routing_master=10
+min_fragments_multiple_art_processes_example=2
+min_fragments_multiple_dataloggers=4
+min_fragments_request_based_dataflow_example=6
+min_fragments_routing_master_example=2
+min_fragments_simple_subsystems=2
+min_fragments_subrun_example=4
+
+
+function source_setup {
+    if [ $setup_sourced -eq 0 ]; then
+        source setupARTDAQDEMO
+        setup_sourced=1
+    fi
+}
+
+function get_run_config {
+    run_config_name=`grep "Config name:" $1/metadata.txt|sed 's/.*: //g'`
+}
+
+function get_run_files {
+    run_files=`ls daqdata|grep "00${1}_"|grep -v dump`
+}
+
+function get_run_dump_file {
+: >>lock
+    {
+        flock 299
+        if ! [ -e daqdata/${1}.toydump ];then
+            source_setup
+            art -c toyDump.fcl $1 >daqdata/$1.toydump
+        fi
+    } 299<lock
+    echo daqdata/${1}.toydump
+}
+
+function check_onmon() {
+
+for file in daqdata/*.bin;do
+	fileSize=`ls -l $file|awk '{print $5}'`
+	if [[ $file =~ .*_noom.bin ]]; then
+		if [ $fileSize -ne 0 ];then
+			echo "File $file somehow has nonzero size ($fileSize)!"
+		fi
+	else
+		if [ $fileSize -eq 0 ];then
+			echo "File $file has zero size! Check online monitoring in this configuration!"
+		fi
+	fi
+done
+
+}
+
+function check_event_count() {
+    res=0
+
+    local lfile=$1
+    local lconfig=$2
+
+    local ldump=`get_run_dump_file $lfile`
+
+    local fevents=`grep "Events total" $ldump|sed 's/.*total = \([0-9]*\).*/\1/g'`
+
+	local mineventsVarname=`echo min_events_${lconfig}`
+	local minevents=${!mineventsVarname}
+#	echo "minevents is $minevents, varname is $mineventsVarname"
+
+	if [ $fevents -lt $minevents ];then
+		echo "    File $lfile has $fevents events, which is less than the minimum required: $minevents!"
+		res=1
+	fi
+
+    return $res
+}
+
+function check_fragment_count() {
+    res=0
+    local lfile=$1
+    local lconfig=$2
+
+    local ldump=`get_run_dump_file $lfile`
+    
+    local ffragments=`grep "fragment(s) of type" $ldump|sed 's/.*has \([0-9]*\).*/\1/g'`
+
+	local minfragsVarname=`echo min_fragments_${lconfig}`
+	local minfrags=${!minfragsVarname}
+
+	local badevents=0
+	local totalevents=0
+	local maxfrags=0
+	for fragCount in $ffragments;do
+		if [ $fragCount -lt $minfrags ];then
+			badevents=$(( $badevents + 1 ))
+		fi
+		if [ $fragCount -gt $maxfrags ];then
+			maxfrags=$fragCount
+		fi
+		totalevents=$(( $totalevents + 1 ))
+	done
+
+	if [ $badevents -gt 0 ];then
+		badEventsPct=$(( 100 * $badevents / $totalevents ))
+		echo "    File $lfile has $badevents events with fewer than $minfrags Fragments out of $totalevents (${badEventsPct}%)"
+	fi
+	#echo "    File $lfile has $maxfrags Fragments in its largest event."
+
+    return $res
+}
+
+for run in `ls -d run_records/*|sort -V`;do 
+    run_number=`echo $run|sed 's|.*/||g'`
+
+    get_run_config $run
+
+    echo "Run $run_number with configuration $run_config_name"
+    get_run_files $run_number
+    #echo "Run files:"
+    #echo "$run_files"
+
+    for file in $run_files;do
+        #echo "    $file"
+        check_event_count $file $run_config_name
+        check_fragment_count $file $run_config_name
+    done
+done
+check_onmon
