@@ -1,5 +1,6 @@
 #!/bin/bash
 
+#set -x
 setup_sourced=0
 
 min_events_ascii_simulator_example=10000
@@ -41,8 +42,10 @@ min_fragments_subrun_example=4
 
 function source_setup {
     if [ $setup_sourced -eq 0 ]; then
+	#set +x
         source setupARTDAQDEMO
-        setup_sourced=1
+	#set -x
+        export setup_sourced=1
     fi
 }
 
@@ -55,14 +58,10 @@ function get_run_files {
 }
 
 function get_run_dump_file {
-: >>lock
-    {
-        flock 299
-        if ! [ -e daqdata/${1}.toydump ];then
-            source_setup
-            art -c toyDump.fcl $1 >daqdata/$1.toydump
-        fi
-    } 299<lock
+    if ! [ -e daqdata/${1}.toydump ];then
+        source_setup >/dev/null 2>&1
+        art -c toyDump.fcl daqdata/$1 >daqdata/$1.toydump 2>&1
+    fi
     echo daqdata/${1}.toydump
 }
 
@@ -90,6 +89,7 @@ function check_event_count() {
     local lconfig=$2
 
     local ldump=`get_run_dump_file $lfile`
+#	echo "Dump file is $ldump"
 
     local fevents=`grep "Events total" $ldump|sed 's/.*total = \([0-9]*\).*/\1/g'`
 
@@ -111,6 +111,7 @@ function check_fragment_count() {
     local lconfig=$2
 
     local ldump=`get_run_dump_file $lfile`
+#	echo "Dump file is $ldump"
     
     local ffragments=`grep "fragment(s) of type" $ldump|sed 's/.*has \([0-9]*\).*/\1/g'`
 
