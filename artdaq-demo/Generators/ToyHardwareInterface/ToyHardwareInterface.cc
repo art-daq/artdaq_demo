@@ -24,6 +24,7 @@ ToyHardwareInterface::ToyHardwareInterface(fhicl::ParameterSet const& ps)
     , nADCcounts_(ps.get<size_t>("nADCcounts", 40))
     , maxADCcounts_(ps.get<size_t>("maxADCcounts", 50000000))
     , change_after_N_seconds_(ps.get<size_t>("change_after_N_seconds", std::numeric_limits<size_t>::max()))
+    , pause_after_N_seconds_(ps.get<size_t>("pause_after_N_seconds", 0))
     , nADCcounts_after_N_seconds_(ps.get<int>("nADCcounts_after_N_seconds", nADCcounts_))
     , exception_after_N_seconds_(ps.get<bool>("exception_after_N_seconds", false))
     , exit_after_N_seconds_(ps.get<bool>("exit_after_N_seconds", false))
@@ -120,6 +121,13 @@ void ToyHardwareInterface::FillBuffer(char* buffer, size_t* bytes_read)
 			}
 			else if (nADCcounts_after_N_seconds_ >= 0)
 			{
+				if (pause_after_N_seconds_
+				    && (static_cast<size_t>(elapsed_secs_since_datataking_start) % change_after_N_seconds_ == 0))
+				{
+					TLOG(16) << "pausing " << pause_after_N_seconds_ << " seconds";
+					sleep(pause_after_N_seconds_);
+					TLOG(16) << "resuming after pause of " << pause_after_N_seconds_ << " seconds";
+				}
 				*bytes_read = sizeof(demo::ToyFragment::Header) + nADCcounts_after_N_seconds_ * sizeof(data_t);
 			}
 			else
