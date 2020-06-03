@@ -40,11 +40,6 @@ demo::ToySimulator::ToySimulator(fhicl::ParameterSet const& ps)
     , lazy_mode_(ps.get<bool>("lazy_mode", false))
 
 {
-	if (lazy_mode_ && request_mode() == artdaq::RequestMode::Ignored)
-	{
-		throw cet::exception("ToySimulator") << "The request mode has been set to \"Ignored\"; this is inconsistent with this ToySimulator's lazy mode set to \"true\"";
-	}
-
 	hardware_interface_->AllocateReadoutBuffer(&readout_buffer_);
 
 	if (exception_on_config_)
@@ -112,7 +107,14 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 	{
 #define LAZY_MODEL 0
 #if LAZY_MODEL == 0
-		auto request = GetNextRequest();
+
+		auto requests = GetRequestBuffer();
+		if (requests == nullptr)
+		{
+			throw cet::exception("ToySimulator") << "Lazy mode is enabled, but the RequestBuffer is nullptr";
+		}
+
+		auto request = requests->GetNextRequest();
 		if (request.first == 0)
 		{
 			usleep(10);
