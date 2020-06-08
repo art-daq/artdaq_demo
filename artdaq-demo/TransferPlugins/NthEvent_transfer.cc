@@ -111,7 +111,7 @@ public:
 	void flush_buffers() override { physical_transfer_->flush_buffers(); }
 
 private:
-	bool pass(const artdaq::Fragment&) const;
+	bool pass(const artdaq::Fragment& /*fragment*/) const;
 
 	std::unique_ptr<TransferInterface> physical_transfer_;
 	size_t nth_;
@@ -175,7 +175,7 @@ bool NthEventTransfer::pass(const artdaq::Fragment& fragment) const
 
 	if (fragment.type() == artdaq::Fragment::DataFragmentType)
 	{
-		passed = (fragment.sequenceID() + nth_ - offset_) % nth_ == 0 ? true : false;
+		passed = (fragment.sequenceID() + nth_ - offset_) % nth_ == 0;
 	}
 	else
 	{

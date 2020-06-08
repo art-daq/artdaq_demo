@@ -58,7 +58,7 @@ public:
 	 * \brief Release the given buffer to the hardware
 	 * \param buffer Buffer to release
 	 */
-	void FreeReadoutBuffer(char* buffer);
+	void FreeReadoutBuffer(const char* buffer);
 
 	/**
 	 * \brief Gets the serial number of the simulated hardware

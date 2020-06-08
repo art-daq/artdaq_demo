@@ -25,12 +25,12 @@ public:
 	 * using rand(), rand() "misbehave_overload_event_builder" (Default: false): If true, will send a large number of
 	 * events to one EventBuilder \endverbatim
 	 */
-	explicit MisbehaviorTest(fhicl::ParameterSet ps);
+	explicit MisbehaviorTest(const fhicl::ParameterSet& ps);
 
 	/**
 	 * \brief MisbehaviorTest default Destructor
 	 */
-	virtual ~MisbehaviorTest() = default;
+	~MisbehaviorTest() override = default;
 
 	/**
 	 * \brief Generate and return a Routing Table
@@ -46,7 +46,7 @@ private:
 	bool misbehave_overload_event_builder_;
 };
 
-MisbehaviorTest::MisbehaviorTest(fhicl::ParameterSet ps)
+MisbehaviorTest::MisbehaviorTest(const fhicl::ParameterSet& ps)
     : RoutingMasterPolicy(ps)
     , misbehave_after_(ps.get<size_t>("misbehave_after_n_events", 1000))
     , misbehave_pause_ms_(ps.get<size_t>("misbehave_pause_time_ms", 0))
@@ -54,7 +54,7 @@ MisbehaviorTest::MisbehaviorTest(fhicl::ParameterSet ps)
     , misbehave_corrupt_table_data_(ps.get<bool>("misbehave_send_corrupt_table_data", false))
     , misbehave_overload_event_builder_(ps.get<bool>("misbehave_overload_event_builder", false))
 {
-	srand(time(0));
+	srand(time(nullptr));
 	auto count = (misbehave_conflicting_table_data_ ? 1 : 0) + (misbehave_corrupt_table_data_ ? 1 : 0) +
 	             (misbehave_overload_event_builder_ ? 1 : 0) + (misbehave_pause_ms_ > 0 ? 1 : 0);
 	if (count > 1)
@@ -78,7 +78,7 @@ artdaq::detail::RoutingPacket MisbehaviorTest::GetCurrentTable()
 
 	if (next_sequence_id_ > misbehave_after_)
 	{
-		if (tokens->size() > 0)
+		if (!tokens->empty())
 		{
 			if (misbehave_pause_ms_ > 0)
 			{

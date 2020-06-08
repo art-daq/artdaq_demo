@@ -14,12 +14,12 @@ public:
 	/**
 	 * \brief DefaultArtdaqFragmentNamingService Destructor
 	 */
-	virtual ~ArtdaqDemoFragmentNamingService() = default;
+	~ArtdaqDemoFragmentNamingService() override = default;
 
 	/**
 	 * \brief ArtdaqDemoFragmentNamingService Constructor
 	 */
-	ArtdaqDemoFragmentNamingService(fhicl::ParameterSet const&, art::ActivityRegistry&);
+	ArtdaqDemoFragmentNamingService(fhicl::ParameterSet const& /*ps*/, art::ActivityRegistry& /*r*/);
 
 private:
 };

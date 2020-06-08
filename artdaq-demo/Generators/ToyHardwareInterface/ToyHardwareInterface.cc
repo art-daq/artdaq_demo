@@ -55,7 +55,7 @@ ToyHardwareInterface::ToyHardwareInterface(fhicl::ParameterSet const& ps)
 	    (nADCcounts_after_N_seconds_ >= 0 && nADCcounts_after_N_seconds_ > maxADCcounts_))
 	{
 		throw cet::exception("HardwareInterface")
-		    << "Either (or both) of \"nADCcounts\" and \"nADCcounts_after_N_seconds\""
+		    << R"(Either (or both) of "nADCcounts" and "nADCcounts_after_N_seconds")"
 		    << " is larger than the \"maxADCcounts\" setting (currently at " << maxADCcounts_ << ")";
 	}
 
@@ -121,7 +121,7 @@ void ToyHardwareInterface::FillBuffer(char* buffer, size_t* bytes_read)
 			}
 			else if (nADCcounts_after_N_seconds_ >= 0)
 			{
-				if (pause_after_N_seconds_
+				if ((pause_after_N_seconds_ != 0u)
 				    && (static_cast<size_t>(elapsed_secs_since_datataking_start) % change_after_N_seconds_ == 0))
 				{
 					TLOG(16) << "pausing " << pause_after_N_seconds_ << " seconds";
@@ -147,7 +147,7 @@ void ToyHardwareInterface::FillBuffer(char* buffer, size_t* bytes_read)
 		// sizeof(demo::ToyFragment::Header::data_t) << std::endl;
 		assert(*bytes_read % sizeof(demo::ToyFragment::Header::data_t) == 0);
 
-		demo::ToyFragment::Header* header = reinterpret_cast<demo::ToyFragment::Header*>(buffer);
+		auto* header = reinterpret_cast<demo::ToyFragment::Header*>(buffer);
 
 		header->event_size = *bytes_read / sizeof(demo::ToyFragment::Header::data_t);
 		header->trigger_number = 99;
@@ -178,7 +178,8 @@ void ToyHardwareInterface::FillBuffer(char* buffer, size_t* bytes_read)
 			case DistributionType::monotonic:
 			{
 				generator = [&]() {
-					if (++gen_seed > maxADCvalue_) gen_seed = 0;
+					if (++gen_seed > maxADCvalue_) { gen_seed = 0;
+}
 					return gen_seed;
 				};
 			}
@@ -218,7 +219,8 @@ void ToyHardwareInterface::FillBuffer(char* buffer, size_t* bytes_read)
 
 			auto usecs_since_start = artdaq::TimeUtils::GetElapsedTimeMicroseconds(start_time_);
 			long delta = (long)(usecs_between_sends_ * send_calls_) - usecs_since_start;
-			if (delta > 0) usleep(delta);
+			if (delta > 0) { usleep(delta);
+}
 
 			TLOG(15) << "FillBuffer send_calls=" << send_calls_ << " usecs_since_start=" << usecs_since_start
 			         << " delta=" << delta;
@@ -235,7 +237,7 @@ void ToyHardwareInterface::AllocateReadoutBuffer(char** buffer)
 	    new uint8_t[sizeof(demo::ToyFragment::Header) + maxADCcounts_ * sizeof(data_t)]);
 }
 
-void ToyHardwareInterface::FreeReadoutBuffer(char* buffer) { delete[] buffer; }
+void ToyHardwareInterface::FreeReadoutBuffer(const char* buffer) { delete[] buffer; }
 
 int ToyHardwareInterface::BoardType() const
 {

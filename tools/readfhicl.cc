@@ -34,12 +34,12 @@ int main(int argc, char* argv[]) try
 		return -1;
 	}
 
-	if (vm.count("help"))
+	if (vm.count("help") != 0u)
 	{
 		std::cout << desc << std::endl;
 		return 1;
 	}
-	if (!vm.count("config"))
+	if (vm.count("config") == 0u)
 	{
 		std::cerr << "Exception from command line processing in " << argv[0] << ": no configuration file given.\n"
 		          << "For usage and an options list, please do '" << argv[0] << " --help"
@@ -78,7 +78,7 @@ catch (std::string& x)
 catch (char const* m)
 {
 	std::cerr << "Exception (type char const*) caught in driver: " << std::endl;
-	if (m)
+	if (m != nullptr)
 	{
 		std::cerr << m;
 	}

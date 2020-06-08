@@ -42,7 +42,7 @@ private:
 	 * functionality; it's a mandatory override of the pure virtual
 	 * getNext_ function declared in CommandableFragmentGenerator
 	 */
-	bool getNext_(artdaq::FragmentPtrs& output) override;
+	bool getNext_(artdaq::FragmentPtrs& frags) override;
 
 	// Explicitly declare that there is nothing special to be done
 	// by the start, stop, and stopNoMutex methods in this class

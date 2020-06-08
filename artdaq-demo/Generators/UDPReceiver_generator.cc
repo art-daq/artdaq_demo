@@ -161,7 +161,7 @@ bool demo::UDPReceiver::getNext_(artdaq::FragmentPtrs &frags)
 						}
 					}
 					else if ((dataCode == ReturnCode::Middle || dataCode == ReturnCode::Last) &&
-					         packetBuffers_.size() > 0)
+					         !packetBuffers_.empty())
 					{
 						packetBuffer_t buffer;
 						memset(&buffer[0], 0, sizeof(packetBuffer_t));
@@ -174,7 +174,7 @@ bool demo::UDPReceiver::getNext_(artdaq::FragmentPtrs &frags)
 						else if (burst_end == -1 || seqNum < burst_end)
 						{
 							bool found = false;
-							for (packetBuffer_list_t::iterator it = packetBuffers_.begin(); it != packetBuffers_.end();
+							for (auto it = packetBuffers_.begin(); it != packetBuffers_.end();
 							     ++it)
 							{
 								if (seqNum < (*it)[1])
@@ -250,7 +250,8 @@ bool demo::UDPReceiver::getNext_(artdaq::FragmentPtrs &frags)
 				break;
 			}
 
-			if (rawOutput_) output.write((char *)&(jj[ii]), sizeof(uint8_t));
+			if (rawOutput_) { output.write((char *)&(jj[ii]), sizeof(uint8_t));
+}
 			*(thisFrag.dataBegin() + pos) = jj[ii];
 			++pos;
 		}
@@ -259,9 +260,11 @@ bool demo::UDPReceiver::getNext_(artdaq::FragmentPtrs &frags)
 	{
 		*(thisFrag.dataBegin() + pos) = 0;
 		char zero = 0;
-		if (rawOutput_) output.write(&zero, sizeof(char));
+		if (rawOutput_) { output.write(&zero, sizeof(char));
+}
 	}
-	if (rawOutput_) output.close();
+	if (rawOutput_) { output.close();
+}
 
 	return true;
 }

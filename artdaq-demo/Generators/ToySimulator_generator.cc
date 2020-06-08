@@ -42,7 +42,7 @@ demo::ToySimulator::ToySimulator(fhicl::ParameterSet const& ps)
 {
 	if (lazy_mode_ && request_mode() == artdaq::RequestMode::Ignored)
 	{
-		throw cet::exception("ToySimulator") << "The request mode has been set to \"Ignored\"; this is inconsistent with this ToySimulator's lazy mode set to \"true\"";
+		throw cet::exception("ToySimulator") << R"(The request mode has been set to "Ignored"; this is inconsistent with this ToySimulator's lazy mode set to "true")";
 	}
 
 	hardware_interface_->AllocateReadoutBuffer(&readout_buffer_);
@@ -52,7 +52,7 @@ demo::ToySimulator::ToySimulator(fhicl::ParameterSet const& ps)
 		throw cet::exception("ToySimulator") << "This is an engineered exception designed for testing purposes, set "
 		                                        "by the exception_on_config FHiCL variable";
 	}
-	else if (dies_on_config_)
+	if (dies_on_config_)
 	{
 		TLOG(TLVL_ERROR) << "This is an engineered process death, set by the dies_on_config FHiCL variable";
 		std::exit(1);
@@ -170,9 +170,9 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 		    artdaq::Fragment::FragmentBytes(bytes_read, ev_counter(), id, fragment_type_, metadata_, timestamp_));
 		frags.emplace_back(std::move(fragptr));
 
-		if (distribution_type_ != ToyHardwareInterface::DistributionType::uninitialized)
+		if (distribution_type_ != ToyHardwareInterface::DistributionType::uninitialized) {
 			memcpy(frags.back()->dataBeginBytes(), readout_buffer_, bytes_read);
-		else
+		} else
 		{
 			// Must preserve the Header!
 			memcpy(frags.back()->dataBeginBytes(), readout_buffer_, sizeof(ToyFragment::Header));
@@ -193,7 +193,8 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 		bool fragmentIdZero = false;
 		for (auto& id : fragmentIDs())
 		{
-			if (id == 0) fragmentIdZero = true;
+			if (id == 0) { fragmentIdZero = true;
+}
 		}
 		if (fragmentIdZero)
 		{

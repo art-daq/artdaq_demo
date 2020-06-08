@@ -54,13 +54,13 @@ public:
 	/**
 	 * \brief ToyDump Destructor
 	 */
-	virtual ~ToyDump();
+	~ToyDump() override;
 
 	/**
 	 * \brief Analyze an event. Called by art for each event in run (based on command line options)
 	 * \param evt The art::Event object to dump ToyFragments from
 	 */
-	virtual void analyze(art::Event const& evt);
+	void analyze(art::Event const& evt) override;
 
 private:
 	std::string raw_data_label_;
@@ -81,7 +81,7 @@ demo::ToyDump::ToyDump(fhicl::ParameterSet const& pset)
     , output_file_name_(pset.get<std::string>("output_file_name", "out.bin"))
 {}
 
-demo::ToyDump::~ToyDump() {}
+demo::ToyDump::~ToyDump() = default;
 
 void demo::ToyDump::analyze(art::Event const& evt)
 {
@@ -97,13 +97,14 @@ void demo::ToyDump::analyze(art::Event const& evt)
 	std::vector<art::Handle<artdaq::Fragments>> fragmentHandles;
 	evt.getManyByType(fragmentHandles);
 
-	for (auto handle : fragmentHandles)
+	for (const auto& handle : fragmentHandles)
 	{
-		if (!handle.isValid() || handle->size() == 0) continue;
+		if (!handle.isValid() || handle->empty()) { continue;
+}
 
 		if (handle->front().type() == artdaq::Fragment::ContainerFragmentType)
 		{
-			for (auto cont : *handle)
+			for (const auto& cont : *handle)
 			{
 				artdaq::ContainerFragment contf(cont);
 				if (contf.fragment_type() != demo::FragmentType::TOY1 && contf.fragment_type() != demo::FragmentType::TOY2)
@@ -146,19 +147,19 @@ void demo::ToyDump::analyze(art::Event const& evt)
 
 		if (frag.hasMetadata())
 		{
-			ToyFragment::Metadata const* md = frag.metadata<ToyFragment::Metadata>();
+			auto const* md = frag.metadata<ToyFragment::Metadata>();
 			TLOG(TLVL_DEBUG) << "Fragment metadata: " << std::showbase
 			                 << "Board serial number = " << md->board_serial_number
 			                 << ", sample bits = " << md->num_adc_bits
-			                 << " -> max ADC value = " << bb.adc_range((int)md->num_adc_bits);
+			                 << " -> max ADC value = " << demo::ToyFragment::adc_range((int)md->num_adc_bits);
 		}
 
 		if (num_adcs_to_write_ >= 0)
 		{
 			uint32_t numAdcs = num_adcs_to_write_;
-			if (num_adcs_to_write_ == 0)
+			if (num_adcs_to_write_ == 0) {
 				numAdcs = bb.total_adc_values();
-			else if (static_cast<uint32_t>(num_adcs_to_write_) > bb.total_adc_values())
+			} else if (static_cast<uint32_t>(num_adcs_to_write_) > bb.total_adc_values())
 			{
 				TLOG(TLVL_WARNING)
 				    << "Asked for more ADC values to file than are in Fragment. Only writing what's here...";
@@ -191,9 +192,9 @@ void demo::ToyDump::analyze(art::Event const& evt)
 		if (num_adcs_to_print_ >= 0)
 		{
 			uint32_t numAdcs = num_adcs_to_print_;
-			if (num_adcs_to_print_ == 0)
+			if (num_adcs_to_print_ == 0) {
 				numAdcs = bb.total_adc_values();
-			else if (static_cast<uint32_t>(num_adcs_to_print_) > bb.total_adc_values())
+			} else if (static_cast<uint32_t>(num_adcs_to_print_) > bb.total_adc_values())
 			{
 				TLOG(TLVL_WARNING)
 				    << "Asked for more ADC values to file than are in Fragment. Only writing what's here...";

@@ -79,24 +79,24 @@ public:
 	/**
 	 * \brief EventReporterOutput Destructor
 	 */
-	~EventReporterOutput();
+	~EventReporterOutput() override;
 
 private:
-	virtual void openFile(FileBlock const&);
+	void openFile(FileBlock const& /*unused*/) override;
 
 	virtual void closeFile();
 
-	virtual void respondToCloseInputFile(FileBlock const&);
+	void respondToCloseInputFile(FileBlock const& /*unused*/) override;
 
-	virtual void respondToCloseOutputFiles(FileBlock const&);
+	void respondToCloseOutputFiles(FileBlock const& /*unused*/) override;
 
-	virtual void endJob();
+	void endJob() override;
 
-	virtual void write(EventPrincipal&);
+	void write(EventPrincipal& /*ep*/) override;
 
-	virtual void writeRun(RunPrincipal&);
+	void writeRun(RunPrincipal& /*r*/) override;
 
-	virtual void writeSubRun(SubRunPrincipal&);
+	void writeSubRun(SubRunPrincipal& /*sr*/) override;
 
 private:
 };
@@ -112,19 +112,19 @@ art::EventReporterOutput::~EventReporterOutput()
 	TLOG(TLVL_DEBUG) << "Begin: EventReporterOutput::~EventReporterOutput()";
 }
 
-void art::EventReporterOutput::openFile(FileBlock const&)
+void art::EventReporterOutput::openFile(FileBlock const& /*unused*/)
 {
 	TLOG(TLVL_DEBUG) << "Begin/End: EventReporterOutput::openFile(const FileBlock&)";
 }
 
 void art::EventReporterOutput::closeFile() { TLOG(TLVL_DEBUG) << "Begin/End: EventReporterOutput::closeFile()"; }
 
-void art::EventReporterOutput::respondToCloseInputFile(FileBlock const&)
+void art::EventReporterOutput::respondToCloseInputFile(FileBlock const& /*unused*/)
 {
 	TLOG(TLVL_DEBUG) << "Begin/End: EventReporterOutput::respondToCloseOutputFiles(FileBlock const&)";
 }
 
-void art::EventReporterOutput::respondToCloseOutputFiles(FileBlock const&)
+void art::EventReporterOutput::respondToCloseOutputFiles(FileBlock const& /*unused*/)
 {
 	TLOG(TLVL_DEBUG) << "Begin/End: EventReporterOutput::respondToCloseOutputFiles(FileBlock const&)";
 }
@@ -158,7 +158,8 @@ void art::EventReporterOutput::write(EventPrincipal& ep)
 	{
 		auto const raw_event_handle = RawEventHandle(result_handle);
 
-		if (!raw_event_handle.isValid()) continue;
+		if (!raw_event_handle.isValid()) { continue;
+}
 
 		for (auto const& fragment : *raw_event_handle)
 		{
@@ -167,15 +168,14 @@ void art::EventReporterOutput::write(EventPrincipal& ep)
 		}
 	}
 
-	return;
-}
+	}
 
-void art::EventReporterOutput::writeRun(RunPrincipal&)
+void art::EventReporterOutput::writeRun(RunPrincipal& /*r*/)
 {
 	TLOG(TLVL_DEBUG) << " EventReporterOutput::writeRun(const RunPrincipal& rp)";
 }
 
-void art::EventReporterOutput::writeSubRun(SubRunPrincipal&)
+void art::EventReporterOutput::writeSubRun(SubRunPrincipal& /*sr*/)
 {
 	TLOG(TLVL_DEBUG) << " EventReporterOutput:: writeSubRun(const SubRunPrincipal& srp)";
 }

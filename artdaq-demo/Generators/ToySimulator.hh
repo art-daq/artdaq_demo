@@ -60,7 +60,7 @@ private:
 	 * \param output New FragmentPtrs will be added to this container
 	 * \return True if data-taking should continue
 	 */
-	bool getNext_(artdaq::FragmentPtrs& output) override;
+	bool getNext_(artdaq::FragmentPtrs& frags) override;
 
 	// The start, stop and stopNoMutex methods are declared pure
 	// virtual in CommandableFragmentGenerator and therefore MUST be
