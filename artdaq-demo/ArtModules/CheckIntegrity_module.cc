@@ -76,8 +76,10 @@ void demo::CheckIntegrity::analyze(art::Event const& evt)
 
 	for (const auto& handle : fragmentHandles)
 	{
-		if (!handle.isValid() || handle->empty()) { continue;
-}
+		if (!handle.isValid() || handle->empty())
+		{
+			continue;
+		}
 
 		if (handle->front().type() == artdaq::Fragment::ContainerFragmentType)
 		{
@@ -135,9 +137,10 @@ void demo::CheckIntegrity::analyze(art::Event const& evt)
 
 			for (; adc_iter != bb.dataEndADCs(); adc_iter++, expected_adc++)
 			{
-				if (expected_adc > demo::ToyFragment::adc_range(frag.metadata<ToyFragment::Metadata>()->num_adc_bits)) {
+				if (expected_adc > demo::ToyFragment::adc_range(frag.metadata<ToyFragment::Metadata>()->num_adc_bits))
+				{
 					expected_adc = 0;
-}
+				}
 
 				// ELF 7/10/18: Distribution type 2 is the monotonically-increasing one
 				if (bb.hdr_distribution_type() == 2 && *adc_iter != expected_adc)
@@ -172,4 +175,4 @@ void demo::CheckIntegrity::analyze(art::Event const& evt)
 	}
 }
 
-DEFINE_ART_MODULE(demo::CheckIntegrity)
+DEFINE_ART_MODULE(demo::CheckIntegrity)// NOLINT(performance-unnecessary-value-param)

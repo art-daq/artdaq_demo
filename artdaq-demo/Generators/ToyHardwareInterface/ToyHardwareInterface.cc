@@ -121,8 +121,7 @@ void ToyHardwareInterface::FillBuffer(char* buffer, size_t* bytes_read)
 			}
 			else if (nADCcounts_after_N_seconds_ >= 0)
 			{
-				if ((pause_after_N_seconds_ != 0u)
-				    && (static_cast<size_t>(elapsed_secs_since_datataking_start) % change_after_N_seconds_ == 0))
+				if ((pause_after_N_seconds_ != 0u) && (static_cast<size_t>(elapsed_secs_since_datataking_start) % change_after_N_seconds_ == 0))
 				{
 					TLOG(16) << "pausing " << pause_after_N_seconds_ << " seconds";
 					sleep(pause_after_N_seconds_);
@@ -178,8 +177,10 @@ void ToyHardwareInterface::FillBuffer(char* buffer, size_t* bytes_read)
 			case DistributionType::monotonic:
 			{
 				generator = [&]() {
-					if (++gen_seed > maxADCvalue_) { gen_seed = 0;
-}
+					if (++gen_seed > maxADCvalue_)
+					{
+						gen_seed = 0;
+					}
 					return gen_seed;
 				};
 			}
@@ -219,8 +220,10 @@ void ToyHardwareInterface::FillBuffer(char* buffer, size_t* bytes_read)
 
 			auto usecs_since_start = artdaq::TimeUtils::GetElapsedTimeMicroseconds(start_time_);
 			long delta = (long)(usecs_between_sends_ * send_calls_) - usecs_since_start;
-			if (delta > 0) { usleep(delta);
-}
+			if (delta > 0)
+			{
+				usleep(delta);
+			}
 
 			TLOG(15) << "FillBuffer send_calls=" << send_calls_ << " usecs_since_start=" << usecs_since_start
 			         << " delta=" << delta;

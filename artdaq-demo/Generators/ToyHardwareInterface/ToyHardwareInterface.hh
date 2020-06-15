@@ -96,7 +96,7 @@ private:
 	std::size_t nADCcounts_;
 	std::size_t maxADCcounts_;
 	std::size_t change_after_N_seconds_;
-	std::size_t pause_after_N_seconds_; // sleep this many seconds every change_after_N_seconds_
+	std::size_t pause_after_N_seconds_;  // sleep this many seconds every change_after_N_seconds_
 	int nADCcounts_after_N_seconds_;
 	bool exception_after_N_seconds_;
 	bool exit_after_N_seconds_;

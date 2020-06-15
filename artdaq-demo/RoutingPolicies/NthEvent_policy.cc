@@ -36,8 +36,10 @@ private:
 NthEventPolicy::NthEventPolicy(const fhicl::ParameterSet& ps)
     : RoutingMasterPolicy(ps), nth_(ps.get<size_t>("nth_event")), nth_rank_(ps.get<int>("target_receiver"))
 {
-	if (nth_ == 0) { throw cet::exception("NthEvent_policy") << "nth_event must be greater than 0!";
-}
+	if (nth_ == 0)
+	{
+		throw cet::exception("NthEvent_policy") << "nth_event must be greater than 0!";
+	}
 }
 
 /**
@@ -54,8 +56,10 @@ detail::RoutingPacket NthEventPolicy::GetCurrentTable()
 	{
 		table[token]++;
 	}
-	if (table.count(nth_rank_) == 0) { table[nth_rank_] = 0;
-}
+	if (table.count(nth_rank_) == 0)
+	{
+		table[nth_rank_] = 0;
+	}
 	tokens->clear();
 
 	detail::RoutingPacket output;
@@ -82,8 +86,10 @@ detail::RoutingPacket NthEventPolicy::GetCurrentTable()
 			{
 				TLOG(5) << "Sending event " << next_sequence_id_ << " to EVB " << r.first;
 				output.emplace_back(detail::RoutingPacketEntry(next_sequence_id_++, r.first));
-				if (!endCondition) { endCondition = r.second == 1;
-}
+				if (!endCondition)
+				{
+					endCondition = r.second == 1;
+				}
 				table[r.first]--;
 			}
 		}

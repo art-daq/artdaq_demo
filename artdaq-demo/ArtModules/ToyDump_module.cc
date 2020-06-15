@@ -99,8 +99,10 @@ void demo::ToyDump::analyze(art::Event const& evt)
 
 	for (const auto& handle : fragmentHandles)
 	{
-		if (!handle.isValid() || handle->empty()) { continue;
-}
+		if (!handle.isValid() || handle->empty())
+		{
+			continue;
+		}
 
 		if (handle->front().type() == artdaq::Fragment::ContainerFragmentType)
 		{
@@ -157,9 +159,11 @@ void demo::ToyDump::analyze(art::Event const& evt)
 		if (num_adcs_to_write_ >= 0)
 		{
 			uint32_t numAdcs = num_adcs_to_write_;
-			if (num_adcs_to_write_ == 0) {
+			if (num_adcs_to_write_ == 0)
+			{
 				numAdcs = bb.total_adc_values();
-			} else if (static_cast<uint32_t>(num_adcs_to_write_) > bb.total_adc_values())
+			}
+			else if (static_cast<uint32_t>(num_adcs_to_write_) > bb.total_adc_values())
 			{
 				TLOG(TLVL_WARNING)
 				    << "Asked for more ADC values to file than are in Fragment. Only writing what's here...";
@@ -192,9 +196,11 @@ void demo::ToyDump::analyze(art::Event const& evt)
 		if (num_adcs_to_print_ >= 0)
 		{
 			uint32_t numAdcs = num_adcs_to_print_;
-			if (num_adcs_to_print_ == 0) {
+			if (num_adcs_to_print_ == 0)
+			{
 				numAdcs = bb.total_adc_values();
-			} else if (static_cast<uint32_t>(num_adcs_to_print_) > bb.total_adc_values())
+			}
+			else if (static_cast<uint32_t>(num_adcs_to_print_) > bb.total_adc_values())
 			{
 				TLOG(TLVL_WARNING)
 				    << "Asked for more ADC values to file than are in Fragment. Only writing what's here...";
@@ -226,4 +232,4 @@ void demo::ToyDump::analyze(art::Event const& evt)
 	}
 }
 
-DEFINE_ART_MODULE(demo::ToyDump)
+DEFINE_ART_MODULE(demo::ToyDump)// NOLINT(performance-unnecessary-value-param)

@@ -161,11 +161,11 @@ demo::WFViewer::WFViewer(fhicl::ParameterSet const& ps)
 demo::WFViewer::~WFViewer()
 {
 	// We're going to let ROOT's own garbage collection deal with histograms and Canvases...
-	for (auto & histogram : histograms_)
+	for (auto& histogram : histograms_)
 	{
 		histogram = nullptr;
 	}
-	for (auto & graph : graphs_)
+	for (auto& graph : graphs_)
 	{
 		graph = nullptr;
 	}
@@ -193,8 +193,10 @@ void demo::WFViewer::analyze(art::Event const& e)
 
 	for (const auto& handle : fragmentHandles)
 	{
-		if (!handle.isValid() || handle->empty()) { continue;
-}
+		if (!handle.isValid() || handle->empty())
+		{
+			continue;
+		}
 
 		if (handle->front().type() == artdaq::Fragment::ContainerFragmentType)
 		{
@@ -313,9 +315,10 @@ void demo::WFViewer::analyze(art::Event const& e)
 		{
 			case FragmentType::TOY1:
 			case FragmentType::TOY2:
-				for (auto val = toyPtr->dataBeginADCs(); val != toyPtr->dataEndADCs(); ++val) {
+				for (auto val = toyPtr->dataBeginADCs(); val != toyPtr->dataEndADCs(); ++val)
+				{
 					histograms_[ind]->Fill(*val);
-}
+				}
 				break;
 
 			default:
@@ -428,8 +431,10 @@ void demo::WFViewer::analyze(art::Event const& e)
 
 void demo::WFViewer::beginRun(art::Run const& e)
 {
-	if (e.run() == current_run_) { return;
-}
+	if (e.run() == current_run_)
+	{
+		return;
+	}
 	current_run_ = e.run();
 
 	if (writeOutput_)
@@ -438,12 +443,18 @@ void demo::WFViewer::beginRun(art::Run const& e)
 		fFile_->cd();
 	}
 
-	for (auto & canva : canvas_) { canva = nullptr;
-}
-	for (auto& x : graphs_) { x = nullptr;
-}
-	for (auto& x : histograms_) { x = nullptr;
-}
+	for (auto& canva : canvas_)
+	{
+		canva = nullptr;
+	}
+	for (auto& x : graphs_)
+	{
+		x = nullptr;
+	}
+	for (auto& x : histograms_)
+	{
+		x = nullptr;
+	}
 
 	for (int i = 0; (i < 2 && !digital_sum_only_) || i < 1; i++)
 	{
@@ -467,4 +478,4 @@ void demo::WFViewer::beginRun(art::Run const& e)
 	}
 }
 
-DEFINE_ART_MODULE(demo::WFViewer)
+DEFINE_ART_MODULE(demo::WFViewer)// NOLINT(performance-unnecessary-value-param)

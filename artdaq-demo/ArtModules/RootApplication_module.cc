@@ -14,10 +14,10 @@
 
 #include <TApplication.h>
 #include <TSystem.h>
+#include <unistd.h>
 #include <future>
 #include <iostream>
 #include <memory>
-#include <unistd.h>
 
 namespace demo {
 /**
@@ -87,8 +87,10 @@ void demo::RootApplication::beginJob()
 
 void demo::RootApplication::endJob()
 {
-	if (dont_quit_) { app_->Run(true);
-}
+	if (dont_quit_)
+	{
+		app_->Run(true);
+	}
 }
 
-DEFINE_ART_MODULE(demo::RootApplication)
+DEFINE_ART_MODULE(demo::RootApplication)// NOLINT(performance-unnecessary-value-param)

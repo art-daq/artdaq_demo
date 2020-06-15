@@ -250,8 +250,10 @@ bool demo::UDPReceiver::getNext_(artdaq::FragmentPtrs &frags)
 				break;
 			}
 
-			if (rawOutput_) { output.write((char *)&(jj[ii]), sizeof(uint8_t));
-}
+			if (rawOutput_)
+			{
+				output.write((char *)&(jj[ii]), sizeof(uint8_t));
+			}
 			*(thisFrag.dataBegin() + pos) = jj[ii];
 			++pos;
 		}
@@ -260,11 +262,15 @@ bool demo::UDPReceiver::getNext_(artdaq::FragmentPtrs &frags)
 	{
 		*(thisFrag.dataBegin() + pos) = 0;
 		char zero = 0;
-		if (rawOutput_) { output.write(&zero, sizeof(char));
-}
+		if (rawOutput_)
+		{
+			output.write(&zero, sizeof(char));
+		}
 	}
-	if (rawOutput_) { output.close();
-}
+	if (rawOutput_)
+	{
+		output.close();
+	}
 
 	return true;
 }

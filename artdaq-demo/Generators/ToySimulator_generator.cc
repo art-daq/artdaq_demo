@@ -170,9 +170,11 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 		    artdaq::Fragment::FragmentBytes(bytes_read, ev_counter(), id, fragment_type_, metadata_, timestamp_));
 		frags.emplace_back(std::move(fragptr));
 
-		if (distribution_type_ != ToyHardwareInterface::DistributionType::uninitialized) {
+		if (distribution_type_ != ToyHardwareInterface::DistributionType::uninitialized)
+		{
 			memcpy(frags.back()->dataBeginBytes(), readout_buffer_, bytes_read);
-		} else
+		}
+		else
 		{
 			// Must preserve the Header!
 			memcpy(frags.back()->dataBeginBytes(), readout_buffer_, sizeof(ToyFragment::Header));
@@ -193,8 +195,10 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 		bool fragmentIdZero = false;
 		for (auto& id : fragmentIDs())
 		{
-			if (id == 0) { fragmentIdZero = true;
-}
+			if (id == 0)
+			{
+				fragmentIdZero = true;
+			}
 		}
 		if (fragmentIdZero)
 		{

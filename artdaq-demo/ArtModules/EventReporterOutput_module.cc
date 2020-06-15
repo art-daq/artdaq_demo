@@ -158,8 +158,10 @@ void art::EventReporterOutput::write(EventPrincipal& ep)
 	{
 		auto const raw_event_handle = RawEventHandle(result_handle);
 
-		if (!raw_event_handle.isValid()) { continue;
-}
+		if (!raw_event_handle.isValid())
+		{
+			continue;
+		}
 
 		for (auto const& fragment : *raw_event_handle)
 		{
@@ -167,8 +169,7 @@ void art::EventReporterOutput::write(EventPrincipal& ep)
 			                 << ", fragmentID=" << fragment.fragmentID();
 		}
 	}
-
-	}
+}
 
 void art::EventReporterOutput::writeRun(RunPrincipal& /*r*/)
 {
@@ -180,4 +181,4 @@ void art::EventReporterOutput::writeSubRun(SubRunPrincipal& /*sr*/)
 	TLOG(TLVL_DEBUG) << " EventReporterOutput:: writeSubRun(const SubRunPrincipal& srp)";
 }
 
-DEFINE_ART_MODULE(art::EventReporterOutput)
+DEFINE_ART_MODULE(art::EventReporterOutput)// NOLINT(performance-unnecessary-value-param)

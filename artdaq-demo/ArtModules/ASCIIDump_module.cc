@@ -73,8 +73,10 @@ void demo::ASCIIDump::analyze(art::Event const& evt)
 
 	for (const auto& handle : fragmentHandles)
 	{
-		if (!handle.isValid() || handle->empty()) { continue;
-}
+		if (!handle.isValid() || handle->empty())
+		{
+			continue;
+		}
 
 		if (handle->front().type() == artdaq::Fragment::ContainerFragmentType)
 		{
@@ -144,4 +146,4 @@ void demo::ASCIIDump::analyze(art::Event const& evt)
 	std::cout << std::endl;
 }
 
-DEFINE_ART_MODULE(demo::ASCIIDump)
+DEFINE_ART_MODULE(demo::ASCIIDump)// NOLINT(performance-unnecessary-value-param)
