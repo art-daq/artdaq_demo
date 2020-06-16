@@ -53,6 +53,11 @@ public:
 	virtual ~ToySimulator();
 
 private:
+	ToySimulator(ToySimulator const&) = delete;
+	ToySimulator(ToySimulator&&) = delete;
+	ToySimulator& operator=(ToySimulator const&) = delete;
+	ToySimulator& operator=(ToySimulator&&) = delete;
+
 	/**
 	 * \brief The "getNext_" function is used to implement user-specific
 	 * functionality; it's a mandatory override of the pure virtual

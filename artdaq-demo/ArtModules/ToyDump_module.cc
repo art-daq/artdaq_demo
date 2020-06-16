@@ -28,7 +28,7 @@
 
 namespace demo {
 class ToyDump;
-}
+} // namespace demo
 
 /**
  * \brief An art::EDAnalyzer module designed to display the data from demo::ToyFragment objects
@@ -63,6 +63,11 @@ public:
 	void analyze(art::Event const& evt) override;
 
 private:
+	ToyDump(ToyDump const&) = delete;
+	ToyDump(ToyDump&&) = delete;
+	ToyDump& operator=(ToyDump const&) = delete;
+	ToyDump& operator=(ToyDump&&) = delete;
+
 	std::string raw_data_label_;
 	int num_adcs_to_write_;
 	int num_adcs_to_print_;
@@ -153,7 +158,7 @@ void demo::ToyDump::analyze(art::Event const& evt)
 			TLOG(TLVL_DEBUG) << "Fragment metadata: " << std::showbase
 			                 << "Board serial number = " << md->board_serial_number
 			                 << ", sample bits = " << md->num_adc_bits
-			                 << " -> max ADC value = " << demo::ToyFragment::adc_range((int)md->num_adc_bits);
+			                 << " -> max ADC value = " << demo::ToyFragment::adc_range(static_cast<int>(md->num_adc_bits));
 		}
 
 		if (num_adcs_to_write_ >= 0)
@@ -174,7 +179,7 @@ void demo::ToyDump::analyze(art::Event const& evt)
 				std::ofstream output(output_file_name_, std::ios::out | std::ios::app | std::ios::binary);
 				for (uint32_t i_adc = 0; i_adc < numAdcs; ++i_adc)
 				{
-					output.write((char*)(bb.dataBeginADCs() + i_adc), sizeof(ToyFragment::adc_t));
+					output.write(reinterpret_cast<const char*>(bb.dataBeginADCs() + i_adc), sizeof(ToyFragment::adc_t));// NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic,cppcoreguidelines-pro-type-reinterpret-cast)
 				}
 				output.close();
 			}
@@ -186,7 +191,7 @@ void demo::ToyDump::analyze(art::Event const& evt)
 
 				for (uint32_t i_adc = 0; i_adc < numAdcs; ++i_adc)
 				{
-					output << "\t" << std::to_string(*(bb.dataBeginADCs() + i_adc));
+					output << "\t" << std::to_string(*(bb.dataBeginADCs() + i_adc)); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 				}
 				output << std::endl;
 				output.close();
@@ -208,7 +213,7 @@ void demo::ToyDump::analyze(art::Event const& evt)
 			}
 
 			TLOG(TLVL_INFO) << "First " << numAdcs << " ADC values in the fragment:";
-			int rows = 1 + (int)((num_adcs_to_print_ - 1) / columns_to_display_on_screen_);
+			int rows = 1 + static_cast<int>((num_adcs_to_print_ - 1) / columns_to_display_on_screen_);
 			uint32_t adc_counter = 0;
 			for (int idx = 0; idx < rows; ++idx)
 			{

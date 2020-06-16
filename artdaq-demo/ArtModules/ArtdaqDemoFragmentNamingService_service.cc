@@ -22,6 +22,10 @@ public:
 	ArtdaqDemoFragmentNamingService(fhicl::ParameterSet const& /*ps*/, art::ActivityRegistry& /*r*/);
 
 private:
+	ArtdaqDemoFragmentNamingService(ArtdaqDemoFragmentNamingService const&) = delete;
+	ArtdaqDemoFragmentNamingService(ArtdaqDemoFragmentNamingService&&) = delete;
+	ArtdaqDemoFragmentNamingService& operator=(ArtdaqDemoFragmentNamingService const&) = delete;
+	ArtdaqDemoFragmentNamingService& operator=(ArtdaqDemoFragmentNamingService&&) = delete;
 };
 
 ArtdaqDemoFragmentNamingService::ArtdaqDemoFragmentNamingService(fhicl::ParameterSet const& ps, art::ActivityRegistry& r)

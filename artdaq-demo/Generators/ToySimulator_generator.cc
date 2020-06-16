@@ -5,24 +5,22 @@
 #include "artdaq-demo/Generators/ToySimulator.hh"
 
 #include "canvas/Utilities/Exception.h"
+#include "cetlib_except/exception.h"
+#include "fhiclcpp/ParameterSet.h"
 
 #include "artdaq-core/Utilities/SimpleLookupPolicy.hh"
-#include "artdaq/Generators/GeneratorMacros.hh"
-
 #include "artdaq-core-demo/Overlays/FragmentType.hh"
 #include "artdaq-core-demo/Overlays/ToyFragment.hh"
+#include "artdaq/Generators/GeneratorMacros.hh"
 
-#include "fhiclcpp/ParameterSet.h"
+#define TRACE_NAME "ToySimulator"
+#include "TRACE/tracemf.h"  // TRACE, TLOG*
 
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <iterator>
-
 #include <unistd.h>
-#define TRACE_NAME "ToySimulator"
-#include "cetlib_except/exception.h"
-#include "tracemf.h"  // TRACE, TLOG*
 
 demo::ToySimulator::ToySimulator(fhicl::ParameterSet const& ps)
     : CommandableFragmentGenerator(ps)
@@ -42,14 +40,14 @@ demo::ToySimulator::ToySimulator(fhicl::ParameterSet const& ps)
 {
 	if (lazy_mode_ && request_mode() == artdaq::RequestMode::Ignored)
 	{
-		throw cet::exception("ToySimulator") << R"(The request mode has been set to "Ignored"; this is inconsistent with this ToySimulator's lazy mode set to "true")";
+		throw cet::exception("ToySimulator") << R"(The request mode has been set to "Ignored"; this is inconsistent with this ToySimulator's lazy mode set to "true")"; // NOLINT(cert-err60-cpp)
 	}
 
 	hardware_interface_->AllocateReadoutBuffer(&readout_buffer_);
 
 	if (exception_on_config_)
 	{
-		throw cet::exception("ToySimulator") << "This is an engineered exception designed for testing purposes, set "
+		throw cet::exception("ToySimulator") << "This is an engineered exception designed for testing purposes, set "  // NOLINT(cert-err60-cpp)
 		                                        "by the exception_on_config FHiCL variable";
 	}
 	if (dies_on_config_)
@@ -72,7 +70,7 @@ demo::ToySimulator::ToySimulator(fhicl::ParameterSet const& ps)
 			fragment_type_ = toFragmentType("TOY2");
 			break;
 		default:
-			throw cet::exception("ToySimulator") << "Unable to determine board type supplied by hardware";
+			throw cet::exception("ToySimulator") << "Unable to determine board type supplied by hardware";  // NOLINT(cert-err60-cpp)
 	}
 }
 

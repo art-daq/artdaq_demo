@@ -123,14 +123,14 @@ NthEventTransfer::NthEventTransfer(fhicl::ParameterSet const& pset, artdaq::Tran
 {
 	if (pset.has_key("source_rank") || pset.has_key("destination_rank"))
 	{
-		throw cet::exception("NthEvent")
+		throw cet::exception("NthEvent")  // NOLINT(cert-err60-cpp)
 		    << "The parameters \"source_rank\" and \"destination_rank\" must be explicitly defined in the body of the "
 		       "physical_transfer_plugin table, and not outside of it";
 	}
 
 	if (offset_ >= nth_)
 	{
-		throw cet::exception("NthEvent")
+		throw cet::exception("NthEvent")  // NOLINT(cert-err60-cpp)
 		    << "Offset value of " << offset_ << " must not be larger than the modulus value of " << nth_;
 	}
 

@@ -16,7 +16,7 @@
 #include "artdaq-core/Data/ContainerFragment.hh"
 #include "artdaq-core/Data/Fragment.hh"
 
-#include "tracemf.h"  // TLOG
+#include "TRACE/tracemf.h"  // TLOG
 #define TRACE_NAME "CheckIntegrity"
 
 #include <algorithm>
@@ -29,7 +29,7 @@
 
 namespace demo {
 class CheckIntegrity;
-}
+}  // namespace demo
 
 /**
  * \brief Demonstration art::EDAnalyzer which checks that all ToyFragment ADC counts are in the defined range
@@ -59,6 +59,11 @@ public:
 	void analyze(art::Event const& evt) override;
 
 private:
+	CheckIntegrity(CheckIntegrity const&) = delete;
+	CheckIntegrity(CheckIntegrity&&) = delete;
+	CheckIntegrity& operator=(CheckIntegrity const&) = delete;
+	CheckIntegrity& operator=(CheckIntegrity&&) = delete;
+
 	std::string raw_data_label_;
 };
 
@@ -175,4 +180,4 @@ void demo::CheckIntegrity::analyze(art::Event const& evt)
 	}
 }
 
-DEFINE_ART_MODULE(demo::CheckIntegrity)// NOLINT(performance-unnecessary-value-param)
+DEFINE_ART_MODULE(demo::CheckIntegrity)  // NOLINT(performance-unnecessary-value-param)

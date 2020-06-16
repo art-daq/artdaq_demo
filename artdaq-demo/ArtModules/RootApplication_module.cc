@@ -60,6 +60,11 @@ public:
 	void endJob() override;
 
 private:
+	RootApplication(RootApplication const&) = delete;
+	RootApplication(RootApplication&&) = delete;
+	RootApplication& operator=(RootApplication const&) = delete;
+	RootApplication& operator=(RootApplication&&) = delete;
+
 	std::unique_ptr<TApplication> app_;
 	bool force_new_;
 	bool dont_quit_;

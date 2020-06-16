@@ -141,7 +141,7 @@ bool demo::AsciiSimulator::getNext_(artdaq::FragmentPtrs& frags)
 	for (uint i = 0; i < string_to_use.length(); ++i)
 	{
 		// output.write((char*)&string_to_use[i],sizeof(char));
-		*(newfrag.dataBegin() + i) = string_to_use[i];
+		*(newfrag.dataBegin() + i) = string_to_use[i];  // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 	}
 	//  output.close();
 

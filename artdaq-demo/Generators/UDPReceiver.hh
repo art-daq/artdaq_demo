@@ -97,6 +97,11 @@ public:
 	explicit UDPReceiver(fhicl::ParameterSet const& ps);
 
 private:
+	UDPReceiver(UDPReceiver const&) = delete;
+	UDPReceiver(UDPReceiver&&) = delete;
+	UDPReceiver& operator=(UDPReceiver const&) = delete;
+	UDPReceiver& operator=(UDPReceiver&&) = delete;
+
 	// The "getNext_" function is used to implement user-specific
 	// functionality; it's a mandatory override of the pure virtual
 	// getNext_ function declared in CommandableFragmentGenerator

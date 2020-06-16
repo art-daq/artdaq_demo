@@ -15,9 +15,6 @@
 #if ART_HEX_VERSION < 0x30000
 #include "art/Persistency/Provenance/ProductMetaData.h"
 #endif
-
-#include <algorithm>
-#include <iterator>
 #include "canvas/Persistency/Provenance/BranchDescription.h"
 #include "canvas/Persistency/Provenance/BranchKey.h"
 #include "canvas/Persistency/Provenance/History.h"
@@ -44,20 +41,21 @@
 #include "artdaq/TransferPlugins/MakeTransferPlugin.hh"
 #include "artdaq/TransferPlugins/TransferInterface.hh"
 
+#include <TClass.h>
+#include <TMessage.h>
+
+#include <unistd.h>
+#include <algorithm>
 #include <iomanip>
 #include <iostream>
+#include <iterator>
 #include <sstream>
 #include <string>
 #include <vector>
 
-#include <unistd.h>
-
-#include <TClass.h>
-#include <TMessage.h>
-
 namespace art {
 class EventReporterOutput;
-}
+}  // namespace art
 
 /**
  * \brief An art::OutputModule which does nothing, but reports seen events and their fragments.
@@ -82,6 +80,11 @@ public:
 	~EventReporterOutput() override;
 
 private:
+	EventReporterOutput(EventReporterOutput const&) = delete;
+	EventReporterOutput(EventReporterOutput&&) = delete;
+	EventReporterOutput& operator=(EventReporterOutput const&) = delete;
+	EventReporterOutput& operator=(EventReporterOutput&&) = delete;
+
 	void openFile(FileBlock const& /*unused*/) override;
 
 	virtual void closeFile();
@@ -97,8 +100,6 @@ private:
 	void writeRun(RunPrincipal& /*r*/) override;
 
 	void writeSubRun(SubRunPrincipal& /*sr*/) override;
-
-private:
 };
 
 art::EventReporterOutput::EventReporterOutput(fhicl::ParameterSet const& ps)
@@ -181,4 +182,4 @@ void art::EventReporterOutput::writeSubRun(SubRunPrincipal& /*sr*/)
 	TLOG(TLVL_DEBUG) << " EventReporterOutput:: writeSubRun(const SubRunPrincipal& srp)";
 }
 
-DEFINE_ART_MODULE(art::EventReporterOutput)// NOLINT(performance-unnecessary-value-param)
+DEFINE_ART_MODULE(art::EventReporterOutput)  // NOLINT(performance-unnecessary-value-param)

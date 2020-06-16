@@ -39,6 +39,11 @@ public:
 	artdaq::detail::RoutingPacket GetCurrentTable() override;
 
 private:
+	MisbehaviorTest(MisbehaviorTest const&) = delete;
+	MisbehaviorTest(MisbehaviorTest&&) = delete;
+	MisbehaviorTest& operator=(MisbehaviorTest const&) = delete;
+	MisbehaviorTest& operator=(MisbehaviorTest&&) = delete;
+
 	artdaq::Fragment::sequence_id_t misbehave_after_;
 	size_t misbehave_pause_ms_;
 	bool misbehave_conflicting_table_data_;
@@ -54,7 +59,7 @@ MisbehaviorTest::MisbehaviorTest(const fhicl::ParameterSet& ps)
     , misbehave_corrupt_table_data_(ps.get<bool>("misbehave_send_corrupt_table_data", false))
     , misbehave_overload_event_builder_(ps.get<bool>("misbehave_overload_event_builder", false))
 {
-	srand(time(nullptr));
+	srand(time(nullptr)); // NOLINT(cert-msc51-cpp)
 	auto count = (misbehave_conflicting_table_data_ ? 1 : 0) + (misbehave_corrupt_table_data_ ? 1 : 0) +
 	             (misbehave_overload_event_builder_ ? 1 : 0) + (misbehave_pause_ms_ > 0 ? 1 : 0);
 	if (count > 1)
@@ -73,7 +78,8 @@ artdaq::detail::RoutingPacket MisbehaviorTest::GetCurrentTable()
 	size_t counter = 0;
 	for (; counter < half; ++counter)
 	{
-		output.emplace_back(artdaq::detail::RoutingPacketEntry(next_sequence_id_++, tokens->at(counter)));
+		output.emplace_back(artdaq::detail::RoutingPacketEntry(next_sequence_id_, tokens->at(counter)));
+		next_sequence_id_++;
 	}
 
 	if (next_sequence_id_ > misbehave_after_)
@@ -94,14 +100,15 @@ artdaq::detail::RoutingPacket MisbehaviorTest::GetCurrentTable()
 			if (misbehave_corrupt_table_data_)
 			{
 				mf::LogError("MisbehaviorTest") << "Adding random data point";
-				output.emplace_back(seedAndRandom(), rand());
+				output.emplace_back(seedAndRandom(), rand()); // NOLINT(cert-msc50-cpp)
 			}
 			if (misbehave_overload_event_builder_)
 			{
 				mf::LogError("MisbehaviorTest") << "Sending 100 events in a row to Rank " << tokens->at(0);
 				for (auto ii = 0; ii < 100; ++ii)
 				{
-					output.emplace_back(next_sequence_id_++, tokens->at(0));
+					output.emplace_back(next_sequence_id_, tokens->at(0));
+					next_sequence_id_++;
 				}
 			}
 			misbehave_after_ += misbehave_after_;
@@ -110,7 +117,8 @@ artdaq::detail::RoutingPacket MisbehaviorTest::GetCurrentTable()
 
 	for (; counter < tokens->size(); ++counter)
 	{
-		output.emplace_back(artdaq::detail::RoutingPacketEntry(next_sequence_id_++, tokens->at(counter)));
+		output.emplace_back(artdaq::detail::RoutingPacketEntry(next_sequence_id_, tokens->at(counter)));
+		next_sequence_id_++;
 	}
 
 	return output;

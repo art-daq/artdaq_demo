@@ -19,6 +19,11 @@ public:
 	detail::RoutingPacket GetCurrentTable() override;
 
 private:
+	NthEventPolicy(NthEventPolicy const&) = delete;
+	NthEventPolicy(NthEventPolicy&&) = delete;
+	NthEventPolicy& operator=(NthEventPolicy const&) = delete;
+	NthEventPolicy& operator=(NthEventPolicy&&) = delete;
+
 	size_t nth_;
 	int nth_rank_;
 };
@@ -38,7 +43,7 @@ NthEventPolicy::NthEventPolicy(const fhicl::ParameterSet& ps)
 {
 	if (nth_ == 0)
 	{
-		throw cet::exception("NthEvent_policy") << "nth_event must be greater than 0!";
+		throw cet::exception("NthEvent_policy") << "nth_event must be greater than 0!"; // NOLINT(cert-err60-cpp)
 	}
 }
 
