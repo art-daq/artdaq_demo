@@ -30,7 +30,7 @@ ToyHardwareInterface::ToyHardwareInterface(fhicl::ParameterSet const& ps)
     , exit_after_N_seconds_(ps.get<bool>("exit_after_N_seconds", false))
     , abort_after_N_seconds_(ps.get<bool>("abort_after_N_seconds", false))
     , fragment_type_(demo::toFragmentType(ps.get<std::string>("fragment_type")))
-    , maxADCvalue_(pow(2, NumADCBits()) - 1)
+    , maxADCvalue_(static_cast<size_t>(pow(2, NumADCBits()) - 1))
     ,  // MUST be after "fragment_type"
     throttle_usecs_(ps.get<size_t>("throttle_usecs", 100000))
     , usecs_between_sends_(ps.get<size_t>("usecs_between_sends", 0))
@@ -54,8 +54,8 @@ ToyHardwareInterface::ToyHardwareInterface(fhicl::ParameterSet const& ps)
 	if (nADCcounts_ > maxADCcounts_ ||
 	    (nADCcounts_after_N_seconds_ >= 0 && nADCcounts_after_N_seconds_ > maxADCcounts_))
 	{
-		throw cet::exception("HardwareInterface")
-		    << "Either (or both) of \"nADCcounts\" and \"nADCcounts_after_N_seconds\""
+		throw cet::exception("HardwareInterface") // NOLINT(cert-err60-cpp)
+		    << R"(Either (or both) of "nADCcounts" and "nADCcounts_after_N_seconds")"
 		    << " is larger than the \"maxADCcounts\" setting (currently at " << maxADCcounts_ << ")";
 	}
 
@@ -64,7 +64,7 @@ ToyHardwareInterface::ToyHardwareInterface(fhicl::ParameterSet const& ps)
 
 	if (planned_disruption && change_after_N_seconds_ == std::numeric_limits<size_t>::max())
 	{
-		throw cet::exception("HardwareInterface") << "A FHiCL parameter designed to create a disruption has been "
+		throw cet::exception("HardwareInterface") << "A FHiCL parameter designed to create a disruption has been "  // NOLINT(cert-err60-cpp)
 		                                             "set, so \"change_after_N_seconds\" should be set as well";
 #pragma GCC diagnostic pop
 	}
@@ -116,13 +116,12 @@ void ToyHardwareInterface::FillBuffer(char* buffer, size_t* bytes_read)
 			}
 			else if (exception_after_N_seconds_)
 			{
-				throw cet::exception("HardwareInterface")
+				throw cet::exception("HardwareInterface")  // NOLINT(cert-err60-cpp)
 				    << "This is an engineered exception designed for testing purposes";
 			}
 			else if (nADCcounts_after_N_seconds_ >= 0)
 			{
-				if (pause_after_N_seconds_
-				    && (static_cast<size_t>(elapsed_secs_since_datataking_start) % change_after_N_seconds_ == 0))
+				if ((pause_after_N_seconds_ != 0u) && (static_cast<size_t>(elapsed_secs_since_datataking_start) % change_after_N_seconds_ == 0))
 				{
 					TLOG(16) << "pausing " << pause_after_N_seconds_ << " seconds";
 					sleep(pause_after_N_seconds_);
@@ -147,7 +146,7 @@ void ToyHardwareInterface::FillBuffer(char* buffer, size_t* bytes_read)
 		// sizeof(demo::ToyFragment::Header::data_t) << std::endl;
 		assert(*bytes_read % sizeof(demo::ToyFragment::Header::data_t) == 0);
 
-		demo::ToyFragment::Header* header = reinterpret_cast<demo::ToyFragment::Header*>(buffer);
+		auto* header = reinterpret_cast<demo::ToyFragment::Header*>(buffer); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
 
 		header->event_size = *bytes_read / sizeof(demo::ToyFragment::Header::data_t);
 		header->trigger_number = 99;
@@ -178,7 +177,10 @@ void ToyHardwareInterface::FillBuffer(char* buffer, size_t* bytes_read)
 			case DistributionType::monotonic:
 			{
 				generator = [&]() {
-					if (++gen_seed > maxADCvalue_) gen_seed = 0;
+					if (++gen_seed > maxADCvalue_)
+					{
+						gen_seed = 0;
+					}
 					return gen_seed;
 				};
 			}
@@ -189,18 +191,18 @@ void ToyHardwareInterface::FillBuffer(char* buffer, size_t* bytes_read)
 				break;
 
 			default:
-				throw cet::exception("HardwareInterface") << "Unknown distribution type specified";
+				throw cet::exception("HardwareInterface") << "Unknown distribution type specified";  // NOLINT(cert-err60-cpp)
 		}
 
 		if (distribution_type_ != DistributionType::uninitialized && distribution_type_ != DistributionType::uninit2)
 		{
-			std::generate_n(reinterpret_cast<data_t*>(reinterpret_cast<demo::ToyFragment::Header*>(buffer) + 1),
+			std::generate_n(reinterpret_cast<data_t*>(reinterpret_cast<demo::ToyFragment::Header*>(buffer) + 1),// NOLINT(cppcoreguidelines-pro-type-reinterpret-cast,cppcoreguidelines-pro-bounds-pointer-arithmetic)
 			                nADCcounts_, generator);
 		}
 	}
 	else
 	{
-		throw cet::exception("ToyHardwareInterface") << "Attempt to call FillBuffer when not sending data";
+		throw cet::exception("ToyHardwareInterface") << "Attempt to call FillBuffer when not sending data";  // NOLINT(cert-err60-cpp)
 	}
 
 	if (send_calls_ == 0)
@@ -217,8 +219,11 @@ void ToyHardwareInterface::FillBuffer(char* buffer, size_t* bytes_read)
 #pragma GCC diagnostic ignored "-Wsign-compare"
 
 			auto usecs_since_start = artdaq::TimeUtils::GetElapsedTimeMicroseconds(start_time_);
-			long delta = (long)(usecs_between_sends_ * send_calls_) - usecs_since_start;
-			if (delta > 0) usleep(delta);
+			uint64_t delta = static_cast<uint64_t>(usecs_between_sends_ * send_calls_) - usecs_since_start;
+			if (delta > 0)
+			{
+				usleep(delta);
+			}
 
 			TLOG(15) << "FillBuffer send_calls=" << send_calls_ << " usecs_since_start=" << usecs_since_start
 			         << " delta=" << delta;
@@ -231,11 +236,11 @@ void ToyHardwareInterface::FillBuffer(char* buffer, size_t* bytes_read)
 
 void ToyHardwareInterface::AllocateReadoutBuffer(char** buffer)
 {
-	*buffer = reinterpret_cast<char*>(
+	*buffer = reinterpret_cast<char*>( // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
 	    new uint8_t[sizeof(demo::ToyFragment::Header) + maxADCcounts_ * sizeof(data_t)]);
 }
 
-void ToyHardwareInterface::FreeReadoutBuffer(char* buffer) { delete[] buffer; }
+void ToyHardwareInterface::FreeReadoutBuffer(const char* buffer) { delete[] buffer; }
 
 int ToyHardwareInterface::BoardType() const
 {
@@ -256,7 +261,7 @@ int ToyHardwareInterface::NumADCBits() const
 			return 14;
 			break;
 		default:
-			throw cet::exception("ToyHardwareInterface") << "Unknown board type " << fragment_type_ << " ("
+			throw cet::exception("ToyHardwareInterface") << "Unknown board type " << fragment_type_ << " ("  // NOLINT(cert-err60-cpp)
 			                                             << demo::fragmentTypeToString(fragment_type_) << ").\n";
 	};
 }

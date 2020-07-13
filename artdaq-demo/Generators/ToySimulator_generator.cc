@@ -5,24 +5,22 @@
 #include "artdaq-demo/Generators/ToySimulator.hh"
 
 #include "canvas/Utilities/Exception.h"
+#include "cetlib_except/exception.h"
+#include "fhiclcpp/ParameterSet.h"
 
 #include "artdaq-core/Utilities/SimpleLookupPolicy.hh"
-#include "artdaq/Generators/GeneratorMacros.hh"
-
 #include "artdaq-core-demo/Overlays/FragmentType.hh"
 #include "artdaq-core-demo/Overlays/ToyFragment.hh"
+#include "artdaq/Generators/GeneratorMacros.hh"
 
-#include "fhiclcpp/ParameterSet.h"
+#define TRACE_NAME "ToySimulator"
+#include "TRACE/tracemf.h"  // TRACE, TLOG*
 
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <iterator>
-
 #include <unistd.h>
-#define TRACE_NAME "ToySimulator"
-#include "cetlib_except/exception.h"
-#include "tracemf.h"  // TRACE, TLOG*
 
 demo::ToySimulator::ToySimulator(fhicl::ParameterSet const& ps)
     : CommandableFragmentGenerator(ps)
@@ -44,10 +42,10 @@ demo::ToySimulator::ToySimulator(fhicl::ParameterSet const& ps)
 
 	if (exception_on_config_)
 	{
-		throw cet::exception("ToySimulator") << "This is an engineered exception designed for testing purposes, set "
+		throw cet::exception("ToySimulator") << "This is an engineered exception designed for testing purposes, set "  // NOLINT(cert-err60-cpp)
 		                                        "by the exception_on_config FHiCL variable";
 	}
-	else if (dies_on_config_)
+	if (dies_on_config_)
 	{
 		TLOG(TLVL_ERROR) << "This is an engineered process death, set by the dies_on_config FHiCL variable";
 		std::exit(1);
@@ -67,7 +65,7 @@ demo::ToySimulator::ToySimulator(fhicl::ParameterSet const& ps)
 			fragment_type_ = toFragmentType("TOY2");
 			break;
 		default:
-			throw cet::exception("ToySimulator") << "Unable to determine board type supplied by hardware";
+			throw cet::exception("ToySimulator") << "Unable to determine board type supplied by hardware";  // NOLINT(cert-err60-cpp)
 	}
 }
 
@@ -173,7 +171,9 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 		frags.emplace_back(std::move(fragptr));
 
 		if (distribution_type_ != ToyHardwareInterface::DistributionType::uninitialized)
+		{
 			memcpy(frags.back()->dataBeginBytes(), readout_buffer_, bytes_read);
+		}
 		else
 		{
 			// Must preserve the Header!
@@ -195,7 +195,10 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 		bool fragmentIdZero = false;
 		for (auto& id : fragmentIDs())
 		{
-			if (id == 0) fragmentIdZero = true;
+			if (id == 0)
+			{
+				fragmentIdZero = true;
+			}
 		}
 		if (fragmentIdZero)
 		{
