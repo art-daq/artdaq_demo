@@ -1,14 +1,14 @@
 #include "artdaq/DAQdata/Globals.hh"
 #include "artdaq/RoutingPolicies/PolicyMacros.hh"
-#include "artdaq/RoutingPolicies/RoutingMasterPolicy.hh"
+#include "artdaq/RoutingPolicies/RoutingManagerPolicy.hh"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 namespace demo {
 /**
- * \brief A test RoutingMasterPolicy which does various "bad" things, determined by configuration
+ * \brief A test RoutingManagerPolicy which does various "bad" things, determined by configuration
  */
-class MisbehaviorTest : public artdaq::RoutingMasterPolicy
+class MisbehaviorTest : public artdaq::RoutingManagerPolicy
 {
 public:
 	/**
@@ -52,7 +52,7 @@ private:
 };
 
 MisbehaviorTest::MisbehaviorTest(const fhicl::ParameterSet& ps)
-    : RoutingMasterPolicy(ps)
+    : RoutingManagerPolicy(ps)
     , misbehave_after_(ps.get<size_t>("misbehave_after_n_events", 1000))
     , misbehave_pause_ms_(ps.get<size_t>("misbehave_pause_time_ms", 0))
     , misbehave_conflicting_table_data_(ps.get<bool>("misbehave_send_conflicting_table_data", false))

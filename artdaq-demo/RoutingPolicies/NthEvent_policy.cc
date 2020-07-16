@@ -1,15 +1,15 @@
 #define TRACE_NAME "NthEventPolicy"
 #include "artdaq/RoutingPolicies/PolicyMacros.hh"
-#include "artdaq/RoutingPolicies/RoutingMasterPolicy.hh"
+#include "artdaq/RoutingPolicies/RoutingManagerPolicy.hh"
 #include "cetlib_except/exception.h"
 #include "fhiclcpp/ParameterSet.h"
 
 namespace artdaq {
 /**
- * \brief An example RoutingMasterPolicy which redirects every Nth event to a desginated destination.
+ * \brief An example RoutingManagerPolicy which redirects every Nth event to a desginated destination.
  * Other events are Round-Robin'ed to the other configured destinations.
  */
-class NthEventPolicy : public RoutingMasterPolicy
+class NthEventPolicy : public RoutingManagerPolicy
 {
 public:
 	explicit NthEventPolicy(const fhicl::ParameterSet& ps);
@@ -39,7 +39,7 @@ private:
  * \endverbatim
  */
 NthEventPolicy::NthEventPolicy(const fhicl::ParameterSet& ps)
-    : RoutingMasterPolicy(ps), nth_(ps.get<size_t>("nth_event")), nth_rank_(ps.get<int>("target_receiver"))
+    : RoutingManagerPolicy(ps), nth_(ps.get<size_t>("nth_event")), nth_rank_(ps.get<int>("target_receiver"))
 {
 	if (nth_ == 0)
 	{
