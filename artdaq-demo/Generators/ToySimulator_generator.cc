@@ -8,19 +8,19 @@
 #include "cetlib_except/exception.h"
 #include "fhiclcpp/ParameterSet.h"
 
-#include "artdaq-core/Utilities/SimpleLookupPolicy.hh"
 #include "artdaq-core-demo/Overlays/FragmentType.hh"
 #include "artdaq-core-demo/Overlays/ToyFragment.hh"
+#include "artdaq-core/Utilities/SimpleLookupPolicy.hh"
 #include "artdaq/Generators/GeneratorMacros.hh"
 
 #define TRACE_NAME "ToySimulator"
 #include "TRACE/tracemf.h"  // TRACE, TLOG*
 
+#include <unistd.h>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <iterator>
-#include <unistd.h>
 
 demo::ToySimulator::ToySimulator(fhicl::ParameterSet const& ps)
     : CommandableFragmentGenerator(ps)
@@ -148,8 +148,10 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 #endif
 	}
 
+	TLOG(6) << "getNext_: Calling ToyHardwareInterface::FillBuffer";
 	std::size_t bytes_read = 0;
 	hardware_interface_->FillBuffer(readout_buffer_, &bytes_read);
+	TLOG(6) << "getNext_: Done with FillBuffer";
 
 	// We'll use the static factory function
 
@@ -159,6 +161,7 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 	// which will then return a unique_ptr to an artdaq::Fragment
 	// object.
 
+	TLOG(6)	    << "getNext_: Creating Fragments for configured Fragment IDs";
 	for (auto& id : fragmentIDs())
 	{
 		// The offset logic below is designed to both ensure
@@ -170,6 +173,7 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 		    artdaq::Fragment::FragmentBytes(bytes_read, ev_counter(), id, fragment_type_, metadata_, timestamp_));
 		frags.emplace_back(std::move(fragptr));
 
+		TLOG(7) << "getNext_: Before memcpy";
 		if (distribution_type_ != ToyHardwareInterface::DistributionType::uninitialized)
 		{
 			memcpy(frags.back()->dataBeginBytes(), readout_buffer_, bytes_read);
@@ -180,7 +184,7 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 			memcpy(frags.back()->dataBeginBytes(), readout_buffer_, sizeof(ToyFragment::Header));
 		}
 
-		TLOG(50) << "getNext_ after memcpy " << bytes_read
+		TLOG(7) << "getNext_ after memcpy " << bytes_read
 		         << " bytes and std::move dataSizeBytes()=" << frags.back()->sizeBytes()
 		         << " metabytes=" << sizeof(metadata_);
 	}
@@ -190,6 +194,7 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 		metricMan->sendMetric("Fragments Sent", ev_counter(), "Events", 3, artdaq::MetricMode::LastPoint);
 	}
 
+	TLOG(6) << "getNext_: Checking for subrun rollover";
 	if (rollover_subrun_interval_ > 0 && ev_counter() % rollover_subrun_interval_ == 0 && fragment_id() == 0)
 	{
 		bool fragmentIdZero = false;
@@ -217,6 +222,7 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 	ev_counter_inc();
 	timestamp_ += timestampScale_;
 
+	TLOG(6) << "getNext_: DONE";
 	return true;
 }
 

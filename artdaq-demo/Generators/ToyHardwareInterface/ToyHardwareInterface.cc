@@ -25,10 +25,11 @@ ToyHardwareInterface::ToyHardwareInterface(fhicl::ParameterSet const& ps)
     , maxADCcounts_(ps.get<size_t>("maxADCcounts", 50000000))
     , change_after_N_seconds_(ps.get<size_t>("change_after_N_seconds", std::numeric_limits<size_t>::max()))
     , pause_after_N_seconds_(ps.get<size_t>("pause_after_N_seconds", 0))
-    , nADCcounts_after_N_seconds_(ps.get<int>("nADCcounts_after_N_seconds", nADCcounts_))
+    , nADCcounts_after_N_seconds_(ps.get<size_t>("nADCcounts_after_N_seconds", nADCcounts_))
     , exception_after_N_seconds_(ps.get<bool>("exception_after_N_seconds", false))
     , exit_after_N_seconds_(ps.get<bool>("exit_after_N_seconds", false))
     , abort_after_N_seconds_(ps.get<bool>("abort_after_N_seconds", false))
+    , hang_after_N_seconds_(ps.get<bool>("hang_after_N_seconds",false))
     , fragment_type_(demo::toFragmentType(ps.get<std::string>("fragment_type")))
     , maxADCvalue_(static_cast<size_t>(pow(2, NumADCBits()) - 1))
     ,  // MUST be after "fragment_type"
@@ -42,17 +43,9 @@ ToyHardwareInterface::ToyHardwareInterface(fhicl::ParameterSet const& ps)
     , send_calls_(0)
     , serial_number_((*uniform_distn_)(engine_))
 {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wsign-compare"
-
-	// JCF, Aug-14-2016
-
-	// The logic of checking that nADCcounts_after_N_seconds_ >= 0,
-	// below, is because signed vs. unsigned comparison won't do what
-	// you want it to do if nADCcounts_after_N_seconds_ is negative
 
 	if (nADCcounts_ > maxADCcounts_ ||
-	    (nADCcounts_after_N_seconds_ >= 0 && nADCcounts_after_N_seconds_ > maxADCcounts_))
+	    nADCcounts_after_N_seconds_ > maxADCcounts_)
 	{
 		throw cet::exception("HardwareInterface") // NOLINT(cert-err60-cpp)
 		    << R"(Either (or both) of "nADCcounts" and "nADCcounts_after_N_seconds")"
@@ -66,7 +59,6 @@ ToyHardwareInterface::ToyHardwareInterface(fhicl::ParameterSet const& ps)
 	{
 		throw cet::exception("HardwareInterface") << "A FHiCL parameter designed to create a disruption has been "  // NOLINT(cert-err60-cpp)
 		                                             "set, so \"change_after_N_seconds\" should be set as well";
-#pragma GCC diagnostic pop
 	}
 }
 
@@ -90,55 +82,62 @@ void ToyHardwareInterface::StopDatataking()
 
 void ToyHardwareInterface::FillBuffer(char* buffer, size_t* bytes_read)
 {
+	TLOG(TLVL_TRACE) << "FillBuffer BEGIN";
 	if (taking_data_)
 	{
+		TLOG(6) << "FillBuffer: Sleeping for " << throttle_usecs_ << " microseconds";
 		usleep(throttle_usecs_);
 
 		auto elapsed_secs_since_datataking_start = artdaq::TimeUtils::GetElapsedTime(start_time_);
+		if (elapsed_secs_since_datataking_start < 0) elapsed_secs_since_datataking_start = 0;
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wsign-compare"
-		if (elapsed_secs_since_datataking_start < change_after_N_seconds_ || send_calls_ == 0)
+		if (static_cast<size_t>(elapsed_secs_since_datataking_start) < change_after_N_seconds_ || send_calls_ == 0)
 		{
-#pragma GCC diagnostic pop
-
+			TLOG(6) << "FillBuffer: Setting bytes_read to " << sizeof(demo::ToyFragment::Header) + nADCcounts_ * sizeof(data_t);
 			*bytes_read = sizeof(demo::ToyFragment::Header) + nADCcounts_ * sizeof(data_t);
 		}
 		else
 		{
 			if (abort_after_N_seconds_)
 			{
+				TLOG(TLVL_ERROR) << "Engineered Abort!";
 				std::abort();
 			}
 			else if (exit_after_N_seconds_)
 			{
+				TLOG(TLVL_ERROR) << "Engineered Exit!";
 				std::exit(1);
 			}
 			else if (exception_after_N_seconds_)
 			{
+				TLOG(TLVL_ERROR) << "Engineered Exception!";
 				throw cet::exception("HardwareInterface")  // NOLINT(cert-err60-cpp)
 				    << "This is an engineered exception designed for testing purposes";
 			}
-			else if (nADCcounts_after_N_seconds_ >= 0)
+			else if (hang_after_N_seconds_)
 			{
-				if ((pause_after_N_seconds_ != 0u) && (static_cast<size_t>(elapsed_secs_since_datataking_start) % change_after_N_seconds_ == 0))
+				TLOG(TLVL_ERROR) << "Pretending that the hardware has hung! Variable name for gdb: hardwareIsHung";
+				volatile bool hardwareIsHung = true;
+				// Pretend the hardware hangs
+				while (hardwareIsHung)
 				{
-					TLOG(16) << "pausing " << pause_after_N_seconds_ << " seconds";
-					sleep(pause_after_N_seconds_);
-					TLOG(16) << "resuming after pause of " << pause_after_N_seconds_ << " seconds";
+					usleep(10000);
 				}
-				*bytes_read = sizeof(demo::ToyFragment::Header) + nADCcounts_after_N_seconds_ * sizeof(data_t);
 			}
 			else
 			{
-				// Pretend the hardware hangs
-				while (true)
+				if ((pause_after_N_seconds_ != 0u) && (static_cast<size_t>(elapsed_secs_since_datataking_start) % change_after_N_seconds_ == 0))
 				{
+					TLOG(6) << "pausing " << pause_after_N_seconds_ << " seconds";
+					sleep(pause_after_N_seconds_);
+					TLOG(6) << "resuming after pause of " << pause_after_N_seconds_ << " seconds";
 				}
+				TLOG(6) << "FillBuffer: Setting bytes_read to " << sizeof(demo::ToyFragment::Header) + nADCcounts_after_N_seconds_ * sizeof(data_t);
+				*bytes_read = sizeof(demo::ToyFragment::Header) + nADCcounts_after_N_seconds_ * sizeof(data_t);
 			}
 		}
 
-		// Make the fake data, starting with the header
+		TLOG(6) << "FillBuffer: Making the fake data, starting with the header";
 
 		// Can't handle a fragment whose size isn't evenly divisible by
 		// the demo::ToyFragment::Header::data_t type size in bytes
@@ -152,8 +151,7 @@ void ToyHardwareInterface::FillBuffer(char* buffer, size_t* bytes_read)
 		header->trigger_number = 99;
 		header->distribution_type = static_cast<uint8_t>(distribution_type_);
 
-		// Generate nADCcounts ADC values ranging from 0 to max based on
-		// the desired distribution
+		TLOG(6) << "FillBuffer: Generating nADCcounts ADC values ranging from 0 to max based on the desired distribution";
 
 		std::function<data_t()> generator;
 		data_t gen_seed = 0;
@@ -196,6 +194,7 @@ void ToyHardwareInterface::FillBuffer(char* buffer, size_t* bytes_read)
 
 		if (distribution_type_ != DistributionType::uninitialized && distribution_type_ != DistributionType::uninit2)
 		{
+			TLOG(6) << "FillBuffer: Calling generate_n";
 			std::generate_n(reinterpret_cast<data_t*>(reinterpret_cast<demo::ToyFragment::Header*>(buffer) + 1),// NOLINT(cppcoreguidelines-pro-type-reinterpret-cast,cppcoreguidelines-pro-bounds-pointer-arithmetic)
 			                nADCcounts_, generator);
 		}
@@ -207,31 +206,30 @@ void ToyHardwareInterface::FillBuffer(char* buffer, size_t* bytes_read)
 
 	if (send_calls_ == 0)
 	{
+		TLOG(6) << "FillBuffer has set the start_time_";
 		start_time_ = std::chrono::steady_clock::now();
-		TLOG(50) << "FillBuffer has set the start_time_";
 	}
 
 	if (usecs_between_sends_ != 0)
 	{
-		if (send_calls_ != 0)
+		if (send_calls_ > 0)
 		{
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wsign-compare"
 
 			auto usecs_since_start = artdaq::TimeUtils::GetElapsedTimeMicroseconds(start_time_);
-			uint64_t delta = static_cast<uint64_t>(usecs_between_sends_ * send_calls_) - usecs_since_start;
+			double delta = static_cast<double>(usecs_between_sends_ * send_calls_) - usecs_since_start;
+			TLOG(6) << "FillBuffer send_calls=" << send_calls_ << " usecs_since_start=" << usecs_since_start
+			        << " delta=" << delta;
 			if (delta > 0)
 			{
+				TLOG(6) << "FillBuffer: Sleeping for " << delta << " microseconds";
 				usleep(delta);
 			}
 
-			TLOG(15) << "FillBuffer send_calls=" << send_calls_ << " usecs_since_start=" << usecs_since_start
-			         << " delta=" << delta;
 
-#pragma GCC diagnostic pop
 		}
 	}
 	++send_calls_;
+	TLOG(TLVL_TRACE) << "FillBuffer END";
 }
 
 void ToyHardwareInterface::AllocateReadoutBuffer(char** buffer)

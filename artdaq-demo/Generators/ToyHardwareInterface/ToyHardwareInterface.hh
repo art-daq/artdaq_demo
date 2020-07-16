@@ -97,10 +97,11 @@ private:
 	std::size_t maxADCcounts_;
 	std::size_t change_after_N_seconds_;
 	std::size_t pause_after_N_seconds_;  // sleep this many seconds every change_after_N_seconds_
-	int nADCcounts_after_N_seconds_;
+	std::size_t nADCcounts_after_N_seconds_;
 	bool exception_after_N_seconds_;
 	bool exit_after_N_seconds_;
 	bool abort_after_N_seconds_;
+	bool hang_after_N_seconds_;
 	demo::FragmentType fragment_type_;
 	std::size_t maxADCvalue_;
 	std::size_t throttle_usecs_;
