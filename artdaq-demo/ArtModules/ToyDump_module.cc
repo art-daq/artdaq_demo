@@ -251,11 +251,14 @@ void demo::ToyDump::analyze(art::Event const& evt)
 
 void demo::ToyDump::endSubRun(art::SubRun const& sr)
 {
-	TLOG(TLVL_ERROR) << "ENDSUBRUN: Run " << sr.id().run() << ", Subrun " << sr.id().subRun() << " has " << event_count_ << " events.";
+	auto limit_save = traceControl_rwp->limit_cnt_limit;
+	traceControl_rwp->limit_cnt_limit = 0;
+	TLOG(TLVL_INFO) << "ENDSUBRUN: Run " << sr.id().run() << ", Subrun " << sr.id().subRun() << " has " << event_count_ << " events.";
 	for (auto const& c : fragment_counts_)
 	{
-		TLOG(TLVL_ERROR) << "ENDSUBRUN: There were " << c.second << " events with " << c.first << " TOY1 or TOY2 Fragments";
+		TLOG(TLVL_INFO) << "ENDSUBRUN: There were " << c.second << " events with " << c.first << " TOY1 or TOY2 Fragments";
 	}
+	traceControl_rwp->limit_cnt_limit = limit_save;
 	fragment_counts_.clear();
 	event_count_ = 0;
 }
