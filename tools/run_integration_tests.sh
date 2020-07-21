@@ -84,7 +84,7 @@ function run_simple_test_config() {
 	echo `ls -t daqdata|head -1`
 	echo "=============================================="
 
-	runnum=`ls run_records|tail -1`
+	runnum=`ls -tr run_records|tail -1`
 	mv /tmp/launch_attempt_* daqlogs/pmt/run${runnum}_daqinterface.log
 
     if [ $do_om -ne 0 ]; then
