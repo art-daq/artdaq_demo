@@ -17,6 +17,7 @@
 #include <unistd.h>
 #include <future>
 #include <iostream>
+#include <memory>
 
 namespace demo {
 /**
@@ -38,7 +39,7 @@ public:
 	/**
 	 * \brief RootApplication Destructor
 	 */
-	virtual ~RootApplication();
+	~RootApplication() override;
 
 	/**
 	 * \brief Called by art at the beginning of the job. RootApplication will create a window unless one already exists and force_new == false.
@@ -59,6 +60,11 @@ public:
 	void endJob() override;
 
 private:
+	RootApplication(RootApplication const&) = delete;
+	RootApplication(RootApplication&&) = delete;
+	RootApplication& operator=(RootApplication const&) = delete;
+	RootApplication& operator=(RootApplication&&) = delete;
+
 	std::unique_ptr<TApplication> app_;
 	bool force_new_;
 	bool dont_quit_;
@@ -71,22 +77,25 @@ demo::RootApplication::RootApplication(fhicl::ParameterSet const& ps)
     , dont_quit_(ps.get<bool>("dont_quit", false))
 {}
 
-demo::RootApplication::~RootApplication() {}
+demo::RootApplication::~RootApplication() = default;
 
-void demo::RootApplication::analyze(art::Event const&) { gSystem->ProcessEvents(); }
+void demo::RootApplication::analyze(art::Event const& /*unused*/) { gSystem->ProcessEvents(); }
 
 void demo::RootApplication::beginJob()
 {
-	if (!gApplication || force_new_)
+	if ((gApplication == nullptr) || force_new_)
 	{
 		int tmp_argc(0);
-		app_ = std::unique_ptr<TApplication>(new TApplication("noapplication", &tmp_argc, 0));
+		app_ = std::make_unique<TApplication>("noapplication", &tmp_argc, nullptr);
 	}
 }
 
 void demo::RootApplication::endJob()
 {
-	if (dont_quit_) app_->Run(true);
+	if (dont_quit_)
+	{
+		app_->Run(true);
+	}
 }
 
-DEFINE_ART_MODULE(demo::RootApplication)
+DEFINE_ART_MODULE(demo::RootApplication)// NOLINT(performance-unnecessary-value-param)

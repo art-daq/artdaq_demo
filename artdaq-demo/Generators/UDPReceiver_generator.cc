@@ -30,7 +30,7 @@ demo::UDPReceiver::UDPReceiver(fhicl::ParameterSet const &ps)
 	datasocket_ = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	if (datasocket_ < 0)
 	{
-		throw art::Exception(art::errors::Configuration) << "UDPReceiver: Error creating socket!" << std::endl;
+		throw art::Exception(art::errors::Configuration) << "UDPReceiver: Error creating socket!" << std::endl;  // NOLINT(cert-err60-cpp)
 		exit(1);
 	}
 
@@ -38,9 +38,9 @@ demo::UDPReceiver::UDPReceiver(fhicl::ParameterSet const &ps)
 	si_me_data.sin_family = AF_INET;
 	si_me_data.sin_port = htons(dataport_);
 	si_me_data.sin_addr.s_addr = htonl(INADDR_ANY);
-	if (bind(datasocket_, (struct sockaddr *)&si_me_data, sizeof(si_me_data)) == -1)
+	if (bind(datasocket_, reinterpret_cast<struct sockaddr *>(&si_me_data), sizeof(si_me_data)) == -1) // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
 	{
-		throw art::Exception(art::errors::Configuration)
+		throw art::Exception(art::errors::Configuration)  // NOLINT(cert-err60-cpp)
 		    << "UDPReceiver: Cannot bind data socket to port " << dataport_ << std::endl;
 		exit(1);
 	}
@@ -49,7 +49,7 @@ demo::UDPReceiver::UDPReceiver(fhicl::ParameterSet const &ps)
 	si_data_.sin_port = htons(dataport_);
 	if (inet_aton(ip_.c_str(), &si_data_.sin_addr) == 0)
 	{
-		throw art::Exception(art::errors::Configuration)
+		throw art::Exception(art::errors::Configuration)  // NOLINT(cert-err60-cpp)
 		    << "UDPReceiver: Could not translate provided IP Address: " << ip_ << "\n";
 		exit(1);
 	}
@@ -111,10 +111,11 @@ bool demo::UDPReceiver::getNext_(artdaq::FragmentPtrs &frags)
 			if (ufds[0].revents == POLLIN || ufds[0].revents == POLLPRI)
 			{
 				uint8_t peekBuffer[2];
-				recvfrom(datasocket_, peekBuffer, sizeof(peekBuffer), MSG_PEEK, (struct sockaddr *)&si_data_,
-				         (socklen_t *)sizeof(si_data_));
+				socklen_t addr_len = sizeof(si_data_);
+				recvfrom(datasocket_, peekBuffer, sizeof(peekBuffer), MSG_PEEK, reinterpret_cast<struct sockaddr *>(&si_data_),  // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+				         &addr_len);
 
-				TLOG(TLVL_INFO) << "Recieved UDP Packet with sequence number " << std::hex << (int)peekBuffer[1]
+				TLOG(TLVL_INFO) << "Recieved UDP Packet with sequence number " << std::hex << static_cast<int>(peekBuffer[1])
 				                << "!";
 				// std::cout << "peekBuffer[1] == expectedPacketNumber_: " << std::hex << (int)peekBuffer[1] << " =?= "
 				// << (int)expectedPacketNumber_ << std::endl;
@@ -145,10 +146,11 @@ bool demo::UDPReceiver::getNext_(artdaq::FragmentPtrs &frags)
 						packetBuffers_.clear();
 						packetBuffer_t buffer;
 						memset(&buffer[0], 0, sizeof(packetBuffer_t));
-						recvfrom(datasocket_, &buffer[0], sizeof(packetBuffer_t), 0, (struct sockaddr *)&si_data_,
-						         (socklen_t *)sizeof(si_data_));
+						socklen_t addr_len = sizeof(si_data_);
+						recvfrom(datasocket_, &buffer[0], sizeof(packetBuffer_t), 0, reinterpret_cast<struct sockaddr *>(&si_data_),  // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+						         &addr_len);
 						packetBuffers_.push_back(buffer);
-						TLOG(TLVL_DEBUG) << "Now placing UDP packet with sequence number " << std::hex << (int)seqNum
+						TLOG(TLVL_DEBUG) << "Now placing UDP packet with sequence number " << std::hex << seqNum
 						                 << " into buffer.";
 						if (dataCode == ReturnCode::Read)
 						{
@@ -161,12 +163,13 @@ bool demo::UDPReceiver::getNext_(artdaq::FragmentPtrs &frags)
 						}
 					}
 					else if ((dataCode == ReturnCode::Middle || dataCode == ReturnCode::Last) &&
-					         packetBuffers_.size() > 0)
+					         !packetBuffers_.empty())
 					{
 						packetBuffer_t buffer;
 						memset(&buffer[0], 0, sizeof(packetBuffer_t));
-						recvfrom(datasocket_, &buffer[0], sizeof(packetBuffer_t), 0, (struct sockaddr *)&si_data_,
-						         (socklen_t *)sizeof(si_data_));
+						socklen_t addr_len = sizeof(si_data_);
+						recvfrom(datasocket_, &buffer[0], sizeof(packetBuffer_t), 0, reinterpret_cast<struct sockaddr *>(&si_data_),  // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+						         &addr_len);
 						if (droppedPackets == 0)
 						{
 							packetBuffers_.push_back(buffer);
@@ -174,7 +177,7 @@ bool demo::UDPReceiver::getNext_(artdaq::FragmentPtrs &frags)
 						else if (burst_end == -1 || seqNum < burst_end)
 						{
 							bool found = false;
-							for (packetBuffer_list_t::iterator it = packetBuffers_.begin(); it != packetBuffers_.end();
+							for (auto it = packetBuffers_.begin(); it != packetBuffers_.end();
 							     ++it)
 							{
 								if (seqNum < (*it)[1])
@@ -189,7 +192,7 @@ bool demo::UDPReceiver::getNext_(artdaq::FragmentPtrs &frags)
 								packetBuffers_.push_back(buffer);
 							}
 						}
-						TLOG(TLVL_DEBUG) << "Now placing UDP packet with sequence number " << std::hex << (int)seqNum
+						TLOG(TLVL_DEBUG) << "Now placing UDP packet with sequence number " << std::hex << seqNum
 						                 << " into buffer.";
 						if (dataCode == ReturnCode::Last && droppedPackets == 0)
 						{
@@ -218,8 +221,9 @@ bool demo::UDPReceiver::getNext_(artdaq::FragmentPtrs &frags)
 				else
 				{
 					packetBuffer_t discardBuffer;
+					socklen_t addr_len = sizeof(si_data_);
 					recvfrom(datasocket_, &discardBuffer[0], sizeof(discardBuffer), 0,
-					         (struct sockaddr *)&si_data_, (socklen_t *)sizeof(si_data_));
+					         reinterpret_cast<struct sockaddr *>(&si_data_), &addr_len);  // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
 					TLOG(TLVL_WARNING) << "Out-of-sequence packet detected and discarded!";
 				}
 			}
@@ -227,7 +231,7 @@ bool demo::UDPReceiver::getNext_(artdaq::FragmentPtrs &frags)
 	}
 
 	packetBuffer_t &firstPacket = packetBuffers_.front();
-	TLOG(TLVL_DEBUG) << "Recieved data, now placing data with UDP sequence number " << (int)firstPacket[1]
+	TLOG(TLVL_DEBUG) << "Recieved data, now placing data with UDP sequence number " << static_cast<int>(firstPacket[1])
 	                 << " into UDPFragment";
 	thisFrag.resize(1500 * packetBuffers_.size() + 1);
 	std::ofstream output;
@@ -238,30 +242,39 @@ bool demo::UDPReceiver::getNext_(artdaq::FragmentPtrs &frags)
 	}
 
 	DataType dataType = getDataType(firstPacket[0]);
-	thisFrag.set_hdr_type((int)dataType);
+	thisFrag.set_hdr_type(static_cast<demo::UDPFragment::Header::data_type_t>(dataType));
 	int pos = 0;
 	for (auto jj : packetBuffers_)
 	{
 		for (int ii = 2; ii < 1500; ++ii)
 		{
 			// Null-terminate string types
-			if (jj[ii] == 0 && (dataType == DataType::JSON || dataType == DataType::String))
+			if (jj.at(ii) == 0 && (dataType == DataType::JSON || dataType == DataType::String))
 			{
 				break;
 			}
 
-			if (rawOutput_) output.write((char *)&(jj[ii]), sizeof(uint8_t));
-			*(thisFrag.dataBegin() + pos) = jj[ii];
+			if (rawOutput_)
+			{
+				output.write(reinterpret_cast<const char *>(&(jj.at(ii))), sizeof(uint8_t));  // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+			}
+			*(thisFrag.dataBegin() + pos) = jj.at(ii); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 			++pos;
 		}
 	}
 	if (dataType == DataType::JSON || dataType == DataType::String)
 	{
-		*(thisFrag.dataBegin() + pos) = 0;
+		*(thisFrag.dataBegin() + pos) = 0;// NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 		char zero = 0;
-		if (rawOutput_) output.write(&zero, sizeof(char));
+		if (rawOutput_)
+		{
+			output.write(&zero, sizeof(char));
+		}
 	}
-	if (rawOutput_) output.close();
+	if (rawOutput_)
+	{
+		output.close();
+	}
 
 	return true;
 }
@@ -281,7 +294,7 @@ void demo::UDPReceiver::send(CommandType command)
 		CommandPacket packet;
 		packet.type = command;
 		packet.dataSize = 0;
-		sendto(datasocket_, &packet, sizeof(packet), 0, (struct sockaddr *)&si_data_, sizeof(si_data_));
+		sendto(datasocket_, &packet, sizeof(packet), 0, reinterpret_cast<struct sockaddr *>(&si_data_), sizeof(si_data_));  // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
 	}
 }
 

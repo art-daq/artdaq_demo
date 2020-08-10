@@ -33,6 +33,7 @@ event_builder: {
   print_event_store_stats: false
   verbose: false
   events_expected_in_SimpleQueueReader: @local::events_to_generate
+  init_fragment_count: 0
 }
 
 ######################################################################
@@ -41,7 +42,14 @@ event_builder: {
 
 art: {
 services: {
-  ArtdaqSharedMemoryServiceInterface: { service_provider: ArtdaqSharedMemoryService }
+  ArtdaqSharedMemoryServiceInterface: {
+    service_provider: ArtdaqSharedMemoryService 
+    waiting_time: 900
+  }
+  ArtdaqFragmentNamingServiceInterface: {
+    service_provider: ArtdaqFragmentNamingService
+    fragment_type_map: [[3, "V1720"], [4, "V1724"], [6, "TOY1"], [7, "TOY2"] ]
+  }
 }
 
 physics:
@@ -93,10 +101,7 @@ outputs:
 
 source:
 {
-module_type: RawInput
-waiting_time: 900
-resume_after_timeout: true
-fragment_type_map: [[3, "V1720"], [4, "V1724"], [6, "TOY1"], [7, "TOY2"] ]
+module_type: ArtdaqInput
 }
 
 process_name: Driver
