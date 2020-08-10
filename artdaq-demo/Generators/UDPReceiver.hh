@@ -97,11 +97,16 @@ public:
 	explicit UDPReceiver(fhicl::ParameterSet const& ps);
 
 private:
+	UDPReceiver(UDPReceiver const&) = delete;
+	UDPReceiver(UDPReceiver&&) = delete;
+	UDPReceiver& operator=(UDPReceiver const&) = delete;
+	UDPReceiver& operator=(UDPReceiver&&) = delete;
+
 	// The "getNext_" function is used to implement user-specific
 	// functionality; it's a mandatory override of the pure virtual
 	// getNext_ function declared in CommandableFragmentGenerator
 
-	bool getNext_(artdaq::FragmentPtrs& output) override;
+	bool getNext_(artdaq::FragmentPtrs& frags) override;
 
 	void start() override;
 
@@ -115,7 +120,7 @@ private:
 	DataType getDataType(uint8_t byte) { return static_cast<DataType>((byte & 0xF0) >> 4); }
 	ReturnCode getReturnCode(uint8_t byte) { return static_cast<ReturnCode>(byte & 0xF); }
 
-	void send(CommandType flag);
+	void send(CommandType command);
 
 	// FHiCL-configurable variables. Note that the C++ variable names
 	// are the FHiCL variable names with a "_" appended
