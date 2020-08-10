@@ -94,7 +94,7 @@ bool demo::AsciiSimulator::getNext_(artdaq::FragmentPtrs& frags)
 	}
 
 	// Set fragment's metadata
-	size_t data_size = ev_counter() % 2 ? string1_.length() + 2 : string2_.length() + 2;
+	size_t data_size = (ev_counter() % 2) != 0u ? string1_.length() + 2 : string2_.length() + 2;
 	AsciiFragment::Metadata metadata;
 	std::string size_string = "S:" + std::to_string(data_size) + ",";
 	metadata.charsInLine = convertToASCII<AsciiFragment::Metadata::chars_in_line_t>(size_string);
@@ -134,14 +134,14 @@ bool demo::AsciiSimulator::getNext_(artdaq::FragmentPtrs& frags)
 	newfrag.resize(data_size);
 
 	// Now, generate the payload, based on the string to use
-	std::string string_to_use = ev_counter() % 2 ? string1_ : string2_;
+	std::string string_to_use = (ev_counter() % 2) != 0u ? string1_ : string2_;
 	string_to_use += "\r\n";
 
 	//  std::ofstream output ("/tmp/ASCIIGenerator.bin", std::ios::out | std::ios::app | std::ios::binary );
 	for (uint i = 0; i < string_to_use.length(); ++i)
 	{
 		// output.write((char*)&string_to_use[i],sizeof(char));
-		*(newfrag.dataBegin() + i) = string_to_use[i];
+		*(newfrag.dataBegin() + i) = string_to_use[i];  // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 	}
 	//  output.close();
 

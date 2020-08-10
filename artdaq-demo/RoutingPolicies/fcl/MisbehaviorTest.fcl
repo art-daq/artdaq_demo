@@ -1,4 +1,4 @@
-# RoutingMasterPolicy configuration
+# RoutingManagerPolicy configuration
 # destination_ranks:        # List of ranks for event builders
 
 # MisbehaviorTest configuration

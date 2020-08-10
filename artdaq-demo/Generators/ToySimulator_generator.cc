@@ -5,24 +5,22 @@
 #include "artdaq-demo/Generators/ToySimulator.hh"
 
 #include "canvas/Utilities/Exception.h"
-
-#include "artdaq-core/Utilities/SimpleLookupPolicy.hh"
-#include "artdaq/Generators/GeneratorMacros.hh"
+#include "cetlib_except/exception.h"
+#include "fhiclcpp/ParameterSet.h"
 
 #include "artdaq-core-demo/Overlays/FragmentType.hh"
 #include "artdaq-core-demo/Overlays/ToyFragment.hh"
+#include "artdaq-core/Utilities/SimpleLookupPolicy.hh"
+#include "artdaq/Generators/GeneratorMacros.hh"
 
-#include "fhiclcpp/ParameterSet.h"
+#define TRACE_NAME "ToySimulator"
+#include "TRACE/tracemf.h"  // TRACE, TLOG*
 
+#include <unistd.h>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <iterator>
-
-#include <unistd.h>
-#define TRACE_NAME "ToySimulator"
-#include "cetlib_except/exception.h"
-#include "tracemf.h"  // TRACE, TLOG*
 
 demo::ToySimulator::ToySimulator(fhicl::ParameterSet const& ps)
     : CommandableFragmentGenerator(ps)
@@ -40,19 +38,14 @@ demo::ToySimulator::ToySimulator(fhicl::ParameterSet const& ps)
     , lazy_mode_(ps.get<bool>("lazy_mode", false))
 
 {
-	if (lazy_mode_ && request_mode() == artdaq::RequestMode::Ignored)
-	{
-		throw cet::exception("ToySimulator") << "The request mode has been set to \"Ignored\"; this is inconsistent with this ToySimulator's lazy mode set to \"true\"";
-	}
-
 	hardware_interface_->AllocateReadoutBuffer(&readout_buffer_);
 
 	if (exception_on_config_)
 	{
-		throw cet::exception("ToySimulator") << "This is an engineered exception designed for testing purposes, set "
+		throw cet::exception("ToySimulator") << "This is an engineered exception designed for testing purposes, set "  // NOLINT(cert-err60-cpp)
 		                                        "by the exception_on_config FHiCL variable";
 	}
-	else if (dies_on_config_)
+	if (dies_on_config_)
 	{
 		TLOG(TLVL_ERROR) << "This is an engineered process death, set by the dies_on_config FHiCL variable";
 		std::exit(1);
@@ -72,7 +65,7 @@ demo::ToySimulator::ToySimulator(fhicl::ParameterSet const& ps)
 			fragment_type_ = toFragmentType("TOY2");
 			break;
 		default:
-			throw cet::exception("ToySimulator") << "Unable to determine board type supplied by hardware";
+			throw cet::exception("ToySimulator") << "Unable to determine board type supplied by hardware";  // NOLINT(cert-err60-cpp)
 	}
 }
 
@@ -112,7 +105,14 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 	{
 #define LAZY_MODEL 0
 #if LAZY_MODEL == 0
-		auto request = GetNextRequest();
+
+		auto requests = GetRequestBuffer();
+		if (requests == nullptr)
+		{
+			throw cet::exception("ToySimulator") << "Lazy mode is enabled, but the RequestBuffer is nullptr";
+		}
+
+		auto request = requests->GetNextRequest();
 		if (request.first == 0)
 		{
 			usleep(10);
@@ -148,8 +148,10 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 #endif
 	}
 
+	TLOG(6) << "getNext_: Calling ToyHardwareInterface::FillBuffer";
 	std::size_t bytes_read = 0;
 	hardware_interface_->FillBuffer(readout_buffer_, &bytes_read);
+	TLOG(6) << "getNext_: Done with FillBuffer";
 
 	// We'll use the static factory function
 
@@ -159,6 +161,7 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 	// which will then return a unique_ptr to an artdaq::Fragment
 	// object.
 
+	TLOG(6)	    << "getNext_: Creating Fragments for configured Fragment IDs";
 	for (auto& id : fragmentIDs())
 	{
 		// The offset logic below is designed to both ensure
@@ -170,15 +173,18 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 		    artdaq::Fragment::FragmentBytes(bytes_read, ev_counter(), id, fragment_type_, metadata_, timestamp_));
 		frags.emplace_back(std::move(fragptr));
 
+		TLOG(7) << "getNext_: Before memcpy";
 		if (distribution_type_ != ToyHardwareInterface::DistributionType::uninitialized)
+		{
 			memcpy(frags.back()->dataBeginBytes(), readout_buffer_, bytes_read);
+		}
 		else
 		{
 			// Must preserve the Header!
 			memcpy(frags.back()->dataBeginBytes(), readout_buffer_, sizeof(ToyFragment::Header));
 		}
 
-		TLOG(50) << "getNext_ after memcpy " << bytes_read
+		TLOG(7) << "getNext_ after memcpy " << bytes_read
 		         << " bytes and std::move dataSizeBytes()=" << frags.back()->sizeBytes()
 		         << " metabytes=" << sizeof(metadata_);
 	}
@@ -188,12 +194,16 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 		metricMan->sendMetric("Fragments Sent", ev_counter(), "Events", 3, artdaq::MetricMode::LastPoint);
 	}
 
+	TLOG(6) << "getNext_: Checking for subrun rollover";
 	if (rollover_subrun_interval_ > 0 && ev_counter() % rollover_subrun_interval_ == 0 && fragment_id() == 0)
 	{
 		bool fragmentIdZero = false;
 		for (auto& id : fragmentIDs())
 		{
-			if (id == 0) fragmentIdZero = true;
+			if (id == 0)
+			{
+				fragmentIdZero = true;
+			}
 		}
 		if (fragmentIdZero)
 		{
@@ -212,6 +222,7 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 	ev_counter_inc();
 	timestamp_ += timestampScale_;
 
+	TLOG(6) << "getNext_: DONE";
 	return true;
 }
 
