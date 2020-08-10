@@ -53,6 +53,11 @@ public:
 	virtual ~ToySimulator();
 
 private:
+	ToySimulator(ToySimulator const&) = delete;
+	ToySimulator(ToySimulator&&) = delete;
+	ToySimulator& operator=(ToySimulator const&) = delete;
+	ToySimulator& operator=(ToySimulator&&) = delete;
+
 	/**
 	 * \brief The "getNext_" function is used to implement user-specific
 	 * functionality; it's a mandatory override of the pure virtual
@@ -60,7 +65,7 @@ private:
 	 * \param output New FragmentPtrs will be added to this container
 	 * \return True if data-taking should continue
 	 */
-	bool getNext_(artdaq::FragmentPtrs& output) override;
+	bool getNext_(artdaq::FragmentPtrs& frags) override;
 
 	// The start, stop and stopNoMutex methods are declared pure
 	// virtual in CommandableFragmentGenerator and therefore MUST be

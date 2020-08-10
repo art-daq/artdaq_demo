@@ -16,7 +16,7 @@
 #include "artdaq-core/Data/ContainerFragment.hh"
 #include "artdaq-core/Data/Fragment.hh"
 
-#include "tracemf.h"  // TLOG
+#include "TRACE/tracemf.h"  // TLOG
 #define TRACE_NAME "CheckIntegrity"
 
 #include <algorithm>
@@ -29,7 +29,7 @@
 
 namespace demo {
 class CheckIntegrity;
-}
+}  // namespace demo
 
 /**
  * \brief Demonstration art::EDAnalyzer which checks that all ToyFragment ADC counts are in the defined range
@@ -50,15 +50,20 @@ public:
 	/**
 	 * \brief Default destructor
 	 */
-	virtual ~CheckIntegrity() = default;
+	~CheckIntegrity() override = default;
 
 	/**
 	 * \brief Analyze an event. Called by art for each event in run (based on command line options)
 	 * \param evt The art::Event object containing ToyFragments to check
 	 */
-	virtual void analyze(art::Event const& evt);
+	void analyze(art::Event const& evt) override;
 
 private:
+	CheckIntegrity(CheckIntegrity const&) = delete;
+	CheckIntegrity(CheckIntegrity&&) = delete;
+	CheckIntegrity& operator=(CheckIntegrity const&) = delete;
+	CheckIntegrity& operator=(CheckIntegrity&&) = delete;
+
 	std::string raw_data_label_;
 };
 
@@ -74,13 +79,16 @@ void demo::CheckIntegrity::analyze(art::Event const& evt)
 	std::vector<art::Handle<artdaq::Fragments>> fragmentHandles;
 	evt.getManyByType(fragmentHandles);
 
-	for (auto handle : fragmentHandles)
+	for (const auto& handle : fragmentHandles)
 	{
-		if (!handle.isValid() || handle->size() == 0) continue;
+		if (!handle.isValid() || handle->empty())
+		{
+			continue;
+		}
 
 		if (handle->front().type() == artdaq::Fragment::ContainerFragmentType)
 		{
-			for (auto cont : *handle)
+			for (const auto& cont : *handle)
 			{
 				artdaq::ContainerFragment contf(cont);
 				if (contf.fragment_type() != demo::FragmentType::TOY1 && contf.fragment_type() != demo::FragmentType::TOY2)
@@ -134,8 +142,10 @@ void demo::CheckIntegrity::analyze(art::Event const& evt)
 
 			for (; adc_iter != bb.dataEndADCs(); adc_iter++, expected_adc++)
 			{
-				if (expected_adc > bb.adc_range(frag.metadata<ToyFragment::Metadata>()->num_adc_bits))
+				if (expected_adc > demo::ToyFragment::adc_range(frag.metadata<ToyFragment::Metadata>()->num_adc_bits))
+				{
 					expected_adc = 0;
+				}
 
 				// ELF 7/10/18: Distribution type 2 is the monotonically-increasing one
 				if (bb.hdr_distribution_type() == 2 && *adc_iter != expected_adc)
@@ -151,7 +161,7 @@ void demo::CheckIntegrity::analyze(art::Event const& evt)
 				// ELF 7/10/18: As of now, distribution types 3 and 4 are uninitialized, and can therefore produce
 				// out-of-range counts.
 				if (bb.hdr_distribution_type() < 3 &&
-				    *adc_iter > bb.adc_range(frag.metadata<ToyFragment::Metadata>()->num_adc_bits))
+				    *adc_iter > demo::ToyFragment::adc_range(frag.metadata<ToyFragment::Metadata>()->num_adc_bits))
 				{
 					TLOG(TLVL_ERROR) << "Error: in run " << evt.run() << ", subrun " << evt.subRun() << ", event "
 					                 << evt.event() << ", seqID " << frag.sequenceID() << ", fragID "
@@ -170,4 +180,4 @@ void demo::CheckIntegrity::analyze(art::Event const& evt)
 	}
 }
 
-DEFINE_ART_MODULE(demo::CheckIntegrity)
+DEFINE_ART_MODULE(demo::CheckIntegrity)  // NOLINT(performance-unnecessary-value-param)

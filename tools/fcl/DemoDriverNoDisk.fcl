@@ -32,6 +32,7 @@ event_builder: {
   use_art: true
   print_event_store_stats: false
   verbose: true
+  init_fragment_count: 0
 }
 
 ######################################################################
@@ -41,6 +42,7 @@ event_builder: {
 art: {
 services: {
    ArtdaqSharedMemoryServiceInterface: { service_provider: ArtdaqSharedMemoryService }
+  ArtdaqFragmentNamingServiceInterface: { service_provider: ArtdaqFragmentNamingService helper_plugin: "ArtdaqDemo" }
     TimeTracker: {}
 }
 physics:
@@ -95,7 +97,7 @@ outputs:
 
 source:
 {
-  module_type: DemoInput
+  module_type: ArtdaqInput
 }
 
 process_name: DemoDriver
