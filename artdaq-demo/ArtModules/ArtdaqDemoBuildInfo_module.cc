@@ -20,5 +20,5 @@ typedef artdaq::BuildInfo<&instanceName, artdaqcore::GetPackageBuildInfo, artdaq
                           artdaq::GetPackageBuildInfo, coredemo::GetPackageBuildInfo, demo::GetPackageBuildInfo>
     ArtdaqDemoBuildInfo;
 
-DEFINE_ART_MODULE(ArtdaqDemoBuildInfo)// NOLINT(performance-unnecessary-value-param)
+DEFINE_ART_MODULE(ArtdaqDemoBuildInfo)  // NOLINT(performance-unnecessary-value-param)
 }  // namespace demo
