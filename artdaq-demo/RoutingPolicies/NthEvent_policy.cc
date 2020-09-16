@@ -43,7 +43,7 @@ NthEventPolicy::NthEventPolicy(const fhicl::ParameterSet& ps)
 {
 	if (nth_ == 0)
 	{
-		throw cet::exception("NthEvent_policy") << "nth_event must be greater than 0!"; // NOLINT(cert-err60-cpp)
+		throw cet::exception("NthEvent_policy") << "nth_event must be greater than 0!";  // NOLINT(cert-err60-cpp)
 	}
 }
 

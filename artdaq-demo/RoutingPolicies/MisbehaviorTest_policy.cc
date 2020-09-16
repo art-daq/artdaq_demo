@@ -59,7 +59,7 @@ MisbehaviorTest::MisbehaviorTest(const fhicl::ParameterSet& ps)
     , misbehave_corrupt_table_data_(ps.get<bool>("misbehave_send_corrupt_table_data", false))
     , misbehave_overload_event_builder_(ps.get<bool>("misbehave_overload_event_builder", false))
 {
-	srand(time(nullptr)); // NOLINT(cert-msc51-cpp)
+	srand(time(nullptr));  // NOLINT(cert-msc51-cpp)
 	auto count = (misbehave_conflicting_table_data_ ? 1 : 0) + (misbehave_corrupt_table_data_ ? 1 : 0) +
 	             (misbehave_overload_event_builder_ ? 1 : 0) + (misbehave_pause_ms_ > 0 ? 1 : 0);
 	if (count > 1)
@@ -100,7 +100,7 @@ artdaq::detail::RoutingPacket MisbehaviorTest::GetCurrentTable()
 			if (misbehave_corrupt_table_data_)
 			{
 				mf::LogError("MisbehaviorTest") << "Adding random data point";
-				output.emplace_back(seedAndRandom(), rand()); // NOLINT(cert-msc50-cpp)
+				output.emplace_back(seedAndRandom(), rand());  // NOLINT(cert-msc50-cpp)
 			}
 			if (misbehave_overload_event_builder_)
 			{

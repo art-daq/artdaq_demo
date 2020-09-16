@@ -161,7 +161,7 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 	// which will then return a unique_ptr to an artdaq::Fragment
 	// object.
 
-	TLOG(6)	    << "getNext_: Creating Fragments for configured Fragment IDs";
+	TLOG(6) << "getNext_: Creating Fragments for configured Fragment IDs";
 	for (auto& id : fragmentIDs())
 	{
 		// The offset logic below is designed to both ensure
@@ -185,8 +185,8 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 		}
 
 		TLOG(7) << "getNext_ after memcpy " << bytes_read
-		         << " bytes and std::move dataSizeBytes()=" << frags.back()->sizeBytes()
-		         << " metabytes=" << sizeof(metadata_);
+		        << " bytes and std::move dataSizeBytes()=" << frags.back()->sizeBytes()
+		        << " metabytes=" << sizeof(metadata_);
 	}
 
 	if (metricMan != nullptr)
