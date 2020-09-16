@@ -29,7 +29,7 @@ ToyHardwareInterface::ToyHardwareInterface(fhicl::ParameterSet const& ps)
     , exception_after_N_seconds_(ps.get<bool>("exception_after_N_seconds", false))
     , exit_after_N_seconds_(ps.get<bool>("exit_after_N_seconds", false))
     , abort_after_N_seconds_(ps.get<bool>("abort_after_N_seconds", false))
-    , hang_after_N_seconds_(ps.get<bool>("hang_after_N_seconds",false))
+    , hang_after_N_seconds_(ps.get<bool>("hang_after_N_seconds", false))
     , fragment_type_(demo::toFragmentType(ps.get<std::string>("fragment_type")))
     , maxADCvalue_(static_cast<size_t>(pow(2, NumADCBits()) - 1))
     ,  // MUST be after "fragment_type"
@@ -43,11 +43,10 @@ ToyHardwareInterface::ToyHardwareInterface(fhicl::ParameterSet const& ps)
     , send_calls_(0)
     , serial_number_((*uniform_distn_)(engine_))
 {
-
 	if (nADCcounts_ > maxADCcounts_ ||
 	    nADCcounts_after_N_seconds_ > maxADCcounts_)
 	{
-		throw cet::exception("HardwareInterface") // NOLINT(cert-err60-cpp)
+		throw cet::exception("HardwareInterface")  // NOLINT(cert-err60-cpp)
 		    << R"(Either (or both) of "nADCcounts" and "nADCcounts_after_N_seconds")"
 		    << " is larger than the \"maxADCcounts\" setting (currently at " << maxADCcounts_ << ")";
 	}
@@ -145,7 +144,7 @@ void ToyHardwareInterface::FillBuffer(char* buffer, size_t* bytes_read)
 		// sizeof(demo::ToyFragment::Header::data_t) << std::endl;
 		assert(*bytes_read % sizeof(demo::ToyFragment::Header::data_t) == 0);
 
-		auto* header = reinterpret_cast<demo::ToyFragment::Header*>(buffer); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+		auto* header = reinterpret_cast<demo::ToyFragment::Header*>(buffer);  // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
 
 		header->event_size = *bytes_read / sizeof(demo::ToyFragment::Header::data_t);
 		header->trigger_number = 99;
@@ -195,7 +194,7 @@ void ToyHardwareInterface::FillBuffer(char* buffer, size_t* bytes_read)
 		if (distribution_type_ != DistributionType::uninitialized && distribution_type_ != DistributionType::uninit2)
 		{
 			TLOG(6) << "FillBuffer: Calling generate_n";
-			std::generate_n(reinterpret_cast<data_t*>(reinterpret_cast<demo::ToyFragment::Header*>(buffer) + 1),// NOLINT(cppcoreguidelines-pro-type-reinterpret-cast,cppcoreguidelines-pro-bounds-pointer-arithmetic)
+			std::generate_n(reinterpret_cast<data_t*>(reinterpret_cast<demo::ToyFragment::Header*>(buffer) + 1),  // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast,cppcoreguidelines-pro-bounds-pointer-arithmetic)
 			                nADCcounts_, generator);
 		}
 	}
@@ -214,7 +213,6 @@ void ToyHardwareInterface::FillBuffer(char* buffer, size_t* bytes_read)
 	{
 		if (send_calls_ > 0)
 		{
-
 			auto usecs_since_start = artdaq::TimeUtils::GetElapsedTimeMicroseconds(start_time_);
 			double delta = static_cast<double>(usecs_between_sends_ * send_calls_) - usecs_since_start;
 			TLOG(6) << "FillBuffer send_calls=" << send_calls_ << " usecs_since_start=" << usecs_since_start
@@ -224,8 +222,6 @@ void ToyHardwareInterface::FillBuffer(char* buffer, size_t* bytes_read)
 				TLOG(6) << "FillBuffer: Sleeping for " << delta << " microseconds";
 				usleep(delta);
 			}
-
-
 		}
 	}
 	++send_calls_;
@@ -234,7 +230,7 @@ void ToyHardwareInterface::FillBuffer(char* buffer, size_t* bytes_read)
 
 void ToyHardwareInterface::AllocateReadoutBuffer(char** buffer)
 {
-	*buffer = reinterpret_cast<char*>( // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+	*buffer = reinterpret_cast<char*>(  // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
 	    new uint8_t[sizeof(demo::ToyFragment::Header) + maxADCcounts_ * sizeof(data_t)]);
 }
 

@@ -368,14 +368,15 @@ void demo::WFViewer::analyze(art::Event const& e)
 			switch (fragtype)
 			{
 				case FragmentType::TOY1:
-				case FragmentType::TOY2: {
-					std::copy(toyPtr->dataBeginADCs(), toyPtr->dataBeginADCs() + total_adc_values, graphs_[ind]->GetY()); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+				case FragmentType::TOY2:
+				{
+					std::copy(toyPtr->dataBeginADCs(), toyPtr->dataBeginADCs() + total_adc_values, graphs_[ind]->GetY());  // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 				}
 				break;
 
 				default:
 					TLOG(TLVL_ERROR) << "Error in WFViewer: unknown fragment type supplied";
-					throw cet::exception("Error in WFViewer: unknown fragment type supplied"); // NOLINT(cert-err60-cpp)
+					throw cet::exception("Error in WFViewer: unknown fragment type supplied");  // NOLINT(cert-err60-cpp)
 			}
 
 			// And now prepare the graphics without actually drawing anything yet
