@@ -98,4 +98,4 @@ void demo::RootApplication::endJob()
 	}
 }
 
-DEFINE_ART_MODULE(demo::RootApplication)// NOLINT(performance-unnecessary-value-param)
+DEFINE_ART_MODULE(demo::RootApplication)  // NOLINT(performance-unnecessary-value-param)
