@@ -14,7 +14,7 @@ int main(int argc, char* argv[]) try
 	// issue errors if argument list is supplied incorrectly
 
 	std::ostringstream descstr;
-	descstr << argv[0] << " <-c <config-file>> <other-options>";
+	descstr << *argv << " <-c <config-file>> <other-options>";
 
 	bpo::options_description desc = descstr.str();
 
@@ -30,19 +30,19 @@ int main(int argc, char* argv[]) try
 	}
 	catch (bpo::error const& e)
 	{
-		std::cerr << "Exception from command line processing in " << argv[0] << ": " << e.what() << "\n";
+		std::cerr << "Exception from command line processing in " << *argv << ": " << e.what() << "\n";
 		return -1;
 	}
 
-	if (vm.count("help"))
+	if (vm.count("help") != 0u)
 	{
 		std::cout << desc << std::endl;
 		return 1;
 	}
-	if (!vm.count("config"))
+	if (vm.count("config") == 0u)
 	{
-		std::cerr << "Exception from command line processing in " << argv[0] << ": no configuration file given.\n"
-		          << "For usage and an options list, please do '" << argv[0] << " --help"
+		std::cerr << "Exception from command line processing in " << *argv << ": no configuration file given.\n"
+		          << "For usage and an options list, please do '" << *argv << " --help"
 		          << "'.\n";
 		return 2;
 	}
@@ -69,22 +69,12 @@ int main(int argc, char* argv[]) try
 	return 0;
 }
 
-catch (std::string& x)
+catch (std::exception const& x)
 {
-	std::cerr << "Exception (type string) caught in driver: " << x << "\n";
+	std::cerr << "Exception (type std::exception) caught in driver: " << x.what() << "\n";
 	return 1;
 }
-
-catch (char const* m)
+catch (...)
 {
-	std::cerr << "Exception (type char const*) caught in driver: " << std::endl;
-	if (m)
-	{
-		std::cerr << m;
-	}
-	else
-	{
-		std::cerr << "[the value was a null pointer, so no message is available]";
-	}
-	std::cerr << '\n';
+	return -1;
 }

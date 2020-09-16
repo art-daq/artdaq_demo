@@ -91,14 +91,6 @@ simple_plugin(CheckIntegrity "module"
   ${MESSAGEFACILITY_LIBS}
   ${CETLIB_EXCEPT}
 )
-
-simple_plugin(ArtdaqDemoFragmentNamingService "service"
-artdaq_ArtModules_ArtdaqFragmentNamingService_service
-artdaq-core_Data
-artdaq-core-demo_Overlays
-  art_Framework_Services_Registry
-  MF_MessageLogger
-  fhiclcpp)
   
 simple_plugin(EventReporterOutput "module"
   artdaq_ArtModules
