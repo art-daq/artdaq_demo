@@ -453,7 +453,7 @@ void demo::WFViewer::analyze(art::Event const& e)
 				case FragmentType::TOY1:
 				case FragmentType::TOY2:
 				{
-					std::copy(toyPtr->dataBeginADCs(), toyPtr->dataBeginADCs() + total_adc_values, graphs_[fragment_id]->GetY()); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+					std::copy(toyPtr->dataBeginADCs(), toyPtr->dataBeginADCs() + total_adc_values, graphs_[fragment_id]->GetY());  // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 				}
 				break;
 
