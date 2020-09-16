@@ -15,9 +15,6 @@
 #if ART_HEX_VERSION < 0x30000
 #include "art/Persistency/Provenance/ProductMetaData.h"
 #endif
-
-#include <algorithm>
-#include <iterator>
 #include "canvas/Persistency/Provenance/BranchDescription.h"
 #include "canvas/Persistency/Provenance/BranchKey.h"
 #include "canvas/Persistency/Provenance/History.h"
@@ -44,20 +41,21 @@
 #include "artdaq/TransferPlugins/MakeTransferPlugin.hh"
 #include "artdaq/TransferPlugins/TransferInterface.hh"
 
+#include <TClass.h>
+#include <TMessage.h>
+
+#include <unistd.h>
+#include <algorithm>
 #include <iomanip>
 #include <iostream>
+#include <iterator>
 #include <sstream>
 #include <string>
 #include <vector>
 
-#include <unistd.h>
-
-#include <TClass.h>
-#include <TMessage.h>
-
 namespace art {
 class EventReporterOutput;
-}
+}  // namespace art
 
 /**
  * \brief An art::OutputModule which does nothing, but reports seen events and their fragments.
@@ -79,26 +77,29 @@ public:
 	/**
 	 * \brief EventReporterOutput Destructor
 	 */
-	~EventReporterOutput();
+	~EventReporterOutput() override;
 
 private:
-	virtual void openFile(FileBlock const&);
+	EventReporterOutput(EventReporterOutput const&) = delete;
+	EventReporterOutput(EventReporterOutput&&) = delete;
+	EventReporterOutput& operator=(EventReporterOutput const&) = delete;
+	EventReporterOutput& operator=(EventReporterOutput&&) = delete;
+
+	void openFile(FileBlock const& /*unused*/) override;
 
 	virtual void closeFile();
 
-	virtual void respondToCloseInputFile(FileBlock const&);
+	void respondToCloseInputFile(FileBlock const& /*unused*/) override;
 
-	virtual void respondToCloseOutputFiles(FileBlock const&);
+	void respondToCloseOutputFiles(FileBlock const& /*unused*/) override;
 
-	virtual void endJob();
+	void endJob() override;
 
-	virtual void write(EventPrincipal&);
+	void write(EventPrincipal& /*ep*/) override;
 
-	virtual void writeRun(RunPrincipal&);
+	void writeRun(RunPrincipal& /*r*/) override;
 
-	virtual void writeSubRun(SubRunPrincipal&);
-
-private:
+	void writeSubRun(SubRunPrincipal& /*sr*/) override;
 };
 
 art::EventReporterOutput::EventReporterOutput(fhicl::ParameterSet const& ps)
@@ -112,19 +113,19 @@ art::EventReporterOutput::~EventReporterOutput()
 	TLOG(TLVL_DEBUG) << "Begin: EventReporterOutput::~EventReporterOutput()";
 }
 
-void art::EventReporterOutput::openFile(FileBlock const&)
+void art::EventReporterOutput::openFile(FileBlock const& /*unused*/)
 {
 	TLOG(TLVL_DEBUG) << "Begin/End: EventReporterOutput::openFile(const FileBlock&)";
 }
 
 void art::EventReporterOutput::closeFile() { TLOG(TLVL_DEBUG) << "Begin/End: EventReporterOutput::closeFile()"; }
 
-void art::EventReporterOutput::respondToCloseInputFile(FileBlock const&)
+void art::EventReporterOutput::respondToCloseInputFile(FileBlock const& /*unused*/)
 {
 	TLOG(TLVL_DEBUG) << "Begin/End: EventReporterOutput::respondToCloseOutputFiles(FileBlock const&)";
 }
 
-void art::EventReporterOutput::respondToCloseOutputFiles(FileBlock const&)
+void art::EventReporterOutput::respondToCloseOutputFiles(FileBlock const& /*unused*/)
 {
 	TLOG(TLVL_DEBUG) << "Begin/End: EventReporterOutput::respondToCloseOutputFiles(FileBlock const&)";
 }
@@ -158,7 +159,10 @@ void art::EventReporterOutput::write(EventPrincipal& ep)
 	{
 		auto const raw_event_handle = RawEventHandle(result_handle);
 
-		if (!raw_event_handle.isValid()) continue;
+		if (!raw_event_handle.isValid())
+		{
+			continue;
+		}
 
 		for (auto const& fragment : *raw_event_handle)
 		{
@@ -166,18 +170,16 @@ void art::EventReporterOutput::write(EventPrincipal& ep)
 			                 << ", fragmentID=" << fragment.fragmentID();
 		}
 	}
-
-	return;
 }
 
-void art::EventReporterOutput::writeRun(RunPrincipal&)
+void art::EventReporterOutput::writeRun(RunPrincipal& /*r*/)
 {
 	TLOG(TLVL_DEBUG) << " EventReporterOutput::writeRun(const RunPrincipal& rp)";
 }
 
-void art::EventReporterOutput::writeSubRun(SubRunPrincipal&)
+void art::EventReporterOutput::writeSubRun(SubRunPrincipal& /*sr*/)
 {
 	TLOG(TLVL_DEBUG) << " EventReporterOutput:: writeSubRun(const SubRunPrincipal& srp)";
 }
 
-DEFINE_ART_MODULE(art::EventReporterOutput)
+DEFINE_ART_MODULE(art::EventReporterOutput)  // NOLINT(performance-unnecessary-value-param)

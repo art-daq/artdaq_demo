@@ -3,7 +3,7 @@ source setupARTDAQDEMO
 
 bootfile_name=${bootfile_name:-"boot.txt"}
 brlistfile_name=${brlistfile_name:-"known_boardreaders_list_example"}
-ignoredConfigs="dune_sample_system|pdune_swtrig|subconfigs"
+ignoredConfigs="dune_sample_system|pdune_swtrig|subconfigs|issue24231_test3"
 extra_args="${extra_args}"
 daqinterface_rundir=${daqinterface_rundir:-"$PWD/DAQInterface"}
 
@@ -66,9 +66,11 @@ function run_simple_test_config() {
 	done
 
 	do_om=0
+	if [ `ls -l $configDir/*.fcl|wc -l` -gt 0 ];then
 	for ff in $configDir/*.fcl;do
 		do_om=$(( $do_om + `grep -c ToySimulator $ff` ))
 	done
+	fi
 
 
 	if [ $do_om -eq 0 ];then
@@ -82,15 +84,18 @@ function run_simple_test_config() {
 	echo `ls -t daqdata|head -1`
 	echo "=============================================="
 
+	runnum=`ls -tr run_records|tail -1`
+	mv /tmp/launch_attempt_* daqlogs/pmt/run${runnum}_daqinterface.log
+
     if [ $do_om -ne 0 ]; then
-        echo "Moving out.bin to daqdata/${config}.bin"
-        touch daqdata/${config}.bin
-        mv out.bin daqdata/${config}.bin
+        echo "Moving out.bin to daqdata/${config}_${runnum}.bin"
+        touch daqdata/${config}_${runnum}.bin
+        mv out.bin daqdata/${config}_${runnum}.bin
 	mkdir -p daqlogs/onlinemonitor >/dev/null 2>&1
-	mv om1.log daqlogs/onlinemonitor/${config}_om1.log
-	mv om2.log daqlogs/onlinemonitor/${config}_om2.log
+	mv om1.log daqlogs/onlinemonitor/${config}_${runnum}_om1.log
+	mv om2.log daqlogs/onlinemonitor/${config}_${runnum}_om2.log
     else
-        touch daqdata/${config}_noom.bin
+        touch daqdata/${config}_${runnum}_noom.bin
     fi
 }
 

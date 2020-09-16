@@ -69,6 +69,6 @@ NthEvent::NthEvent(fhicl::ParameterSet const& p)
     nth_(p.get<uint32_t>("nth"))
 {}
 
-inline bool NthEvent::filter(art::Event& e) { return e.event() % nth_ == 0 ? true : false; }
+inline bool NthEvent::filter(art::Event& e) { return e.event() % nth_ == 0; }
 
-DEFINE_ART_MODULE(NthEvent)
+DEFINE_ART_MODULE(NthEvent)  // NOLINT(performance-unnecessary-value-param)

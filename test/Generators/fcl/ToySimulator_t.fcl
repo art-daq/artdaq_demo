@@ -38,7 +38,7 @@ services: {
 	service_provider: ArtdaqSharedMemoryService
   waiting_time: 25.0
   }
-   ArtdaqFragmentNamingService: { service_provider: ArtdaqDemoFragmentNamingService }
+   ArtdaqFragmentNamingServiceInterface: { service_provider: ArtdaqFragmentNamingService helper_plugin: "ArtdaqDemo" }
 }
 
 physics: {
