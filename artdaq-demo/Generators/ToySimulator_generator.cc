@@ -27,6 +27,8 @@ demo::ToySimulator::ToySimulator(fhicl::ParameterSet const& ps)
     , hardware_interface_(new ToyHardwareInterface(ps))
     , timestamp_(0)
     , timestampScale_(ps.get<int>("timestamp_scale_factor", 1))
+    , sequence_id_scale_(ps.get<size_t>("sequence_scale_factor", 1))
+    , initial_sequence_id_(ps.get<size_t>("initial_sequence_id", 1))
     , rollover_subrun_interval_(ps.get<int>("rollover_subrun_interval", 0))
     , metadata_({0, 0, 0})
     , readout_buffer_(nullptr)
@@ -219,7 +221,7 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 		}
 	}
 
-	ev_counter_inc();
+	ev_counter_inc(sequence_id_scale_);
 	timestamp_ += timestampScale_;
 
 	TLOG(6) << "getNext_: DONE";
@@ -230,6 +232,10 @@ void demo::ToySimulator::start()
 {
 	hardware_interface_->StartDatataking();
 	timestamp_ = 0;
+	while (ev_counter() < initial_sequence_id_)
+	{
+		ev_counter_inc();
+	}
 	lazily_handled_requests_.clear();
 }
 
