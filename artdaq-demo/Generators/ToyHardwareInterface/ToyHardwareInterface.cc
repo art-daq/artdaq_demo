@@ -84,7 +84,7 @@ void ToyHardwareInterface::FillBuffer(char* buffer, size_t* bytes_read)
 	TLOG(TLVL_TRACE) << "FillBuffer BEGIN";
 	if (taking_data_)
 	{
-		TLOG(6) << "FillBuffer: Sleeping for " << throttle_usecs_ << " microseconds";
+		TLOG(TLVL_DEBUG+3) << "FillBuffer: Sleeping for " << throttle_usecs_ << " microseconds";
 		usleep(throttle_usecs_);
 
 		auto elapsed_secs_since_datataking_start = artdaq::TimeUtils::GetElapsedTime(start_time_);
@@ -92,7 +92,7 @@ void ToyHardwareInterface::FillBuffer(char* buffer, size_t* bytes_read)
 
 		if (static_cast<size_t>(elapsed_secs_since_datataking_start) < change_after_N_seconds_ || send_calls_ == 0)
 		{
-			TLOG(6) << "FillBuffer: Setting bytes_read to " << sizeof(demo::ToyFragment::Header) + nADCcounts_ * sizeof(data_t);
+			TLOG(TLVL_DEBUG+3) << "FillBuffer: Setting bytes_read to " << sizeof(demo::ToyFragment::Header) + nADCcounts_ * sizeof(data_t);
 			*bytes_read = sizeof(demo::ToyFragment::Header) + nADCcounts_ * sizeof(data_t);
 		}
 		else
@@ -127,16 +127,16 @@ void ToyHardwareInterface::FillBuffer(char* buffer, size_t* bytes_read)
 			{
 				if ((pause_after_N_seconds_ != 0u) && (static_cast<size_t>(elapsed_secs_since_datataking_start) % change_after_N_seconds_ == 0))
 				{
-					TLOG(6) << "pausing " << pause_after_N_seconds_ << " seconds";
+					TLOG(TLVL_DEBUG+3) << "pausing " << pause_after_N_seconds_ << " seconds";
 					sleep(pause_after_N_seconds_);
-					TLOG(6) << "resuming after pause of " << pause_after_N_seconds_ << " seconds";
+					TLOG(TLVL_DEBUG+3) << "resuming after pause of " << pause_after_N_seconds_ << " seconds";
 				}
-				TLOG(6) << "FillBuffer: Setting bytes_read to " << sizeof(demo::ToyFragment::Header) + nADCcounts_after_N_seconds_ * sizeof(data_t);
+				TLOG(TLVL_DEBUG+3) << "FillBuffer: Setting bytes_read to " << sizeof(demo::ToyFragment::Header) + nADCcounts_after_N_seconds_ * sizeof(data_t);
 				*bytes_read = sizeof(demo::ToyFragment::Header) + nADCcounts_after_N_seconds_ * sizeof(data_t);
 			}
 		}
 
-		TLOG(6) << "FillBuffer: Making the fake data, starting with the header";
+		TLOG(TLVL_DEBUG+3) << "FillBuffer: Making the fake data, starting with the header";
 
 		// Can't handle a fragment whose size isn't evenly divisible by
 		// the demo::ToyFragment::Header::data_t type size in bytes
@@ -150,7 +150,7 @@ void ToyHardwareInterface::FillBuffer(char* buffer, size_t* bytes_read)
 		header->trigger_number = 99;
 		header->distribution_type = static_cast<uint8_t>(distribution_type_);
 
-		TLOG(6) << "FillBuffer: Generating nADCcounts ADC values ranging from 0 to max based on the desired distribution";
+		TLOG(TLVL_DEBUG+3) << "FillBuffer: Generating nADCcounts ADC values ranging from 0 to max based on the desired distribution";
 
 		std::function<data_t()> generator;
 		data_t gen_seed = 0;
@@ -193,7 +193,7 @@ void ToyHardwareInterface::FillBuffer(char* buffer, size_t* bytes_read)
 
 		if (distribution_type_ != DistributionType::uninitialized && distribution_type_ != DistributionType::uninit2)
 		{
-			TLOG(6) << "FillBuffer: Calling generate_n";
+			TLOG(TLVL_DEBUG+3) << "FillBuffer: Calling generate_n";
 			std::generate_n(reinterpret_cast<data_t*>(reinterpret_cast<demo::ToyFragment::Header*>(buffer) + 1),  // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast,cppcoreguidelines-pro-bounds-pointer-arithmetic)
 			                nADCcounts_, generator);
 		}
@@ -205,7 +205,7 @@ void ToyHardwareInterface::FillBuffer(char* buffer, size_t* bytes_read)
 
 	if (send_calls_ == 0)
 	{
-		TLOG(6) << "FillBuffer has set the start_time_";
+		TLOG(TLVL_DEBUG+3) << "FillBuffer has set the start_time_";
 		start_time_ = std::chrono::steady_clock::now();
 	}
 
@@ -215,11 +215,11 @@ void ToyHardwareInterface::FillBuffer(char* buffer, size_t* bytes_read)
 		{
 			auto usecs_since_start = artdaq::TimeUtils::GetElapsedTimeMicroseconds(start_time_);
 			double delta = static_cast<double>(usecs_between_sends_ * send_calls_) - usecs_since_start;
-			TLOG(6) << "FillBuffer send_calls=" << send_calls_ << " usecs_since_start=" << usecs_since_start
+			TLOG(TLVL_DEBUG+3) << "FillBuffer send_calls=" << send_calls_ << " usecs_since_start=" << usecs_since_start
 			        << " delta=" << delta;
 			if (delta > 0)
 			{
-				TLOG(6) << "FillBuffer: Sleeping for " << delta << " microseconds";
+				TLOG(TLVL_DEBUG+3) << "FillBuffer: Sleeping for " << delta << " microseconds";
 				usleep(delta);
 			}
 		}
