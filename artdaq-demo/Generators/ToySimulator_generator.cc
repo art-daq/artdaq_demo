@@ -148,10 +148,10 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 #endif
 	}
 
-	TLOG(TLVL_DEBUG+3) << "getNext_: Calling ToyHardwareInterface::FillBuffer";
+	TLOG(TLVL_DEBUG + 3) << "getNext_: Calling ToyHardwareInterface::FillBuffer";
 	std::size_t bytes_read = 0;
 	hardware_interface_->FillBuffer(readout_buffer_, &bytes_read);
-	TLOG(TLVL_DEBUG+3) << "getNext_: Done with FillBuffer";
+	TLOG(TLVL_DEBUG + 3) << "getNext_: Done with FillBuffer";
 
 	// We'll use the static factory function
 
@@ -161,7 +161,7 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 	// which will then return a unique_ptr to an artdaq::Fragment
 	// object.
 
-	TLOG(TLVL_DEBUG+3) << "getNext_: Creating Fragments for configured Fragment IDs";
+	TLOG(TLVL_DEBUG + 3) << "getNext_: Creating Fragments for configured Fragment IDs";
 	for (auto& id : fragmentIDs())
 	{
 		// The offset logic below is designed to both ensure
@@ -173,7 +173,7 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 		    artdaq::Fragment::FragmentBytes(bytes_read, ev_counter(), id, fragment_type_, metadata_, timestamp_));
 		frags.emplace_back(std::move(fragptr));
 
-		TLOG(TLVL_DEBUG+4) << "getNext_: Before memcpy";
+		TLOG(TLVL_DEBUG + 4) << "getNext_: Before memcpy";
 		if (distribution_type_ != ToyHardwareInterface::DistributionType::uninitialized)
 		{
 			memcpy(frags.back()->dataBeginBytes(), readout_buffer_, bytes_read);
@@ -184,9 +184,9 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 			memcpy(frags.back()->dataBeginBytes(), readout_buffer_, sizeof(ToyFragment::Header));
 		}
 
-		TLOG(TLVL_DEBUG+4) << "getNext_ after memcpy " << bytes_read
-		        << " bytes and std::move dataSizeBytes()=" << frags.back()->sizeBytes()
-		        << " metabytes=" << sizeof(metadata_);
+		TLOG(TLVL_DEBUG + 4) << "getNext_ after memcpy " << bytes_read
+		                     << " bytes and std::move dataSizeBytes()=" << frags.back()->sizeBytes()
+		                     << " metabytes=" << sizeof(metadata_);
 	}
 
 	if (metricMan != nullptr)
@@ -194,7 +194,7 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 		metricMan->sendMetric("Fragments Sent", ev_counter(), "Events", 3, artdaq::MetricMode::LastPoint);
 	}
 
-	TLOG(TLVL_DEBUG+3) << "getNext_: Checking for subrun rollover";
+	TLOG(TLVL_DEBUG + 3) << "getNext_: Checking for subrun rollover";
 	if (rollover_subrun_interval_ > 0 && ev_counter() % rollover_subrun_interval_ == 0 && fragment_id() == 0)
 	{
 		bool fragmentIdZero = false;
@@ -222,7 +222,7 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 	ev_counter_inc();
 	timestamp_ += timestampScale_;
 
-	TLOG(TLVL_DEBUG+3) << "getNext_: DONE";
+	TLOG(TLVL_DEBUG + 3) << "getNext_: DONE";
 	return true;
 }
 
