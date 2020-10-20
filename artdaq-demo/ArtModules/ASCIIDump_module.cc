@@ -26,7 +26,7 @@
 
 namespace demo {
 class ASCIIDump;
-} // namespace demo
+}  // namespace demo
 
 /**
  * \brief An art::EDAnalyzer meant for decoding demo::ASCIIFragment objects
@@ -134,7 +134,7 @@ void demo::ASCIIDump::analyze(art::Event const& evt)
 			auto const* md = frag.metadata<AsciiFragment::Metadata>();
 			std::cout << "Chars in line: ";
 			auto mdChars = md->charsInLine;
-			std::cout.write(reinterpret_cast<const char*>(&mdChars), sizeof(uint32_t) / sizeof(char)); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+			std::cout.write(reinterpret_cast<const char*>(&mdChars), sizeof(uint32_t) / sizeof(char));  // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
 			std::cout << std::endl;
 			std::cout << std::endl;
 		}
@@ -142,7 +142,7 @@ void demo::ASCIIDump::analyze(art::Event const& evt)
 		std::ofstream output("out.bin", std::ios::out | std::ios::app | std::ios::binary);
 		for (size_t i_adc = 0; i_adc < bb.total_line_characters(); ++i_adc)
 		{
-			output.write((bb.dataBegin() + i_adc), sizeof(char)); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+			output.write((bb.dataBegin() + i_adc), sizeof(char));  // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 		}
 		output.close();
 		std::cout << std::endl;

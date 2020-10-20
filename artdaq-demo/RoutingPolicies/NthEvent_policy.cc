@@ -43,7 +43,7 @@ NthEventPolicy::NthEventPolicy(const fhicl::ParameterSet& ps)
 {
 	if (nth_ == 0)
 	{
-		throw cet::exception("NthEvent_policy") << "nth_event must be greater than 0!"; // NOLINT(cert-err60-cpp)
+		throw cet::exception("NthEvent_policy") << "nth_event must be greater than 0!";  // NOLINT(cert-err60-cpp)
 	}
 }
 
@@ -68,9 +68,9 @@ detail::RoutingPacket NthEventPolicy::GetCurrentTable()
 	tokens->clear();
 
 	detail::RoutingPacket output;
-	TLOG(5) << "table[nth_rank_]=" << (table[nth_rank_])
-	        << ", Next nth=" << (((next_sequence_id_ / nth_) + 1) * nth_)
-	        << ", max seq=" << (next_sequence_id_ + table.size() - 1);
+	TLOG(TLVL_DEBUG + 2) << "table[nth_rank_]=" << (table[nth_rank_])
+	                     << ", Next nth=" << (((next_sequence_id_ / nth_) + 1) * nth_)
+	                     << ", max seq=" << (next_sequence_id_ + table.size() - 1);
 	auto endCondition =
 	    table.size() < GetReceiverCount() ||
 	    (table[nth_rank_] <= 0 && (next_sequence_id_ % nth_ == 0 || ((next_sequence_id_ / nth_) + 1) * nth_ <
@@ -79,17 +79,17 @@ detail::RoutingPacket NthEventPolicy::GetCurrentTable()
 	{
 		for (auto r : table)
 		{
-			TLOG(5) << "nth_=" << nth_ << ", nth_rank=" << nth_rank_ << ", r=" << r.first
-			        << ", next_sequence_id=" << next_sequence_id_;
+			TLOG(TLVL_DEBUG + 2) << "nth_=" << nth_ << ", nth_rank=" << nth_rank_ << ", r=" << r.first
+			                     << ", next_sequence_id=" << next_sequence_id_;
 			if (next_sequence_id_ % nth_ == 0)
 			{
-				TLOG(5) << "Diverting event " << next_sequence_id_ << " to EVB " << nth_rank_;
+				TLOG(TLVL_DEBUG + 2) << "Diverting event " << next_sequence_id_ << " to EVB " << nth_rank_;
 				output.emplace_back(detail::RoutingPacketEntry(next_sequence_id_++, nth_rank_));
 				table[nth_rank_]--;
 			}
 			if (r.first != nth_rank_)
 			{
-				TLOG(5) << "Sending event " << next_sequence_id_ << " to EVB " << r.first;
+				TLOG(TLVL_DEBUG + 2) << "Sending event " << next_sequence_id_ << " to EVB " << r.first;
 				output.emplace_back(detail::RoutingPacketEntry(next_sequence_id_++, r.first));
 				if (!endCondition)
 				{
@@ -98,9 +98,9 @@ detail::RoutingPacket NthEventPolicy::GetCurrentTable()
 				table[r.first]--;
 			}
 		}
-		TLOG(5) << "table[nth_rank_]=" << table[nth_rank_]
-		        << ", Next nth=" << (((next_sequence_id_ / nth_) + 1) * nth_)
-		        << ", max seq=" << (next_sequence_id_ + table.size() - 1);
+		TLOG(TLVL_DEBUG + 2) << "table[nth_rank_]=" << table[nth_rank_]
+		                     << ", Next nth=" << (((next_sequence_id_ / nth_) + 1) * nth_)
+		                     << ", max seq=" << (next_sequence_id_ + table.size() - 1);
 		endCondition = endCondition || (table[nth_rank_] <= 0 && (next_sequence_id_ % nth_ == 0 ||
 		                                                          (next_sequence_id_ / nth_) * nth_ + nth_ <
 		                                                              next_sequence_id_ + table.size() - 1));

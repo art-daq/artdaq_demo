@@ -29,7 +29,7 @@
 
 namespace demo {
 class ToyDump;
-} // namespace demo
+}  // namespace demo
 
 /**
  * \brief An art::EDAnalyzer module designed to display the data from demo::ToyFragment objects
@@ -191,7 +191,7 @@ void demo::ToyDump::analyze(art::Event const& evt)
 				std::ofstream output(output_file_name_, std::ios::out | std::ios::app | std::ios::binary);
 				for (uint32_t i_adc = 0; i_adc < numAdcs; ++i_adc)
 				{
-					output.write(reinterpret_cast<const char*>(bb.dataBeginADCs() + i_adc), sizeof(ToyFragment::adc_t));// NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic,cppcoreguidelines-pro-type-reinterpret-cast)
+					output.write(reinterpret_cast<const char*>(bb.dataBeginADCs() + i_adc), sizeof(ToyFragment::adc_t));  // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic,cppcoreguidelines-pro-type-reinterpret-cast)
 				}
 				output.close();
 			}
@@ -203,7 +203,7 @@ void demo::ToyDump::analyze(art::Event const& evt)
 
 				for (uint32_t i_adc = 0; i_adc < numAdcs; ++i_adc)
 				{
-					output << "\t" << std::to_string(*(bb.dataBeginADCs() + i_adc)); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+					output << "\t" << std::to_string(*(bb.dataBeginADCs() + i_adc));  // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 				}
 				output << std::endl;
 				output.close();
@@ -263,4 +263,4 @@ void demo::ToyDump::endSubRun(art::SubRun const& sr)
 	event_count_ = 0;
 }
 
-DEFINE_ART_MODULE(demo::ToyDump)// NOLINT(performance-unnecessary-value-param)
+DEFINE_ART_MODULE(demo::ToyDump)  // NOLINT(performance-unnecessary-value-param)

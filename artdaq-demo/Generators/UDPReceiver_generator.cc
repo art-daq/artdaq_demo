@@ -38,7 +38,7 @@ demo::UDPReceiver::UDPReceiver(fhicl::ParameterSet const &ps)
 	si_me_data.sin_family = AF_INET;
 	si_me_data.sin_port = htons(dataport_);
 	si_me_data.sin_addr.s_addr = htonl(INADDR_ANY);
-	if (bind(datasocket_, reinterpret_cast<struct sockaddr *>(&si_me_data), sizeof(si_me_data)) == -1) // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+	if (bind(datasocket_, reinterpret_cast<struct sockaddr *>(&si_me_data), sizeof(si_me_data)) == -1)  // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
 	{
 		throw art::Exception(art::errors::Configuration)  // NOLINT(cert-err60-cpp)
 		    << "UDPReceiver: Cannot bind data socket to port " << dataport_ << std::endl;
@@ -258,13 +258,13 @@ bool demo::UDPReceiver::getNext_(artdaq::FragmentPtrs &frags)
 			{
 				output.write(reinterpret_cast<const char *>(&(jj.at(ii))), sizeof(uint8_t));  // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
 			}
-			*(thisFrag.dataBegin() + pos) = jj.at(ii); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+			*(thisFrag.dataBegin() + pos) = jj.at(ii);  // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 			++pos;
 		}
 	}
 	if (dataType == DataType::JSON || dataType == DataType::String)
 	{
-		*(thisFrag.dataBegin() + pos) = 0;// NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+		*(thisFrag.dataBegin() + pos) = 0;  // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 		char zero = 0;
 		if (rawOutput_)
 		{
