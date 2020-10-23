@@ -194,8 +194,8 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 		}
 
 		TLOG(TLVL_DEBUG + 4) << "getNext_ after memcpy " << bytes_read
-		        << " bytes and std::move dataSizeBytes()=" << frags.back()->sizeBytes()
-		        << " metabytes=" << sizeof(metadata_);
+		                     << " bytes and std::move dataSizeBytes()=" << frags.back()->sizeBytes()
+		                     << " metabytes=" << sizeof(metadata_);
 	}
 
 	if (metricMan != nullptr)
