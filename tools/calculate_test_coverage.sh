@@ -18,12 +18,21 @@ fi
 pushd $MRB_BUILDDIR
 
 USE_GCOV=1
+
+if [ -f build.ninja ]; then
 ninja -j$CETPKG_J;
+else
+mrb b
+fi
 
 lcov -d . --zerocounters
 lcov --ignore-errors gcov -c -i -d . -o ${MRB_PROJECT}.base
 
+if [ -f build.ninja ]; then
 CTEST_PARALLEL_LEVEL=${CETPKG_J} ninja -j$CETPKG_J test || exit 3
+else
+mrb t
+fi
 
 lcov --ignore-errors gcov -d . --capture --output-file ${MRB_PROJECT}.info
 lcov -a ${MRB_PROJECT}.base -a ${MRB_PROJECT}.info --output-file ${MRB_PROJECT}.total
