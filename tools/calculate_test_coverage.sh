@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # lcov has to be installed manually -- 
 # https://github.com/linux-test-project/lcov/releases/tag/v1.15
@@ -17,21 +17,22 @@ fi
 
 pushd $MRB_BUILDDIR
 
-USE_GCOV=1
+export USE_GCOV=1
 
 if [ -f build.ninja ]; then
-ninja -j$CETPKG_J;
+    ninja -j$CETPKG_J || exit 3
 else
-mrb b
+    mrb b || exit 3
 fi
 
 lcov -d . --zerocounters
 lcov --ignore-errors gcov -c -i -d . -o ${MRB_PROJECT}.base
 
+# RUN THE TESTS
 if [ -f build.ninja ]; then
-CTEST_PARALLEL_LEVEL=${CETPKG_J} ninja -j$CETPKG_J test || exit 3
+    CTEST_PARALLEL_LEVEL=${CETPKG_J} ninja -j$CETPKG_J test || exit 4
 else
-mrb t
+    mrb t || exit 4
 fi
 
 lcov --ignore-errors gcov -d . --capture --output-file ${MRB_PROJECT}.info
