@@ -4,6 +4,8 @@
 # https://github.com/linux-test-project/lcov/releases/tag/v1.15
 # lcov-1.15-1.noarch.rpm
 
+# Upon success, the output will be in $MRB_BUILDDIR/converage
+# Load the file $MRB_BUILDDIR/converage/index.html in your browser.
 
 if [ -z $MRB_BUILDDIR ]; then
   echo "You must have an MRB area set up to use this script!"
