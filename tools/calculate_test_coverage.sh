@@ -1,3 +1,9 @@
+#!/bin/sh
+
+# lcov has to be installed manually -- 
+# https://github.com/linux-test-project/lcov/releases/tag/v1.15
+# lcov-1.15-1.noarch.rpm
+
 
 if [ -z $MRB_BUILDDIR ]; then
   echo "You must have an MRB area set up to use this script!"
