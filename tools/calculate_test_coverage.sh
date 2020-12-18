@@ -22,13 +22,18 @@ pushd $MRB_BUILDDIR
 export USE_GCOV=1
 
 if [ -f build.ninja ]; then
+    # Ensure that coverage calculation was enabled in the build
+    if [ `grep -c profile-arcs build.ninja` -eq 0 ]; then
+        touch $MRB_SOURCE/CMakeLists.txt
+    fi
+
     ninja -j$CETPKG_J || exit 3
 else
     mrb b || exit 3
 fi
 
 lcov -d . --zerocounters
-lcov --ignore-errors gcov -c -i -d . -o ${MRB_PROJECT}.base
+lcov -c -i -d . -o ${MRB_PROJECT}.base
 
 # RUN THE TESTS
 if [ -f build.ninja ]; then
@@ -37,7 +42,7 @@ else
     mrb t || exit 4
 fi
 
-lcov --ignore-errors gcov -d . --capture --output-file ${MRB_PROJECT}.info
+lcov -d . --capture --output-file ${MRB_PROJECT}.info
 lcov -a ${MRB_PROJECT}.base -a ${MRB_PROJECT}.info --output-file ${MRB_PROJECT}.total
 lcov --remove ${MRB_PROJECT}.total */products/* */build_${CET_SUBDIR}/* /usr/include/curl/* --output-file ${MRB_PROJECT}.info.cleaned
 genhtml -o coverage ${MRB_PROJECT}.info.cleaned
