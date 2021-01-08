@@ -69,7 +69,7 @@ art: {
             {
                 module_type: ArtdaqDemoBuildInfo
 
-                ArtdaqDemoBuildInfo: myInstanceName
+                ArtdaqDemoBuildInfo: ArtdaqDemo
             }
         }
 

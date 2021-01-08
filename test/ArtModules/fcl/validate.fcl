@@ -9,6 +9,11 @@ physics:
 {
   analyzers:
   {
+    printBuildInfo: {
+      module_type: PrintBuildInfo
+      buildinfo_module_label: BuildInfo
+      buildinfo_instance_label: ArtdaqDemo
+    }
     frags:
     {
       module_type: FragmentSniffer
@@ -19,7 +24,7 @@ physics:
     }
   }
 
-  validate: [ frags ]
+  validate: [ frags , printBuildInfo ]
   end_paths: [ validate ]
 }
 
