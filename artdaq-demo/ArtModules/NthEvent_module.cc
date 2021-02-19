@@ -61,12 +61,8 @@ private:
 };
 
 NthEvent::NthEvent(fhicl::ParameterSet const& p)
-    :
-#if ART_HEX_VERSION >= 0x30200
-    art::EDFilter{p}
-    ,
-#endif
-    nth_(p.get<uint32_t>("nth"))
+    : art::EDFilter{p}
+    , nth_(p.get<uint32_t>("nth"))
 {}
 
 inline bool NthEvent::filter(art::Event& e) { return e.event() % nth_ == 0; }
