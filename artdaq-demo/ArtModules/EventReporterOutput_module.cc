@@ -7,14 +7,7 @@
 #include "art/Framework/Principal/RunPrincipal.h"
 #include "art/Framework/Principal/SubRunPrincipal.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
-#if ART_HEX_VERSION < 0x20900
-#include "art/Persistency/Provenance/BranchIDListRegistry.h"
-#include "canvas/Persistency/Provenance/BranchIDList.h"
-#endif
 #include "art/Persistency/Provenance/ProcessHistoryRegistry.h"
-#if ART_HEX_VERSION < 0x30000
-#include "art/Persistency/Provenance/ProductMetaData.h"
-#endif
 #include "canvas/Persistency/Provenance/BranchDescription.h"
 #include "canvas/Persistency/Provenance/BranchKey.h"
 #include "canvas/Persistency/Provenance/History.h"
@@ -144,16 +137,11 @@ void art::EventReporterOutput::write(EventPrincipal& ep)
 
 	auto result_handles = std::vector<art::GroupQueryResult>();
 
-#if ART_HEX_VERSION < 0x30000
-	auto const& wrapped = art::WrappedTypeID::make<RawEvent>();
-	result_handles = ep.getMany(wrapped, art::MatchAllSelector{});
-#else
 	auto const& wrapped = art::WrappedTypeID::make<RawEvent>();
 	ModuleContext const mc{moduleDescription()};
 	ProcessTag const processTag{"", mc.moduleDescription().processName()};
 
 	result_handles = ep.getMany(mc, wrapped, art::MatchAllSelector{}, processTag);
-#endif
 
 	for (auto const& result_handle : result_handles)
 	{
