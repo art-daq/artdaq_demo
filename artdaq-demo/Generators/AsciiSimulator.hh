@@ -9,6 +9,7 @@
 
 #include <atomic>
 #include <random>
+#include <thread>
 #include <vector>
 
 namespace demo {
@@ -54,6 +55,8 @@ private:
 	// are the FHiCL variable names with a "_" appended
 
 	std::size_t const throttle_usecs_;  ///< Sleep at start of each call to getNext_(), in us
+	std::condition_variable throttle_cv_;
+	std::mutex throttle_mutex_;
 
 	// Members needed to generate the simulated data
 	std::string string1_;  ///< The first string to generate. Alternates with string2_ in output data
