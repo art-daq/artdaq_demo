@@ -71,26 +71,12 @@ bool demo::AsciiSimulator::getNext_(artdaq::FragmentPtrs& frags)
 	// Values for throttle_usecs_ and throttle_usecs_check_ will have
 	// been tested for validity in constructor
 
-	if (throttle_usecs_ > 0)
-	{
-		size_t nchecks = throttle_usecs_ / 10000;
+	std::unique_lock<std::mutex> throttle_lock(throttle_mutex_);
+	throttle_cv_.wait_for(throttle_lock, std::chrono::microseconds(throttle_usecs_), [&]() { return should_stop(); });
 
-		for (size_t i_c = 0; i_c < nchecks; ++i_c)
-		{
-			usleep(throttle_usecs_ / 10000);
-
-			if (should_stop())
-			{
-				return false;
-			}
-		}
-	}
-	else
+	if (should_stop())
 	{
-		if (should_stop())
-		{
-			return false;
-		}
+		return false;
 	}
 
 	// Set fragment's metadata
