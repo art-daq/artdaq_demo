@@ -7,11 +7,11 @@
 # ======================================================================
 
 
-# use cmake 3.17 or later
 cmake_minimum_required (VERSION 3.17)
 
+find_package(cetbuildtools)
 
-project(artdaq-demo)
+project(artdaq_demo VERSION 3.09.05)
 # cetbuildtools contains our cmake modules
 SET ( CETBUILDTOOLS_VERSION $ENV{CETBUILDTOOLS_VERSION} )
 IF (NOT CETBUILDTOOLS_VERSION)
