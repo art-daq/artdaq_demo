@@ -128,7 +128,6 @@ void demo::CheckIntegrity::analyze(art::Event const& evt)
 		// These methods take significantly more time when processing non-CurrentVersion Fragments, so cache them here
 		ToyFragment bb(frag);
 		auto dist_type = bb.hdr_distribution_type();
-		auto adc_range = bb.adc_range(frag.metadata<ToyFragment::Metadata>()->num_adc_bits);
 
 		if (bb.hdr_event_size() * sizeof(ToyFragment::Header::data_t) !=
 		    frag.dataSize() * sizeof(artdaq::RawDataType))

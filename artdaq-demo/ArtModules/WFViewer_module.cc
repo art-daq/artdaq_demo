@@ -109,7 +109,6 @@ private:
 	bool dynamicMode_;
 
 	void getXYDims_();
-	void bookCanvas_();
 };
 }  // namespace demo
 
@@ -215,40 +214,19 @@ void demo::WFViewer::getXYDims_()
 	                 << max_num_x_plots_ << ", num_y_plots_: " << num_y_plots_ << " / " << max_num_y_plots_;
 }
 
-void demo::WFViewer::bookCanvas_()
-{
-	newCanvas_ = false;
-	getXYDims_();
-	for (int i = 0; (i < 2 && !digital_sum_only_) || i < 1; i++)
-	{
-		canvas_[i] = new TCanvas(Form("wf%d", i));
-		canvas_[i]->Divide(num_x_plots_, num_y_plots_);
-		canvas_[i]->Update();
-		((TRootCanvas*)canvas_[i]->GetCanvasImp())->DontCallClose();
-	}
-
-	canvas_[0]->SetTitle("ADC Value Distribution");
-
-	if (!digital_sum_only_) { canvas_[1]->SetTitle("ADC Values, Event Snapshot"); }
-
-	if (writeOutput_)
-	{
-		canvas_[0]->Write();
-		canvas_[1]->Write();
-	}
-}
-
 demo::WFViewer::~WFViewer()
 {
 	// We're going to let ROOT's own garbage collection deal with histograms and Canvases...
 	for (auto& histogram : histograms_)
 	{
-		histogram = nullptr;
+		histogram.second = nullptr;
 	}
+	histograms_.clear();
 	for (auto& graph : graphs_)
 	{
-		graph = nullptr;
+		graph.second = nullptr;
 	}
+	graphs_.clear();
 
 	histogram_canvas_ = nullptr;
 	graph_canvas_ = nullptr;
@@ -302,7 +280,7 @@ void demo::WFViewer::analyze(art::Event const& e)
 		}
 		else
 		{
-			for (auto frag : *fragments_with_label)
+			for (auto frag : *handle)
 			{
 				fragments.emplace_back(frag);
 				if (newCanvas_ && !id_to_index_.count(fragments.back().fragmentID()))
@@ -313,8 +291,6 @@ void demo::WFViewer::analyze(art::Event const& e)
 			}
 		}
 	}
-
-	if (newCanvas_) { bookCanvas_(); }
 
 	// John F., 1/5/14
 
@@ -534,15 +510,6 @@ void demo::WFViewer::beginRun(art::Run const& e)
 	{
 		fFile_ = new TFile(outputFileName_.c_str(), "RECREATE");
 		fFile_->cd();
-	}
-
-	for (auto& x : graphs_)
-	{
-		x = nullptr;
-	}
-	for (auto& x : histograms_)
-	{
-		x = nullptr;
 	}
 
 	{
