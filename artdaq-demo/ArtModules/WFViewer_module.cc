@@ -33,6 +33,9 @@
 #include <sstream>
 #include <vector>
 
+#include "tracemf.h"
+#define TRACE_NAME "WFViewer"
+
 namespace demo {
 /**
  * \brief An example art analysis module which plots events both as histograms and event snapshots (plot of ADC value vs ADC number)
