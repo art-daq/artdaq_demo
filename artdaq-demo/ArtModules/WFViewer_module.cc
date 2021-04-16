@@ -110,6 +110,7 @@ private:
 	bool dynamicMode_;
 
 	void getXYDims_();
+	void bookCanvas_();
 };
 }  // namespace demo
 
@@ -323,10 +324,10 @@ void demo::WFViewer::analyze(art::Event const& e)
 		}
 	}
 
-		if (newCanvas_)
-		{
-			bookCanvas_();
-		}
+	if (newCanvas_)
+	{
+		bookCanvas_();
+	}
 
 	// John F., 1/5/14
 
@@ -466,8 +467,7 @@ void demo::WFViewer::analyze(art::Event const& e)
 			switch (fragtype)
 			{
 				case FragmentType::TOY1:
-				case FragmentType::TOY2:
-				{
+				case FragmentType::TOY2: {
 					std::copy(toyPtr->dataBeginADCs(), toyPtr->dataBeginADCs() + total_adc_values, graphs_[fragment_id]->GetY());  // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 				}
 				break;
@@ -533,7 +533,6 @@ void demo::WFViewer::analyze(art::Event const& e)
 		}
 	}
 }
-}
 
 void demo::WFViewer::beginRun(art::Run const& e)
 {
@@ -549,7 +548,8 @@ void demo::WFViewer::beginRun(art::Run const& e)
 		fFile_->cd();
 	}
 
-	for (int i = 0; i < 2; i++) canvas_[i] = 0;
+	histogram_canvas_ = nullptr;
+	graph_canvas_ = nullptr;
 	for (auto& x : graphs_) x.second = nullptr;
 	for (auto& x : histograms_) x.second = nullptr;
 
