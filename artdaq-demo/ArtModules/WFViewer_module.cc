@@ -31,6 +31,7 @@
 #include <memory>
 #include <numeric>
 #include <sstream>
+#include <unordered_map>
 #include <vector>
 
 #include "tracemf.h"
@@ -210,8 +211,38 @@ void demo::WFViewer::getXYDims_()
 			num_y_plots_ = static_cast<size_t>(ceil(id_to_index_.size() / num_x_plots_));
 		}
 	}
-	TLOG(TLVL_DEBUG) << "id count: " << id_to_index_.size() << ", num_x_plots_: " << num_x_plots_ << " / "
-	                 << max_num_x_plots_ << ", num_y_plots_: " << num_y_plots_ << " / " << max_num_y_plots_;
+	TLOG(TLVL_DEBUG) << "id count: " << id_to_index_.size() << ", num_x_plots_: " << num_x_plots_ << " / " << max_num_x_plots_ << ", num_y_plots_: " << num_y_plots_ << " / " << max_num_y_plots_;
+}
+
+void demo::WFViewer::bookCanvas_()
+{
+	newCanvas_ = false;
+	getXYDims_();
+
+	{
+		histogram_canvas_ = new TCanvas("wf0");
+		histogram_canvas_->Divide(num_x_plots_, num_y_plots_);
+		histogram_canvas_->Update();
+		dynamic_cast<TRootCanvas*>(histogram_canvas_->GetCanvasImp())->DontCallClose();
+		histogram_canvas_->SetTitle("ADC Value Distribution");
+	}
+	if (!digital_sum_only_)
+	{
+		graph_canvas_ = new TCanvas("wf1");
+		graph_canvas_->Divide(num_x_plots_, num_y_plots_);
+		graph_canvas_->Update();
+		dynamic_cast<TRootCanvas*>(graph_canvas_->GetCanvasImp())->DontCallClose();
+		graph_canvas_->SetTitle("ADC Values, Event Snapshot");
+	}
+
+	if (writeOutput_)
+	{
+		histogram_canvas_->Write();
+		if (graph_canvas_ != nullptr)
+		{
+			graph_canvas_->Write();
+		}
+	}
 }
 
 demo::WFViewer::~WFViewer()
@@ -291,6 +322,11 @@ void demo::WFViewer::analyze(art::Event const& e)
 			}
 		}
 	}
+
+		if (newCanvas_)
+		{
+			bookCanvas_();
+		}
 
 	// John F., 1/5/14
 
@@ -497,6 +533,7 @@ void demo::WFViewer::analyze(art::Event const& e)
 		}
 	}
 }
+}
 
 void demo::WFViewer::beginRun(art::Run const& e)
 {
@@ -512,30 +549,12 @@ void demo::WFViewer::beginRun(art::Run const& e)
 		fFile_->cd();
 	}
 
-	{
-		histogram_canvas_ = new TCanvas("wf0");
-		histogram_canvas_->Divide(num_x_plots_, num_y_plots_);
-		histogram_canvas_->Update();
-		dynamic_cast<TRootCanvas*>(histogram_canvas_->GetCanvasImp())->DontCallClose();
-		histogram_canvas_->SetTitle("ADC Value Distribution");
-	}
-	if (!digital_sum_only_)
-	{
-		graph_canvas_ = new TCanvas("wf1");
-		graph_canvas_->Divide(num_x_plots_, num_y_plots_);
-		graph_canvas_->Update();
-		dynamic_cast<TRootCanvas*>(graph_canvas_->GetCanvasImp())->DontCallClose();
-		graph_canvas_->SetTitle("ADC Values, Event Snapshot");
-	}
+	for (int i = 0; i < 2; i++) canvas_[i] = 0;
+	for (auto& x : graphs_) x.second = nullptr;
+	for (auto& x : histograms_) x.second = nullptr;
 
-	if (writeOutput_)
-	{
-		histogram_canvas_->Write();
-		if (graph_canvas_ != nullptr)
-		{
-			graph_canvas_->Write();
-		}
-	}
+	newCanvas_ = true;
+	if (!dynamicMode_) bookCanvas_();
 }
 
 DEFINE_ART_MODULE(demo::WFViewer)  // NOLINT(performance-unnecessary-value-param)
