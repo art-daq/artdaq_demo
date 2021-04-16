@@ -89,6 +89,10 @@ physics:
   end_paths: [ a3 ]
 }
 
+services: { ArtdaqSharedMemoryServiceInterface: { service_provider: ArtdaqSharedMemoryService }
+ArtdaqFragmentNamingServiceInterface: { service_provider: ArtdaqFragmentNamingService helper_plugin: "ArtdaqDemo" }
+}
+
 outputs:
 {
   out1:
@@ -101,9 +105,7 @@ outputs:
 
 }
 
-source:
-{
-
+source: {
   module_type: TransferInput
 
   # The timeout shouldn't be much smaller than the period between events, otherwise 

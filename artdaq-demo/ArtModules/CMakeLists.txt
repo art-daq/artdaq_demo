@@ -34,8 +34,10 @@ simple_plugin(ArtdaqDemoBuildInfo "module"
   artdaq_DAQdata
   artdaq_BuildInfo
   artdaq-core_BuildInfo
+  artdaq-utilities_BuildInfo
   artdaq-demo_BuildInfo
   artdaq-core-demo_BuildInfo
+  art_Persistency_Provenance
   ${MF_MESSAGELOGGER}
   ${FHICLCPP}
   ${CETLIB}
@@ -43,62 +45,67 @@ simple_plugin(ArtdaqDemoBuildInfo "module"
 )
 
 simple_plugin(NthEvent "module"
-  ${CETLIB_EXCEPT})
+	${CETLIB_EXCEPT}
+)
+
 simple_plugin(ToyDump "module"
-              artdaq-core_Data
-			  artdaq-core-demo_Overlays
-  ${CETLIB_EXCEPT})
+	artdaq-core_Data
+    artdaq-core_Utilities
+	artdaq-core-demo_Overlays
+	art_Persistency_Provenance
+	${CETLIB_EXCEPT}
+)
+
 simple_plugin(ASCIIDump "module"
-              artdaq-core_Data
+			  artdaq-core_Data
+              artdaq-core_Utilities
 			  artdaq-core-demo_Overlays
-  ${CETLIB_EXCEPT})
+			  art_Persistency_Provenance
+			  ${CETLIB_EXCEPT}
+)
 
 simple_plugin(RootApplication "module"
-  ${CETLIB_EXCEPT})
+  ${CETLIB_EXCEPT}
+  ${ROOT_CORE}
+  )
+
 simple_plugin(WFViewer "module"
-              artdaq-core_Data
+			  artdaq-core_Data
+              artdaq-core_Utilities
 			  artdaq-core-demo_Overlays
 			  MF_MessageLogger
+  art_Persistency_Provenance
+  ${ROOT_CORE}
 			  ${ROOT_GPAD}
 			  ${ROOT_HIST}
 			  ${ROOT_GUI}
 			  ${ROOT_RIO}
-  ${CETLIB_EXCEPT})
+  ${CETLIB_EXCEPT}
+  )
 
 simple_plugin(CheckIntegrity "module"
-              artdaq-core_Data
+			  artdaq-core_Data
+              artdaq-core_Utilities
 			  artdaq-core-demo_Overlays
+			art_Persistency_Provenance
   ${MESSAGEFACILITY_LIBS}
   ${CETLIB_EXCEPT}
 )
-
-simple_plugin(DemoInput "source"
- artdaq-core-demo_Overlays
-  artdaq-core_Core
-  artdaq-core_Utilities
-  rt
-  artdaq_DAQdata
-  artdaq-utilities_Plugins
-  artdaq_ArtModules
-  art_Framework_Core
-  art_Framework_IO_Sources
-  art_Framework_Principal
-  art_Persistency_Provenance
-  art_Utilities
-  MF_MessageLogger
-  ${CETLIB_EXCEPT}
-)
-
+  
 simple_plugin(EventReporterOutput "module"
   artdaq_ArtModules
+  artdaq_DAQdata
+  artdaq-core_Utilities
   art_Framework_Services_Registry
   art_Utilities
   MF_MessageLogger
   fhiclcpp
   cetlib
   ${CETLIB_EXCEPT}
+  ${ROOT_CORE}
   ${ROOT_RIO}
 )
+
 install_headers(SUBDIRS detail)
 install_source(SUBDIRS detail)
 install_fhicl(SUBDIRS fcl)

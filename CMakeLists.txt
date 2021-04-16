@@ -7,8 +7,8 @@
 # ======================================================================
 
 
-# use cmake 2.8 or later
-cmake_minimum_required (VERSION 2.8)
+# use cmake 3.17 or later
+cmake_minimum_required (VERSION 3.17)
 
 
 project(artdaq-demo)
@@ -47,6 +47,9 @@ if( ${BTYPE_UC} MATCHES "DEBUG" )
 			message("!!! Thread Sanitizer Activated!!!")
 			cet_add_compiler_flags(-fsanitize=thread -ltsan -Wno-unused-command-line-argument)
 		endif()
+	endif()
+	if(DEFINED ENV{USE_GCOV})
+		cet_add_compiler_flags(-fprofile-arcs -ftest-coverage --coverage)
 	endif()
 endif()
 
@@ -105,7 +108,6 @@ else()
 endif()
 
 # macros for art_dictionary and simple_plugin
-include(ArtDictionary)
 include(ArtMake)
 include(BuildPlugins)
 include(CetTest)

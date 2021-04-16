@@ -1,10 +1,9 @@
-#define BOOST_TEST_MODULE ( NthEvent_policy_t )
-#include <boost/test/auto_unit_test.hpp>
+#define BOOST_TEST_MODULE (NthEvent_policy_t)
+#include <boost/test/unit_test.hpp>
 
-#include "artdaq/Application/Routing/makeRoutingMasterPolicy.hh"
+#include "artdaq/RoutingPolicies/makeRoutingManagerPolicy.hh"
 #include "fhiclcpp/ParameterSet.h"
 #include "fhiclcpp/make_ParameterSet.h"
-
 
 BOOST_AUTO_TEST_SUITE(NthEvent_policy_t)
 
@@ -13,10 +12,10 @@ BOOST_AUTO_TEST_CASE(Simple)
 	fhicl::ParameterSet ps;
 	fhicl::make_ParameterSet("receiver_ranks: [1,2,3,4] nth_event: 5 target_receiver: 3", ps);
 
-	auto nth = artdaq::makeRoutingMasterPolicy("NthEvent", ps);
+	auto nth = artdaq::makeRoutingManagerPolicy("NthEvent", ps);
 
 	BOOST_REQUIRE_EQUAL(nth->GetReceiverCount(), 4);
-		
+
 	// Extra token, and out of sequence
 	nth->Reset();
 	nth->AddReceiverToken(1, 1);
@@ -116,8 +115,6 @@ BOOST_AUTO_TEST_CASE(Simple)
 	BOOST_REQUIRE_EQUAL(seventhTable[13].sequence_id, 28);
 	BOOST_REQUIRE_EQUAL(seventhTable[14].destination_rank, 4);
 	BOOST_REQUIRE_EQUAL(seventhTable[14].sequence_id, 29);
-
-	
 }
 
 BOOST_AUTO_TEST_SUITE_END()

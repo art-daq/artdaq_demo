@@ -1,7 +1,7 @@
 # The parent line must be the first non-comment line in the file
 # This line defines the product name and version
-parent artdaq_demo	v3_03_01
-defaultqual	e15:s64
+parent artdaq_demo	v3_09_05
+defaultqual	e19:s97
 
 # These optional lines define the installed directories where
 # headers, libraries, and executables will be found
@@ -17,29 +17,54 @@ bindir      fq_dir      bin
 
 #
 product		 version	optional
-artdaq           v3_03_01
-artdaq_core_demo v1_06_12a
-cetbuildtools    v7_02_01       -       only_for_build
+artdaq           v3_09_05
+artdaq_core_demo v1_07_04
+cetbuildtools    v7_17_01       -       only_for_build
 end_product_list
 
 # See https://cdcvs.fnal.gov/redmine/projects/cet-is-public/wiki/AboutQualifiers for information about the qualifiers used
 # -nq- here means there is no qualifier
 # a "-" here means the dependent product is not required by the parent and will not be setup
 qualifier    	   artdaq	 	 artdaq_core_demo
-c2:s67:prof  	   c2:s67:prof  	 c2:s67:prof
-c2:s67:debug  	   c2:s67:debug 	 c2:s67:debug
-e17:s67:prof   	   e17:s67:prof  	 e17:s67:prof
-e17:s67:debug  	   e17:s67:debug 	 e17:s67:debug
-e15:s67:prof   	   e15:s67:prof  	 e15:s67:prof
-e15:s67:debug  	   e15:s67:debug 	 e15:s67:debug
-c2:s65:prof  	   c2:s65:prof  	 c2:s65:prof
-c2:s65:debug  	   c2:s65:debug 	 c2:s65:debug
-e15:s65:prof   	   e15:s65:prof  	 e15:s65:prof
-e15:s65:debug  	   e15:s65:debug 	 e15:s65:debug
-c2:s64:prof  	   c2:s64:prof  	 c2:s64:prof
-c2:s64:debug  	   c2:s64:debug 	 c2:s64:debug
-e15:s64:prof   	   e15:s64:prof  	 e15:s64:prof
-e15:s64:debug  	   e15:s64:debug 	 e15:s64:debug
+c7:s106:prof  	   c7:s106:prof  	 c7:s106:prof
+c7:s106:debug  	   c7:s106:debug 	 c7:s106:debug
+e20:s106:prof   	   e20:s106:prof  	 e20:s106:prof
+e20:s106:debug  	   e20:s106:debug 	 e20:s106:debug
+e19:s106:prof   	   e19:s106:prof  	 e19:s106:prof
+e19:s106:debug  	   e19:s106:debug 	 e19:s106:debug
+
+c7:s105:prof  	   c7:s105:prof  	 c7:s105:prof
+c7:s105:debug  	   c7:s105:debug 	 c7:s105:debug
+e20:s105:prof   	   e20:s105:prof  	 e20:s105:prof
+e20:s105:debug  	   e20:s105:debug 	 e20:s105:debug
+e19:s105:prof   	   e19:s105:prof  	 e19:s105:prof
+e19:s105:debug  	   e19:s105:debug 	 e19:s105:debug
+
+c7:s104:prof  	   c7:s104:prof  	 c7:s104:prof
+c7:s104:debug  	   c7:s104:debug 	 c7:s104:debug
+e20:s104:prof   	   e20:s104:prof  	 e20:s104:prof
+e20:s104:debug  	   e20:s104:debug 	 e20:s104:debug
+e19:s104:prof   	   e19:s104:prof  	 e19:s104:prof
+e19:s104:debug  	   e19:s104:debug 	 e19:s104:debug
+
+c7:s103:prof  	   c7:s103:prof  	 c7:s103:prof
+c7:s103:debug  	   c7:s103:debug 	 c7:s103:debug
+e19:s103:prof   	   e19:s103:prof  	 e19:s103:prof
+e19:s103:debug  	   e19:s103:debug 	 e19:s103:debug
+c7:s103:py2:prof  	   c7:s103:py2:prof  	 c7:s103:py2:prof
+c7:s103:py2:debug  	   c7:s103:py2:debug 	 c7:s103:py2:debug
+e19:s103:py2:prof   	   e19:s103:py2:prof  	 e19:s103:py2:prof
+e19:s103:py2:debug  	   e19:s103:py2:debug 	 e19:s103:py2:debug
+
+c7:s97:prof  	   c7:s97:prof  	 c7:s97:prof
+c7:s97:debug  	   c7:s97:debug 	 c7:s97:debug
+e19:s97:prof   	   e19:s97:prof  	 e19:s97:prof
+e19:s97:debug  	   e19:s97:debug 	 e19:s97:debug
+c7:s97:py2:prof  	   c7:s97:py2:prof  	 c7:s97:py2:prof
+c7:s97:py2:debug  	   c7:s97:py2:debug 	 c7:s97:py2:debug
+e19:s97:py2:prof   	   e19:s97:py2:prof  	 e19:s97:py2:prof
+e19:s97:py2:debug  	   e19:s97:py2:debug 	 e19:s97:py2:debug
+
 end_qualifier_list
 
 # Preserve tabs and formatting in emacs and vi / vim:

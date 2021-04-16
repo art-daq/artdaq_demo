@@ -6,10 +6,6 @@ events_to_generate: 4000
 run_number: 101
 transition_timeout: 30
 
-#services: {
-#    TimeTracker: {}
-#}
-
 fragment_receiver: {
    # Parameters defining and configuring the fragment generator to be used
    generator: ToySimulator 
@@ -33,6 +29,7 @@ event_builder: {
   events_expected_in_SimpleQueueReader: @local::events_to_generate
   max_fragment_size_bytes: 0xb00000
   buffer_count: 10
+  init_fragment_count: 0
 }
 metrics: {
   ProcFile: {
@@ -44,6 +41,16 @@ metrics: {
 ######################################################################
 # The ART code
 ######################################################################
+art: {
+services: {
+   ArtdaqSharedMemoryServiceInterface: { 
+     service_provider: ArtdaqSharedMemoryService
+     waiting_time: 900
+     resume_after_timeout: true
+  }
+  ArtdaqFragmentNamingServiceInterface: { service_provider: ArtdaqFragmentNamingService helper_plugin: "ArtdaqDemo" }
+    TimeTracker: {}
+}
 physics:{
   analyzers:{
   }
@@ -59,18 +66,16 @@ physics:{
 outputs:{
   rootout:{
     module_type: RootDAQOut
-    #module_type: RootOutput
+    #module_type: RootDAQOut
     compressionLevel: 0
     #freeMB: 8192
     fileProperties:{ maxEvents:100 }
     fileName: "driver_test1_%#.root"
 } }
 source:{
-  module_type: DemoInput
-  waiting_time: 900
-  resume_after_timeout: true
+  module_type: ArtdaqInput
 }
 process_name: Driver
-
+}
 
 

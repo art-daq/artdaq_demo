@@ -5,8 +5,8 @@
 
 #include "fhiclcpp/fwd.h"
 
-#include <random>
 #include <chrono>
+#include <random>
 
 /**
  * \brief JCF, Mar-17-2016: ToyHardwareInterface is meant to mimic a vendor-provided hardware
@@ -21,8 +21,7 @@
 class ToyHardwareInterface
 {
 public:
-
-	typedef uint16_t data_t; ///< The type used to represent ADC counts (which are 12 or 14 bits, for TOY1 or TOY2)
+	typedef uint16_t data_t;  ///< The type used to represent ADC counts (which are 12 or 14 bits, for TOY1 or TOY2)
 
 	/**
 	 * \brief Construct and configure ToyHardwareInterface
@@ -59,7 +58,7 @@ public:
 	 * \brief Release the given buffer to the hardware
 	 * \param buffer Buffer to release
 	 */
-	void FreeReadoutBuffer(char* buffer);
+	void FreeReadoutBuffer(const char* buffer);
 
 	/**
 	 * \brief Gets the serial number of the simulated hardware
@@ -84,24 +83,25 @@ public:
 	 */
 	enum class DistributionType
 	{
-		uniform, ///< A uniform distribution
-		gaussian, ///< A Gaussian distribution
-		monotonic, ///< A monotonically-increasing distribution
-		uninitialized, ///< A use-after-free expliot distribution
-		uninit2		   // like uninitialized, but do memcpy
+		uniform,        ///< A uniform distribution
+		gaussian,       ///< A Gaussian distribution
+		monotonic,      ///< A monotonically-increasing distribution
+		uninitialized,  ///< A use-after-free expliot distribution
+		uninit2         // like uninitialized, but do memcpy
 	};
 
 private:
-
 	bool taking_data_;
 
 	std::size_t nADCcounts_;
 	std::size_t maxADCcounts_;
 	std::size_t change_after_N_seconds_;
-	int nADCcounts_after_N_seconds_;
+	std::size_t pause_after_N_seconds_;  // sleep this many seconds every change_after_N_seconds_
+	std::size_t nADCcounts_after_N_seconds_;
 	bool exception_after_N_seconds_;
 	bool exit_after_N_seconds_;
 	bool abort_after_N_seconds_;
+	bool hang_after_N_seconds_;
 	demo::FragmentType fragment_type_;
 	std::size_t maxADCvalue_;
 	std::size_t throttle_usecs_;
@@ -122,6 +122,5 @@ private:
 	int send_calls_;
 	int serial_number_;
 };
-
 
 #endif

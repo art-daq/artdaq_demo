@@ -44,10 +44,10 @@ public:
 	NthEvent(NthEvent&&) = delete;
 
 	/// Plugins should not be copied or assigned.
-	NthEvent& operator =(NthEvent const&) = delete;
+	NthEvent& operator=(NthEvent const&) = delete;
 
 	/// Plugins should not be copied or assigned.
-	NthEvent& operator =(NthEvent&&) = delete;
+	NthEvent& operator=(NthEvent&&) = delete;
 
 	/**
 	 * \brief Perform the filtering. NthEvent module passes events where event number % nth == 0
@@ -56,20 +56,15 @@ public:
 	 */
 	bool filter(art::Event& e) override;
 
-
 private:
-
 	uint32_t nth_;
 };
 
-
 NthEvent::NthEvent(fhicl::ParameterSet const& p)
-	: nth_(p.get<uint32_t>("nth")) {}
+    : art::EDFilter{p}
+    , nth_(p.get<uint32_t>("nth"))
+{}
 
-inline
-bool NthEvent::filter(art::Event& e)
-{
-	return e.event() % nth_ == 0 ? true : false;
-}
+inline bool NthEvent::filter(art::Event& e) { return e.event() % nth_ == 0; }
 
-DEFINE_ART_MODULE(NthEvent)
+DEFINE_ART_MODULE(NthEvent)  // NOLINT(performance-unnecessary-value-param)

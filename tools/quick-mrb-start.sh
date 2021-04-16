@@ -14,7 +14,7 @@ starttime=`date`
 Base=$PWD
 test -d products || mkdir products
 test -d download || mkdir download
-test -d log || mkdir log
+test -d qms-log || mkdir qms-log
 
 env_opts_var=`basename $0 | sed 's/\.sh$//' | tr 'a-z-' 'A-Z_'`_OPTS
 USAGE="\
@@ -33,6 +33,7 @@ prompted for this location.
 --tag         Install a specific tag of artdaq_demo
 --logdir      Set <dir> as the destination for log files
 --datadir     Set <dir> as the destination for data files
+--recordsdir  Set <dir> as the destination for run record information
 -e, -s, -c    Use specific qualifiers when building ARTDAQ
 -v            Be more verbose
 -x            set -x this script
@@ -44,6 +45,7 @@ prompted for this location.
 eval env_opts=\${$env_opts_var-} # can be args too
 datadir="${ARTDAQDEMO_DATA_DIR:-$Base/daqdata}"
 logdir="${ARTDAQDEMO_LOG_DIR:-$Base/daqlogs}"
+recordsdir="${ARTDAQDEMO_RECORD_DIR:-$Base/run_records}"
 eval "set -- $env_opts \"\$@\""
 op1chr='rest=`expr "$op" : "[^-]\(.*\)"`   && set -- "-$rest" "$@"'
 op1arg='rest=`expr "$op" : "[^-]\(.*\)"`   && set --  "$rest" "$@"'
@@ -69,6 +71,7 @@ while [ -n "${1-}" ];do
 			-viewer)    opt_viewer=--viewer;;
 			-logdir)    eval $op1arg; logdir=$1; shift;;
 			-datadir)   eval $op1arg; datadir=$1; shift;;
+			-recordsdir) eval $op1arg; recordsdir=$1; shift;;
 			-no-extra-products)  opt_skip_extra_products=1;;
 			-mfext)     opt_mfext=1;;
 			*)          echo "Unknown option -$op"; do_help=1;;
@@ -95,8 +98,8 @@ fi
 # "quick-start.sh_Fri_Jan_16_13:58:27_stderr.script"
 alloutput_file=$( date | awk -v "SCRIPTNAME=$(basename $0)" '{print SCRIPTNAME"_"$1"_"$2"_"$3"_"$4".script"}' )
 stderr_file=$( date | awk -v "SCRIPTNAME=$(basename $0)" '{print SCRIPTNAME"_"$1"_"$2"_"$3"_"$4"_stderr.script"}' )
-exec  > >(tee "$Base/log/$alloutput_file")
-exec 2> >(tee "$Base/log/$stderr_file")
+exec  > >(tee "$Base/qms-log/$alloutput_file")
+exec 2> >(tee "$Base/qms-log/$stderr_file")
 
 function detectAndPull() {
 	local startDir=$PWD
@@ -123,12 +126,15 @@ function detectAndPull() {
 
 	if [[ "$packageOs" != "noarch" ]]; then
 		local upsflavor=`ups flavor`
-		local packageQualifiers="-`echo $qualifiers|sed 's/:/-/g'`"
-		local packageUPSString="-f $upsflavor -q$qualifiers"
+                if [ -n "${qualifiers-}" ];then
+                	local packageQualifiers="-`echo $qualifiers|sed 's/:/-/g'`"
+		        local packageUPSString="-f $upsflavor -q$qualifiers"
+                fi
 	fi
 	local packageInstalled=`ups list -aK+ $packageName $packageVersion ${packageUPSString-}|grep -c "$packageName"`
 	if [ $packageInstalled -eq 0 ]; then
-		local packagePath="$packageName/$packageVersion/$packageName-$packageDotVersion-${packageOs}${packageQualifiers-}.tar.bz2"
+	    local packagePath="$packageName/$packageVersion/$packageName-$packageDotVersion-${packageOs}${packageQualifiers-}.tar.bz2"
+                echo INFO: about to wget $packageName-$packageDotVersion-${packageOs}${packageQualifiers-}
 		wget http://scisoft.fnal.gov/scisoft/packages/$packagePath >/dev/null 2>&1
 		local packageFile=$( echo $packagePath | awk 'BEGIN { FS="/" } { print $NF }' )
 
@@ -249,10 +255,11 @@ chmod +x pullProducts
 	echo "Error in pullProducts. Please go to http://scisoft.fnal.gov/scisoft/bundles/artdaq_demo/${demo_version}/manifest and make sure that a manifest for the specified qualifiers (${squalifier}-${equalifier}) exists."
 	exit 1
 	fi
-detectAndPull mrb noarch
 export PRODUCTS=$PRODUCTS_SET
 source $Base/products/setup
 PRODUCTS_SET=$PRODUCTS
+echo PRODUCTS after source products/setup: $PRODUCTS
+detectAndPull mrb noarch
 setup mrb
 setup git
 setup gitflow
@@ -272,15 +279,15 @@ if [[ $opt_develop -eq 1 ]]; then
 		mrb gitCheckout ssh://p-artdaq@cdcvs.fnal.gov/cvs/projects/artdaq
 		mrb gitCheckout -d artdaq_core_demo ssh://p-artdaq-core-demo@cdcvs.fnal.gov/cvs/projects/artdaq-core-demo
 		mrb gitCheckout -d artdaq_demo ssh://p-artdaq-demo@cdcvs.fnal.gov/cvs/projects/artdaq-demo
-		mrb gitCheckout -d artdaq_mpich_plugin ssh://p-artdaq-utilities@cdcvs.fnal.gov/cvs/projects/artdaq-utilities-mpich-plugin
+#		mrb gitCheckout -d artdaq_mpich_plugin ssh://p-artdaq-utilities@cdcvs.fnal.gov/cvs/projects/artdaq-utilities-mpich-plugin
 	else
 		mrb gitCheckout -d artdaq_core http://cdcvs.fnal.gov/projects/artdaq-core
 		mrb gitCheckout -d artdaq_utilities http://cdcvs.fnal.gov/projects/artdaq-utilities
 		mrb gitCheckout http://cdcvs.fnal.gov/projects/artdaq
 		mrb gitCheckout -d artdaq_core_demo http://cdcvs.fnal.gov/projects/artdaq-core-demo
 		mrb gitCheckout -d artdaq_demo http://cdcvs.fnal.gov/projects/artdaq-demo
-		mrb gitCheckout -d artdaq_mpich_plugin http://cdcvs.fnal.gov/projects/artdaq-utilities-mpich-plugin
-		mrb gitCheckout -d artdaq_ganglia_plugin http://cdcvs.fnal.gov/projects/artdaq-utilities-ganglia-plugin
+#		mrb gitCheckout -d artdaq_mpich_plugin http://cdcvs.fnal.gov/projects/artdaq-utilities-mpich-plugin
+#		mrb gitCheckout -d artdaq_ganglia_plugin http://cdcvs.fnal.gov/projects/artdaq-utilities-ganglia-plugin
 		mrb gitCheckout -d artdaq_epics_plugin http://cdcvs.fnal.gov/projects/artdaq-utilities-epics-plugin
 		mrb gitCheckout -d artdaq_mfextensions http://cdcvs.fnal.gov/projects/mf-extensions-git
 	fi
@@ -296,21 +303,22 @@ else
 	fi
 fi
 
+os=`$Base/download/cetpkgsupport/bin/get-directory-name os`
+test "$os" = "slf7" && os="sl7"
 if [[ "x${opt_viewer-}" != "x" ]] && [[ $opt_develop -eq 1 ]]; then
-	cd $MRB_SOURCE
 	mrb gitCheckout -d artdaq_mfextensions http://cdcvs.fnal.gov/projects/mf-extensions-git
-
 	qtver=$( awk '/^[[:space:]]*qt[[:space:]]*/ {print $2}' artdaq_mfextensions/ups/product_deps )
-
-	os=`$Base/download/cetpkgsupport/bin/get-directory-name os`
-
-	if [[ "$os" == "slf7" ]]; then
-	os="sl7"
-	fi
-
 	detectAndPull qt ${os}-x86_64 ${equalifier} ${qtver}
 fi
-
+for vv in `awk '/cetbuildtools/{print$2}' */ups/product_deps | sort -u`;do
+	detectAndPull cetbuildtools noarch nq $vv
+        # the following looks for a missing cmake in the depend error output or a non-missing cmake in normal output
+        cmake_ver=`ups depend cetbuildtools $vv 2>&1 | sed -n -e '/cmake /{s/.*cmake //;s/ .*//;p;}'`
+        detectAndPull cmake ${os}-x86_64 nq $cmake_ver
+done
+for vv in `awk '/TRACE\s*v/{print$2}' */ups/product_deps | sort -u`;do
+	detectAndPull TRACE ${os}-x86_64 nq $vv
+done
 
 ARTDAQ_DEMO_DIR=$Base/srcs/artdaq_demo
 ARTDAQ_DIR=$Base/srcs/artdaq
@@ -320,23 +328,34 @@ echo # This script is intended to be sourced.
 
 sh -c "[ \`ps \$\$ | grep bash | wc -l\` -gt 0 ] || { echo 'Please switch to the bash shell before running the artdaq-demo.'; exit; }" || exit
 
-if [[ -e /cvmfs/fermilab.opensciencegrid.org/products/artdaq ]]; then
-  . /cvmfs/fermilab.opensciencegrid.org/products/artdaq/setup
+echo "initial PRODUCTS=\${PRODUCTS-}"
+echo "resetting to demo start: $PRODUCTS_SET"
+export PRODUCTS="$PRODUCTS_SET"
+if echo ":\$PRODUCTS:" | grep :/cvmfs/fermilab.opensciencegrid.org/products/artdaq: >/dev/null;then
+  : already there
+elif [[ -e /cvmfs/fermilab.opensciencegrid.org/products/artdaq ]]; then
+  # /cvmfs exists but wasn't in the orginal, so append to end
+  PRODUCTS="\$PRODUCTS:/cvmfs/fermilab.opensciencegrid.org/products/artdaq/setup"
 fi
 
 source $Base/products/setup
 
-PRODUCTS=\`dropit -D -p"\$PRODUCTS"\`
-if echo "\$PRODUCTS" | grep "$PRODUCTS_SET" >/dev/null; then
-    : OK
-else
+# AT THIS POINT, verify PRODUCTS directories; produce warngings for any nonexistent directories
+echo PRODUCTS cleanup and check...
+PRODUCTS=\`dropit -D -E -p"\$PRODUCTS"\`
+if [ "\$PRODUCTS" != "$PRODUCTS_SET" ]; then
     echo WARNING: PRODUCTS environment has changed from initial installation.
-    echo "Product list $PRODUCTS_SET not found."
+    echo "current \"\$PRODUCTS\" != demo start \"$PRODUCTS_SET\""
 fi
+echo ...done with cleanup and check
 
 setup mrb
 source $Base/localProducts_artdaq_demo_${demo_version}_${equalifier}_${squalifier}_${build_type}/setup
-source mrbSetEnv
+if [ \$# -ge 1 -a "\${1-}" = for_running -a -e "\$MRB_BUILDDIR/\$MRB_PROJECT-\$MRB_PROJECT_VERSION" ];then
+   source "\${MRB_DIR}/bin/shell_independence"; source "\$MRB_BUILDDIR/\$MRB_PROJECT-\$MRB_PROJECT_VERSION"
+else
+   source mrbSetEnv
+fi
 
 if [[ "x\${ARTDAQ_MPICH_PLUGIN_DIR:-}" == "x" ]]; then
   for plugin_version in \`ups list -aK+ artdaq_mpich_plugin -q ${equalifier}:${squalifier}:eth:${build_type}|awk '{print \$2}'|sed 's/\"//g'\`;do
@@ -364,12 +383,18 @@ export FHICL_FILE_PATH=.:\$ARTDAQ_DEMO_DIR/tools/snippets:\$ARTDAQ_DEMO_DIR/tool
 # from the srcs area in the mrb environment is what is found first in the PATH.
 if [ \`echo \$ARTDAQ_DIR|grep -c "$Base"\` -eq 0 ]; then
   echo ""
+  echo ">>> ARTDAQ_DIR=\$ARTDAQ_DIR <<<"
   echo ">>> Setting up the MRB environment again to ensure that MRB-based executables and libraries are used during running. <<<"
   echo ""
   source mrbSetEnv
+  echo ">>> ARTDAQ_DIR=\$ARTDAQ_DIR <<<"
 fi
 
-alias rawEventDump="if [[ -n \\\$SETUP_TRACE ]]; then unsetup TRACE ; echo Disabling TRACE so that it will not affect rawEventDump output ; sleep 1; fi; art -c \$ARTDAQ_DIR/artdaq/ArtModules/fcl/rawEventDump.fcl"
+echo Check for Toy...
+IFSsav=\$IFS IFS=:; for dd in \$LD_LIBRARY_PATH;do IFS=\$IFSsav; ls \$dd/*Toy* 2>/dev/null ;done
+echo ...done with check for Toy
+
+alias rawEventDump="if [[ -n \\\$SETUP_TRACE ]]; then unsetup TRACE ; echo Disabling TRACE so that it will not affect rawEventDump output ; sleep 1; fi; art -c \$ARTDAQ_DIR/fcl/rawEventDump.fcl"
 
 EOF
 #
@@ -379,6 +404,7 @@ cd $MRB_BUILDDIR
 set +u
 source mrbSetEnv
 set -u
+PRODUCTS=`dropit -D -E -p"$PRODUCTS"`    # clean it
 export CETPKG_J=$((`cat /proc/cpuinfo|grep processor|tail -1|awk '{print $3}'` + 1))
 mrb build    # VERBOSE=1
 installStatus=$?
@@ -392,9 +418,8 @@ if [ $installStatus -eq 0 ]; then
 else
 	echo "BUILD ERROR!!! SOMETHING IS VERY WRONG!!!"
 	echo
-	echo "Skipping installation of DAQInterface"
+	echo "Continuing with installation of DAQInterface, with the hope there is a simple fix for the BUILD ERROR"
 	echo
-	exit 1
 fi
 
 # Now, install DAQInterface, basically following the instructions at
@@ -427,50 +452,46 @@ fi
 mkdir $daqintdir
 cd $daqintdir
 cp ../artdaq-utilities-daqinterface/bin/mock_ups_setup.sh .
-cp ../artdaq-utilities-daqinterface/docs/user_sourcefile_example .
-cp ../artdaq-utilities-daqinterface/docs/settings_example .
-cp ../artdaq-utilities-daqinterface/docs/known_boardreaders_list_example .
-cp ../artdaq-utilities-daqinterface/docs/boot.txt .
+cp ../artdaq-utilities-daqinterface/docs/* .
 
 sed -i -r 's!^\s*export ARTDAQ_DAQINTERFACE_DIR.*!export ARTDAQ_DAQINTERFACE_DIR='$Base/artdaq-utilities-daqinterface'!' mock_ups_setup.sh
 sed -i -r 's!^\s*export DAQINTERFACE_SETTINGS.*!export DAQINTERFACE_SETTINGS='$PWD/settings_example'!' user_sourcefile_example
+sed -i -r 's!^\s*export DAQINTERFACE_KNOWN_BOARDREADERS_LIST.*!export DAQINTERFACE_KNOWN_BOARDREADERS_LIST='$PWD/known_boardreaders_list_example'!' user_sourcefile_example
 sed -i -r '/export DAQINTERFACE_USER_SOURCEFILE_ERRNO=0/i \
 export yourArtdaqInstallationDir='$Base'  ' user_sourcefile_example
+sed -i -r "s!DAQINTERFACE_LOGDIR=.*!DAQINTERFACE_LOGDIR=$logdir!" user_sourcefile_example
 
+mkdir -p $recordsdir
+chmod g+w $recordsdir
+sed -i -r 's!^\s*record_directory.*!record_directory: '$recordsdir'!' settings_example
 
-# Figure out which products directory contains the xmlrpc package (for
-# sending commands to DAQInterface) and set it in the settings file
-
-productsdir=$( ups active | grep xmlrpc | awk '{print $NF}' )
-
-if [[ -z $productsdir ]]; then
-	echo "Unable to determine the products directory containing xmlrpc; will return..." >&2
-	return 41
-fi
-
-sed -i -r 's!^\s*productsdir_for_bash_scripts:.*!productsdir_for_bash_scripts: '$productsdir'!' settings_example
-
-mkdir -p $Base/run_records
-
-sed -i -r 's!^\s*record_directory.*!record_directory: '$Base/run_records'!' settings_example
-
-mkdir -p $Base/daqlogs
-mkdir -p $Base/daqdata
-
+mkdir -p $logdir
+chmod g+w $logdir
 sed -i -r 's!^\s*log_directory.*!log_directory: '$logdir'!' settings_example
+
+mkdir -p $datadir
+chmod g+w $datadir
 sed -i -r 's!^\s*data_directory_override.*!data_directory_override: '$datadir'!' settings_example
 
-sed -i -r 's!^\s*DAQ setup script:.*!DAQ setup script: '$Base'/setupARTDAQDEMO!' boot.txt
+sed -i -r 's!^\s*DAQ setup script:.*!DAQ setup script: '$Base'/setupARTDAQDEMO!' boot*.txt
+
+sed -i -r 's!^\s*productsdir_for_bash_scripts:.*!productsdir_for_bash_scripts: '"$PRODUCTS"'!' settings_example
 
 cd $Base
-wget https://cdcvs.fnal.gov/redmine/projects/artdaq-demo/repository/revisions/develop/raw/tools/run_demo.sh
+ln -s srcs/artdaq_demo/tools/run_demo.sh .
+ln -s srcs/artdaq_demo/tools/run_integration_tests.sh .
+
 
 if [ "x${opt_run_demo-}" != "x" ]; then
+    if [ $installStatus -eq 0 ]; then
 	echo doing the demo
 
 	set +u
 	. ./run_demo.sh --basedir $Base --toolsdir ${Base}/srcs/artdaq_demo/tools
 	set -u
+    else
+        echo 'Build error (see above) precludes running the demo (i.e --run-demo option specified)'
+    fi
 fi
 
 

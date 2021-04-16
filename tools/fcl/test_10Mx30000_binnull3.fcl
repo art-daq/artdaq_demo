@@ -7,10 +7,6 @@ events_to_generate: 30000
 run_number: 101
 transition_timeout: 30
 
-#services: {
-#    TimeTracker: {}
-#}
-
 fragment_receiver: {
 
    # Parameters defining and configuring the fragment generator to be used
@@ -38,6 +34,7 @@ event_builder: {
   events_expected_in_SimpleQueueReader: @local::events_to_generate
   max_fragment_size_bytes: 0xb00000
   buffer_count: 30
+  init_fragment_count: 0
 }
 
 metrics: {
@@ -52,6 +49,16 @@ metrics: {
 ######################################################################
 # The ART code
 ######################################################################
+art: {
+services: {
+   ArtdaqSharedMemoryServiceInterface: { 
+     service_provider: ArtdaqSharedMemoryService
+     waiting_time: 900
+     resume_after_timeout: true
+  }
+  ArtdaqFragmentNamingServiceInterface: { service_provider: ArtdaqFragmentNamingService helper_plugin: "ArtdaqDemo" }
+#    TimeTracker: {}
+}
 
 physics: {
   analyzers: {
@@ -77,12 +84,10 @@ outputs: {
 }
 
 source: {
-  module_type: DemoInput
-  waiting_time: 900
-  resume_after_timeout: true
+  module_type: ArtdaqInput
 }
 
 process_name: Driver
 
-
+}
 
