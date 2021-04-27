@@ -105,6 +105,7 @@ function check_event_count() {
 #	echo "Dump file is $ldump"
 
     local fevents=`grep "Events total" $ldump|sed 's/.*total = \([0-9]*\).*/\1/g'`
+	local ooevents=`grep -c "Event ordering problem" $ldump`
 
 	local mineventsVarname=`echo min_events_${lconfig}`
 	local minevents=${!mineventsVarname}
@@ -112,6 +113,10 @@ function check_event_count() {
 
 	if [ $fevents -lt $minevents ];then
 		echo "    File $lfile has $fevents events, which is less than the minimum required: $minevents!"
+		res=1
+	fi
+	if [ $ooevents -gt 0 ];then
+		echo "    File $lfile has $ooevents out-of-order events! This could be benign, but check dump output for other problems!"
 		res=1
 	fi
 
