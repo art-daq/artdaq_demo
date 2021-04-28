@@ -3,7 +3,7 @@ include_directories($ENV{MPICH_INC} )
 
 simple_plugin(NthEvent "transfer"
   artdaq_TransferPlugins
-  artdaq-core_Utilities
+  artdaq_core::artdaq-core_Utilities
   artdaq_DAQrate
   artdaq_DAQdata
   MF_MessageLogger
