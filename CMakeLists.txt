@@ -107,6 +107,12 @@ else()
     set( MESSAGEFACILITY_LIBS MF_MessageLogger MF_Utilities)
 endif()
 
+# as of fhiclcpp v4_15_00 (s108), ParameterSet::make is the preferred way to make a ParameterSet
+check_ups_version(fhiclcpp $ENV{FHICLCPP_VERSION} v4_15_00 PRODUCT_MATCHES_VAR PSET_MAKE)
+if(PSET_MAKE)
+  add_definitions(-DSIMPLER_PSET_MAKE)
+endif()
+
 # macros for art_dictionary and simple_plugin
 include(ArtMake)
 include(BuildPlugins)
