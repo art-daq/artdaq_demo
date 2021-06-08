@@ -1,0 +1,27 @@
+physics:
+{
+  analyzers:
+  {
+    evtDump:
+    {
+      module_type: CheckIntegrity
+    exception_on_integrity_failure: true
+    }
+
+    printBuildInfo: {
+      module_type: PrintBuildInfo
+      buildinfo_module_label: BuildInfo
+      buildinfo_instance_label: ArtdaqDemo
+    }
+  }
+
+  a1: [ evtDump, printBuildInfo ]
+}
+
+source:
+{
+  module_type: RootInput
+  fileNames: [ "/tmp/artdaqdemo_eb00_20130501000000.root" ]
+}
+
+process_name: CHECKINTEGRITY

@@ -8,9 +8,15 @@ analyzers: {
   wf: {
     module_type: WFViewer
     prescale: 1
+<<<<<<< HEAD
+    num_x_plots: 3
+    num_y_plots: 3
+    fragment_ids: [0,1,2,3,4,5,6,7,8,9]
+=======
     num_x_plots: 2
     num_y_plots: 2
     fragment_ids: [0,1,2,3]
+>>>>>>> working/OldDynamicMode
   }
 }
 
