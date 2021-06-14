@@ -135,7 +135,7 @@ function detectAndPull() {
 	if [ $packageInstalled -eq 0 ]; then
 	    local packagePath="$packageName/$packageVersion/$packageName-$packageDotVersion-${packageOs}${packageQualifiers-}.tar.bz2"
                 echo INFO: about to wget $packageName-$packageDotVersion-${packageOs}${packageQualifiers-}
-		wget http://scisoft.fnal.gov/scisoft/packages/$packagePath >/dev/null 2>&1
+		wget --load-cookies=$cookief http://scisoft.fnal.gov/scisoft/packages/$packagePath >/dev/null 2>&1
 		local packageFile=$( echo $packagePath | awk 'BEGIN { FS="/" } { print $NF }' )
 
 		if [[ ! -e $packageFile ]]; then
@@ -155,6 +155,129 @@ function detectAndPull() {
 	fi
 	cd $startDir
 }
+
+#
+# urlencode -- encode special characters for post/get arguments
+#
+urlencode() {
+   perl -pe 'chomp(); s{\W}{sprintf("%%%02x",ord($&))}ge;' "$@"
+}
+
+site=https://cdcvs.fnal.gov/redmine
+listf=/tmp/list_p$$
+cookief=/tmp/cookies_p$$
+rlverbose=${rlverbose:=false}
+#
+# login form
+#
+do_login() {
+     get_passwords
+     get_auth_token "${site}/login"
+     post_url  \
+       "${site}/login" \
+       "back_url=$site" \
+       "authenticity_token=$authenticity_token" \
+       "username=`echo $user | urlencode`" \
+       "password=`echo $pass | urlencode`" \
+       "login=Login »" 
+     if grep '>Sign in' $listf > /dev/null;then
+        echo "Login failed."
+        false
+     else
+        true
+     fi
+}
+get_passwords() {
+   case "x${user-}y${pass-}" in
+   xy)
+       if [ -r   ${REDMINE_AUTHDIR:-.}/.redmine_lib_passfile ];then 
+	   read -r user pass < ${REDMINE_AUTHDIR:-.}/.redmine_lib_passfile
+       else
+	   user=$USER
+           stty -echo
+	   printf "Services password for $user: "
+	   read pass
+           stty echo
+       fi;;
+    esac
+}
+get_auth_token() {
+    authenticity_token=`fetch_url "${1}" |
+                  tee /tmp/at_p$$ |
+                  grep 'name="authenticity_token"' |
+                  head -1 |
+                  sed -e 's/.*value="//' -e 's/".*//' | 
+                  urlencode `
+}
+
+#
+# fetch_url -- GET a url from a site, maintaining cookies, etc.
+#
+fetch_url() {
+     wget \
+        --no-check-certificate \
+	--load-cookies=${cookief} \
+        --referer="${lastpage-}" \
+	--save-cookies=${cookief} \
+	--keep-session-cookies \
+	-o ${debugout:-/dev/null} \
+	-O - \
+	"$1"  | ${debugfilter:-cat}
+     lastpage="$1"
+}
+
+#
+# post_url POST to a url maintaining cookies, etc.
+#    takes a url and multiple form data arguments
+#    which are joined with "&" signs
+#
+post_url() {
+     url="$1"
+     extra=""
+     if  [ "$url" == "-b" ];then
+         extra="--remote-encoding application/octet-stream"
+         shift
+         url=$1
+     fi
+     shift
+     the_data=""
+     sep=""
+     df=/tmp/postdata$$
+     :>$df
+     for d in "$@";do
+        printf "%s" "$sep$d" >> $df
+        sep="&"
+     done
+     wget -O $listf \
+        -o $listf.log \
+        --debug \
+        --verbose \
+        $extra \
+        --no-check-certificate \
+	--load-cookies=${cookief} \
+	--save-cookies=${cookief} \
+        --referer="${lastpage-}" \
+	--keep-session-cookies \
+        --post-file="$df"  $url
+     if grep '<div.*id=.errorExplanation' $listf > /dev/null;then
+        echo "Failed: error was:"
+        cat $listf | sed -e '1,/<div.*id=.errorExplanation/d' | sed -e '/<.div>/,$d'
+        return 1
+     fi
+     if grep '<div.*id=.flash_notice.*Success' $listf > /dev/null;then
+        $rlverbose && echo "Succeeded"
+        return 0
+     fi
+     # not sure if it worked... 
+     $rlverbose && echo "Unknown -- detagged output:"
+     $rlverbose && cat $listf | sed -e 's/<[^>]*>//g'
+     $rlverbose && echo "-----"
+     $rlverbose && cat $listf.log
+     $rlverbose && echo "-----"
+     return 0
+} # post_url
+
+do_login https://cdcvs.fnal.gov/redmine
 
 cd $Base/download
 
@@ -213,14 +336,14 @@ if [ -z "${tag:-}" ]; then
   notag=1;
 fi
 if [[ -e product_deps ]]; then mv product_deps product_deps.save; fi
-wget https://cdcvs.fnal.gov/redmine/projects/artdaq-demo/repository/revisions/$tag/raw/ups/product_deps
+wget --load-cookies=$cookief https://cdcvs.fnal.gov/redmine/projects/artdaq-demo/repository/revisions/$tag/raw/ups/product_deps
 demo_version=`grep "parent artdaq_demo" $Base/download/product_deps|awk '{print $3}'`
 if [[ $notag -eq 1 ]] && [[ $opt_develop -eq 0 ]]; then
   tag=$demo_version
 
   # 06-Mar-2017, KAB: re-fetch the product_deps file based on the tag
   mv product_deps product_deps.orig
-  wget https://cdcvs.fnal.gov/redmine/projects/artdaq-demo/repository/revisions/$tag/raw/ups/product_deps
+  wget --load-cookies=$cookief https://cdcvs.fnal.gov/redmine/projects/artdaq-demo/repository/revisions/$tag/raw/ups/product_deps
   demo_version=`grep "parent artdaq_demo" $Base/download/product_deps|awk '{print $3}'`
   tag=$demo_version
 fi
@@ -248,7 +371,8 @@ else
 	build_type="prof"
 fi
 
-wget http://scisoft.fnal.gov/scisoft/bundles/tools/pullProducts
+wget --load-cookies=$cookief http://scisoft.fnal.gov/scisoft/bundles/tools/pullProducts
+rm -f /tmp/postdata$$ /tmp/at_p$$ $cookief $listf
 chmod +x pullProducts
 ./pullProducts $Base/products ${os} artdaq_demo-${demo_version} ${squalifier}-${equalifier} ${build_type}
 	if [ $? -ne 0 ]; then
@@ -259,8 +383,8 @@ export PRODUCTS=$PRODUCTS_SET
 source $Base/products/setup
 PRODUCTS_SET=$PRODUCTS
 echo PRODUCTS after source products/setup: $PRODUCTS
-detectAndPull mrb noarch
-setup mrb
+detectAndPull mrb noarch nq v5_09_04
+setup mrb v5_09_04
 setup git
 setup gitflow
 
@@ -349,12 +473,12 @@ if [ "\$PRODUCTS" != "$PRODUCTS_SET" ]; then
 fi
 echo ...done with cleanup and check
 
-setup mrb
+setup mrb v5_09_04
 source $Base/localProducts_artdaq_demo_${demo_version}_${equalifier}_${squalifier}_${build_type}/setup
 if [ \$# -ge 1 -a "\${1-}" = for_running -a -e "\$MRB_BUILDDIR/\$MRB_PROJECT-\$MRB_PROJECT_VERSION" ];then
    source "\${MRB_DIR}/bin/shell_independence"; source "\$MRB_BUILDDIR/\$MRB_PROJECT-\$MRB_PROJECT_VERSION"
 else
-   source mrbSetEnv
+   mrbsetenv
 fi
 
 if [[ "x\${ARTDAQ_MPICH_PLUGIN_DIR:-}" == "x" ]]; then
@@ -386,7 +510,7 @@ if [ \`echo \$ARTDAQ_DIR|grep -c "$Base"\` -eq 0 ]; then
   echo ">>> ARTDAQ_DIR=\$ARTDAQ_DIR <<<"
   echo ">>> Setting up the MRB environment again to ensure that MRB-based executables and libraries are used during running. <<<"
   echo ""
-  source mrbSetEnv
+  mrbsetenv
   echo ">>> ARTDAQ_DIR=\$ARTDAQ_DIR <<<"
 fi
 
@@ -402,7 +526,7 @@ EOF
 # Build artdaq_demo
 cd $MRB_BUILDDIR
 set +u
-source mrbSetEnv
+mrbsetenv
 set -u
 PRODUCTS=`dropit -D -E -p"$PRODUCTS"`    # clean it
 export CETPKG_J=$((`cat /proc/cpuinfo|grep processor|tail -1|awk '{print $3}'` + 1))

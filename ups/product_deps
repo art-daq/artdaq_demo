@@ -40,27 +40,6 @@ e20:s108:debug  	   e20:s108:debug 	 e20:s108:debug
 e19:s108:prof   	   e19:s108:prof  	 e19:s108:prof
 e19:s108:debug  	   e19:s108:debug 	 e19:s108:debug
 
-c7:s107:prof  	   c7:s107:prof  	 c7:s107:prof
-c7:s107:debug  	   c7:s107:debug 	 c7:s107:debug
-e20:s107:prof   	   e20:s107:prof  	 e20:s107:prof
-e20:s107:debug  	   e20:s107:debug 	 e20:s107:debug
-e19:s107:prof   	   e19:s107:prof  	 e19:s107:prof
-e19:s107:debug  	   e19:s107:debug 	 e19:s107:debug
-
-c7:s106:prof  	   c7:s106:prof  	 c7:s106:prof
-c7:s106:debug  	   c7:s106:debug 	 c7:s106:debug
-e20:s106:prof   	   e20:s106:prof  	 e20:s106:prof
-e20:s106:debug  	   e20:s106:debug 	 e20:s106:debug
-e19:s106:prof   	   e19:s106:prof  	 e19:s106:prof
-e19:s106:debug  	   e19:s106:debug 	 e19:s106:debug
-
-c7:s105:prof  	   c7:s105:prof  	 c7:s105:prof
-c7:s105:debug  	   c7:s105:debug 	 c7:s105:debug
-e20:s105:prof   	   e20:s105:prof  	 e20:s105:prof
-e20:s105:debug  	   e20:s105:debug 	 e20:s105:debug
-e19:s105:prof   	   e19:s105:prof  	 e19:s105:prof
-e19:s105:debug  	   e19:s105:debug 	 e19:s105:debug
-
 end_qualifier_list
 
 # Preserve tabs and formatting in emacs and vi / vim:
