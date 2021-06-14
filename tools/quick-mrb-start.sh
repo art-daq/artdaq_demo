@@ -383,8 +383,8 @@ export PRODUCTS=$PRODUCTS_SET
 source $Base/products/setup
 PRODUCTS_SET=$PRODUCTS
 echo PRODUCTS after source products/setup: $PRODUCTS
-detectAndPull mrb noarch
-setup mrb
+detectAndPull mrb noarch nq v4_04_04
+setup mrb v4_04_04
 setup git
 setup gitflow
 
@@ -473,7 +473,7 @@ if [ "\$PRODUCTS" != "$PRODUCTS_SET" ]; then
 fi
 echo ...done with cleanup and check
 
-setup mrb
+setup mrb v4_04_04
 source $Base/localProducts_artdaq_demo_${demo_version}_${equalifier}_${squalifier}_${build_type}/setup
 if [ \$# -ge 1 -a "\${1-}" = for_running -a -e "\$MRB_BUILDDIR/\$MRB_PROJECT-\$MRB_PROJECT_VERSION" ];then
    source "\${MRB_DIR}/bin/shell_independence"; source "\$MRB_BUILDDIR/\$MRB_PROJECT-\$MRB_PROJECT_VERSION"
