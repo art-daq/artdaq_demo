@@ -43,7 +43,7 @@ else
 fi
 
 popd
-./run_integration_tests.sh
+./run_integration_tests.sh --runduration 30
 pushd $MRB_BUILDDIR
 
 lcov -d . --capture --output-file ${MRB_PROJECT}.info
