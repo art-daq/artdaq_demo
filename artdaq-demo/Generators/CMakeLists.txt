@@ -10,7 +10,7 @@ simple_plugin(ToySimulator "generator"
   artdaq_utilities::artdaq-utilities_Plugins
   canvas
   ${FHICLCPP}
-  ${MESSAGEFACILITY_LIBS}
+  ${MF_MESSAGELOGGER}
   ${CETLIB}
 ${CETLIB_EXCEPT}
   )
@@ -37,7 +37,7 @@ simple_plugin(UDPReceiver "generator"
   ${Boost_SYSTEM_LIBRARY}
   canvas
     ${FHICLCPP}
-  ${MESSAGEFACILITY_LIBS}
+  ${MF_MESSAGELOGGER}
     ${CETLIB}
  ${CETLIB_EXCEPT}
     )

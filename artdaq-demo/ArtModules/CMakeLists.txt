@@ -88,7 +88,7 @@ simple_plugin(CheckIntegrity "module"
               artdaq_core::artdaq-core_Utilities
 			  artdaq_core_demo::artdaq-core-demo_Overlays
 			art_Persistency_Provenance
-  ${MESSAGEFACILITY_LIBS}
+  ${MF_MESSAGELOGGER}
   ${CETLIB_EXCEPT}
 )
   
