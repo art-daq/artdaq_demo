@@ -95,6 +95,9 @@ private:
 	artdaq::Fragment::timestamp_t timestamp_;
 	artdaq::Fragment::timestamp_t starting_timestamp_;
 	int timestampScale_;
+	size_t sequence_id_scale_;
+	size_t initial_sequence_id_;
+
 	int rollover_subrun_interval_;
 
 	ToyFragment::Metadata metadata_;
