@@ -180,6 +180,10 @@ for run in `ls -d run_records/*|sort -V`;do
 			check_event_count $file $run_config_name
 		    check_fragment_count $file $run_config_name
 	    done
+    else
+        echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+        echo "!!!!!RUN $run_number WITH CONFIGURATION $run_config_name HAS NO DATA!!!!"
+        echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
 	fi
 done
 check_onmon
