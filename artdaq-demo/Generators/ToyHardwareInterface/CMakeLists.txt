@@ -1,10 +1,10 @@
 art_make(
         LIB_LIBRARIES
         art_Utilities
-        ${FHICLCPP}
-        ${CETLIB}
-        ${CETLIB_EXCEPT}
-  ${MF_MESSAGELOGGER}
+        fhiclcpp
+        cetlib
+        cetlib_except
+  MF_MessageLogger
   artdaq_DAQdata
 	artdaq_core::artdaq-core_Data
 	artdaq_core_demo::artdaq-core-demo_Overlays
