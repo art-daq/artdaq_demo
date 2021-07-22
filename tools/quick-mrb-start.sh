@@ -337,14 +337,16 @@ if [ -z "${tag:-}" ]; then
 fi
 if [[ -e product_deps ]]; then mv product_deps product_deps.save; fi
 wget --load-cookies=$cookief https://cdcvs.fnal.gov/redmine/projects/artdaq-demo/repository/revisions/$tag/raw/ups/product_deps
-demo_version=`grep "parent artdaq_demo" $Base/download/product_deps|awk '{print $3}'`
+wget --load-cookies=$cookief https://cdcvs.fnal.gov/redmine/projects/artdaq-demo/repository/revisions/$tag/raw/CMakeLists.txt
+demo_version=`grep "project" $Base/download/CMakeLists|grep -oE "VERSION [^)]*"|awk '{print $2}'`
 if [[ $notag -eq 1 ]] && [[ $opt_develop -eq 0 ]]; then
   tag=$demo_version
 
   # 06-Mar-2017, KAB: re-fetch the product_deps file based on the tag
   mv product_deps product_deps.orig
   wget --load-cookies=$cookief https://cdcvs.fnal.gov/redmine/projects/artdaq-demo/repository/revisions/$tag/raw/ups/product_deps
-  demo_version=`grep "parent artdaq_demo" $Base/download/product_deps|awk '{print $3}'`
+  wget --load-cookies=$cookief https://cdcvs.fnal.gov/redmine/projects/artdaq-demo/repository/revisions/$tag/raw/CMakeLists.txt
+  demo_version=`grep "project" $Base/download/CMakeLists|grep -oE "VERSION [^)]*"|awk '{print $2}'`
   tag=$demo_version
 fi
 artdaq_version=`grep "^artdaq " $Base/download/product_deps | awk '{print $2}'`
@@ -375,6 +377,8 @@ wget --load-cookies=$cookief http://scisoft.fnal.gov/scisoft/bundles/tools/pullP
 rm -f /tmp/postdata$$ /tmp/at_p$$ $cookief $listf
 chmod +x pullProducts
 ./pullProducts $Base/products ${os} artdaq_demo-${demo_version} ${squalifier}-${equalifier} ${build_type}
+mrbversion`grep mrb *_MANIFEST.txt|sort|tail -1|awk '{print $2}'`
+
 	if [ $? -ne 0 ]; then
 	echo "Error in pullProducts. Please go to http://scisoft.fnal.gov/scisoft/bundles/artdaq_demo/${demo_version}/manifest and make sure that a manifest for the specified qualifiers (${squalifier}-${equalifier}) exists."
 	exit 1
@@ -383,8 +387,8 @@ export PRODUCTS=$PRODUCTS_SET
 source $Base/products/setup
 PRODUCTS_SET=$PRODUCTS
 echo PRODUCTS after source products/setup: $PRODUCTS
-detectAndPull mrb noarch nq v5_09_04
-setup mrb v5_09_04
+detectAndPull mrb noarch nq $mrbversion
+setup mrb $mrbversion
 setup git
 setup gitflow
 
@@ -473,7 +477,7 @@ if [ "\$PRODUCTS" != "$PRODUCTS_SET" ]; then
 fi
 echo ...done with cleanup and check
 
-setup mrb v5_09_04
+setup mrb $mrbversion
 source $Base/localProducts_artdaq_demo_${demo_version}_${equalifier}_${squalifier}_${build_type}/setup
 if [ \$# -ge 1 -a "\${1-}" = for_running -a -e "\$MRB_BUILDDIR/\$MRB_PROJECT-\$MRB_PROJECT_VERSION" ];then
    source "\${MRB_DIR}/bin/shell_independence"; source "\$MRB_BUILDDIR/\$MRB_PROJECT-\$MRB_PROJECT_VERSION"
