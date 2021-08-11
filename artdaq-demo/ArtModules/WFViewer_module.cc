@@ -197,7 +197,11 @@ void demo::WFViewer::analyze(art::Event const& e)
 	artdaq::FragmentPtrs containerFragments;
 
 	std::vector<art::Handle<artdaq::Fragments>> fragmentHandles;
+#if ART_HEX_VERSION < 0x30900
 	e.getManyByType(fragmentHandles);
+#else
+	fragmentHandles = e.getMany<std::vector<artdaq::Fragment>>();
+#endif
 
 	for (const auto& handle : fragmentHandles)
 	{
