@@ -338,7 +338,8 @@ fi
 if [[ -e product_deps ]]; then mv product_deps product_deps.save; fi
 wget --load-cookies=$cookief https://cdcvs.fnal.gov/redmine/projects/artdaq-demo/repository/revisions/$tag/raw/ups/product_deps
 wget --load-cookies=$cookief https://cdcvs.fnal.gov/redmine/projects/artdaq-demo/repository/revisions/$tag/raw/CMakeLists.txt
-demo_version=`grep "project" $Base/download/CMakeLists.txt|grep -oE "VERSION [^)]*"|awk '{print $2}'`
+demo_version=v`grep "project" $Base/download/CMakeLists.txt|grep -oE "VERSION [^)]*"|awk '{print $2}'|sed 's/\./_/g'`
+echo "Demo Version is $demo_version"
 if [[ $notag -eq 1 ]] && [[ $opt_develop -eq 0 ]]; then
   tag=$demo_version
 
@@ -426,9 +427,9 @@ else
 		mrb gitCheckout -t ${demo_version} -d artdaq_demo ssh://p-artdaq-demo@cdcvs.fnal.gov/cvs/projects/artdaq-demo
 		mrb gitCheckout -t ${artdaq_version} ssh://p-artdaq@cdcvs.fnal.gov/cvs/projects/artdaq
 	else
-		mrb gitCheckout -t ${coredemo_version} -d artdaq_core_demo http://cdcvs.fnal.gov/projects/artdaq-core-demo
+#		mrb gitCheckout -t ${coredemo_version} -d artdaq_core_demo http://cdcvs.fnal.gov/projects/artdaq-core-demo
 		mrb gitCheckout -t ${demo_version} -d artdaq_demo http://cdcvs.fnal.gov/projects/artdaq-demo
-		mrb gitCheckout -t ${artdaq_version} http://cdcvs.fnal.gov/projects/artdaq
+#		mrb gitCheckout -t ${artdaq_version} http://cdcvs.fnal.gov/projects/artdaq
 	fi
 fi
 
