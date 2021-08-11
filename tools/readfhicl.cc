@@ -1,6 +1,6 @@
 #include <iostream>
-#include "fhiclcpp/ParameterSet.h"
 #include "artdaq-utilities/Plugins/MakeParameterSet.hh"
+#include "fhiclcpp/ParameterSet.h"
 
 #include <boost/program_options.hpp>
 
@@ -50,7 +50,6 @@ int main(int argc, char* argv[]) try
 	// Check the directories defined by the FHICL_FILE_PATH
 	// environmental variable for the *.fcl file whose name was passed to
 	// the command line. If not defined, look in the current directory.
-
 
 	if (getenv("FHICL_FILE_PATH") == nullptr)
 	{
