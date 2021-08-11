@@ -350,7 +350,7 @@ if [[ $notag -eq 1 ]] && [[ $opt_develop -eq 0 ]]; then
   mv CMakeLists.txt CMakeLists.txt.orig
   wget --load-cookies=$cookief https://cdcvs.fnal.gov/redmine/projects/artdaq-demo/repository/revisions/$tag/raw/ups/product_deps
   wget --load-cookies=$cookief https://cdcvs.fnal.gov/redmine/projects/artdaq-demo/repository/revisions/$tag/raw/CMakeLists.txt
-  demo_version=`grep "project" $Base/download/CMakeLists.txt|grep -oE "VERSION [^)]*"|awk '{print $2}'`
+  demo_version=v`grep "project" $Base/download/CMakeLists.txt|grep -oE "VERSION [^)]*"|awk '{print $2}'|sed 's/\./_/g'`
   tag=$demo_version
 fi
 artdaq_version=`grep "^artdaq " $Base/download/product_deps | awk '{print $2}'`
@@ -481,15 +481,18 @@ if [ "\$PRODUCTS" != "$PRODUCTS_SET" ]; then
     echo WARNING: PRODUCTS environment has changed from initial installation.
     echo "current \"\$PRODUCTS\" != demo start \"$PRODUCTS_SET\""
 fi
+
+unsetup git >/dev/null 2>&1
+if [ -z \$CET_SUBDIR ];then
+  unsetup cetpkgsupport >/dev/null 2>&1
+  unset CET_PLATINFO
+  setup cetpkgsupport
+fi
 echo ...done with cleanup and check
 
 setup mrb $mrbversion
 source $Base/localProducts_artdaq_demo_${demo_version}_${equalifier}_${squalifier}_${build_type}/setup
-if [ \$# -ge 1 -a "\${1-}" = for_running -a -e "\$MRB_BUILDDIR/\$MRB_PROJECT-\$MRB_PROJECT_VERSION" ];then
-   source "\${MRB_DIR}/bin/shell_independence"; source "\$MRB_BUILDDIR/\$MRB_PROJECT-\$MRB_PROJECT_VERSION"
-else
    mrbsetenv
-fi
 
 if [[ "x\${ARTDAQ_MPICH_PLUGIN_DIR:-}" == "x" ]]; then
   for plugin_version in \`ups list -aK+ artdaq_mpich_plugin -q ${equalifier}:${squalifier}:eth:${build_type}|awk '{print \$2}'|sed 's/\"//g'\`;do
