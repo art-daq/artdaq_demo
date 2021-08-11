@@ -1,8 +1,8 @@
 simple_plugin("MisbehaviorTest" "policy"
     artdaq_RoutingPolicies
     artdaq_DAQdata
-    ${FHICLCPP}
-    ${MF_MESSAGELOGGER}
+    fhiclcpp
+    MF_MessageLogger
   ${Boost_SYSTEM_LIBRARY}
     cetlib_except
     cetlib

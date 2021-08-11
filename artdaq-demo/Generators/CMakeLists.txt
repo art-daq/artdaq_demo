@@ -9,10 +9,10 @@ simple_plugin(ToySimulator "generator"
   artdaq_core::artdaq-core_Data
   artdaq_utilities::artdaq-utilities_Plugins
   canvas
-  ${FHICLCPP}
-  ${MF_MESSAGELOGGER}
-  ${CETLIB}
-${CETLIB_EXCEPT}
+  fhiclcpp
+  MF_MessageLogger
+  cetlib
+cetlib_except
   )
 
 simple_plugin(AsciiSimulator "generator"
@@ -22,10 +22,10 @@ simple_plugin(AsciiSimulator "generator"
   artdaq_core::artdaq-core_Utilities
   artdaq_core::artdaq-core_Data
   ${Boost_SYSTEM_LIBRARY}
-  ${FHICLCPP}
-  ${MF_MESSAGELOGGER}
-  ${CETLIB}
-  ${CETLIB_EXCEPT}
+  fhiclcpp
+  MF_MessageLogger
+  cetlib
+  cetlib_except
   )
 
 simple_plugin(UDPReceiver "generator"
@@ -36,10 +36,10 @@ simple_plugin(UDPReceiver "generator"
     artdaq_core::artdaq-core_Data
   ${Boost_SYSTEM_LIBRARY}
   canvas
-    ${FHICLCPP}
-  ${MF_MESSAGELOGGER}
-    ${CETLIB}
- ${CETLIB_EXCEPT}
+    fhiclcpp
+  MF_MessageLogger
+    cetlib
+ cetlib_except
     )
 
 add_subdirectory(ToyHardwareInterface)

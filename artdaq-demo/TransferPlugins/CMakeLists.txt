@@ -9,8 +9,8 @@ simple_plugin(NthEvent "transfer"
   MF_MessageLogger
   fhiclcpp
   ${Boost_SYSTEM_LIBRARY}
-  ${CETLIB}
-  ${CETLIB_EXCEPT}
+  cetlib
+  cetlib_except
 )
 
 install_headers()

@@ -19,7 +19,7 @@ art_make( BASENAME_ONLY
   ${ROOT_NET}
   ${ROOT_REFLEX}
   cetlib
-  ${CETLIB_EXCEPT}
+  cetlib_except
 )
 
 #art_make(NO_PLUGINS # WAnt different link lists for modues
@@ -38,14 +38,14 @@ simple_plugin(ArtdaqDemoBuildInfo "module"
   artdaq-demo_BuildInfo
   artdaq_core_demo::artdaq-core-demo_BuildInfo
   art_Persistency_Provenance
-  ${MF_MESSAGELOGGER}
-  ${FHICLCPP}
-  ${CETLIB}
-  ${CETLIB_EXCEPT}
+  MF_MessageLogger
+  fhiclcpp
+  cetlib
+  cetlib_except
 )
 
 simple_plugin(NthEvent "module"
-	${CETLIB_EXCEPT}
+	cetlib_except
 )
 
 simple_plugin(ToyDump "module"
@@ -53,7 +53,7 @@ simple_plugin(ToyDump "module"
     artdaq_core::artdaq-core_Utilities
 	artdaq_core_demo::artdaq-core-demo_Overlays
 	art_Persistency_Provenance
-	${CETLIB_EXCEPT}
+	cetlib_except
 )
 
 simple_plugin(ASCIIDump "module"
@@ -61,11 +61,11 @@ simple_plugin(ASCIIDump "module"
               artdaq_core::artdaq-core_Utilities
 			  artdaq_core_demo::artdaq-core-demo_Overlays
 			  art_Persistency_Provenance
-			  ${CETLIB_EXCEPT}
+			  cetlib_except
 )
 
 simple_plugin(RootApplication "module"
-  ${CETLIB_EXCEPT}
+  cetlib_except
   ${ROOT_CORE}
   )
 
@@ -80,7 +80,7 @@ simple_plugin(WFViewer "module"
 			  ${ROOT_HIST}
 			  ${ROOT_GUI}
 			  ${ROOT_RIO}
-  ${CETLIB_EXCEPT}
+  cetlib_except
   )
 
 simple_plugin(CheckIntegrity "module"
@@ -88,8 +88,8 @@ simple_plugin(CheckIntegrity "module"
               artdaq_core::artdaq-core_Utilities
 			  artdaq_core_demo::artdaq-core-demo_Overlays
 			art_Persistency_Provenance
-  ${MF_MESSAGELOGGER}
-  ${CETLIB_EXCEPT}
+  MF_MessageLogger
+  cetlib_except
 )
   
 simple_plugin(EventReporterOutput "module"
@@ -101,7 +101,7 @@ simple_plugin(EventReporterOutput "module"
   MF_MessageLogger
   fhiclcpp
   cetlib
-  ${CETLIB_EXCEPT}
+  cetlib_except
   ${ROOT_CORE}
   ${ROOT_RIO}
 )
