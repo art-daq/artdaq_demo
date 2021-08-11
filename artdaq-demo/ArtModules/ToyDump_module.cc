@@ -10,6 +10,7 @@
 #include "art/Framework/Core/EDAnalyzer.h"
 #include "art/Framework/Core/ModuleMacros.h"
 #include "art/Framework/Principal/Event.h"
+#include "art/Framework/Principal/SubRun.h"
 #include "art/Framework/Principal/Handle.h"
 #include "canvas/Utilities/Exception.h"
 
@@ -110,7 +111,11 @@ void demo::ToyDump::analyze(art::Event const& evt)
 	artdaq::FragmentPtrs containerFragments;
 
 	std::vector<art::Handle<artdaq::Fragments>> fragmentHandles;
+#if ART_HEX_VERSION < 0x30900
 	evt.getManyByType(fragmentHandles);
+#else
+	fragmentHandles = evt.getMany<std::vector<artdaq::Fragment>>();
+#endif
 
 	for (const auto& handle : fragmentHandles)
 	{

@@ -3,7 +3,7 @@ cet_test(NthEvent_policy_t USE_BOOST_UNIT
 LIBRARIES
    artdaq_RoutingPolicies
    artdaq_DAQdata
-   ${FHICLCPP}
-   ${MF_MESSAGELOGGER}
+   fhiclcpp
+   MF_MessageLogger
    ${Boost_SYSTEM_LIBRARY}
 )

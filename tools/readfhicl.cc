@@ -1,6 +1,6 @@
 #include <iostream>
 #include "fhiclcpp/ParameterSet.h"
-#include "fhiclcpp/make_ParameterSet.h"
+#include "artdaq-utilities/Plugins/MakeParameterSet.hh"
 
 #include <boost/program_options.hpp>
 
@@ -51,7 +51,6 @@ int main(int argc, char* argv[]) try
 	// environmental variable for the *.fcl file whose name was passed to
 	// the command line. If not defined, look in the current directory.
 
-	ParameterSet complete_pset;
 
 	if (getenv("FHICL_FILE_PATH") == nullptr)
 	{
@@ -62,7 +61,7 @@ int main(int argc, char* argv[]) try
 	auto file_name = vm["config"].as<std::string>();
 	auto filepath_maker = cet::filepath_lookup("FHICL_FILE_PATH");
 
-	make_ParameterSet(file_name, filepath_maker, complete_pset);
+	auto complete_pset = artdaq::make_pset(file_name, filepath_maker);
 
 	std::cout << complete_pset.to_indented_string(0, false) << "\n";
 

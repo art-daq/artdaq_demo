@@ -42,9 +42,13 @@ else
     mrb t || exit 4
 fi
 
+popd
+./run_integration_tests.sh
+pushd $MRB_BUILDDIR
+
 lcov -d . --capture --output-file ${MRB_PROJECT}.info
 lcov -a ${MRB_PROJECT}.base -a ${MRB_PROJECT}.info --output-file ${MRB_PROJECT}.total
-lcov --remove ${MRB_PROJECT}.total */products/* */build_${CET_SUBDIR}/* /usr/include/curl/* --output-file ${MRB_PROJECT}.info.cleaned
+lcov --remove ${MRB_PROJECT}.total '/cvmfs/*' 'boost/*' '*/products/*' "*/build_${CET_SUBDIR}/*" '/usr/include/curl/*' --output-file ${MRB_PROJECT}.info.cleaned
 genhtml -o coverage ${MRB_PROJECT}.info.cleaned
 
 popd
