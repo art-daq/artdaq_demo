@@ -6,9 +6,9 @@ cet_script(configure_artdaq_database.sh)
 
 art_make_exec(read_fhicl SOURCE readfhicl.cc
   LIBRARIES
-  ${FHICLCPP}
+  fhiclcpp
   ${Boost_PROGRAM_OPTIONS_LIBRARY}
-  ${CETLIB}
+  cetlib
   )  
   
 # Is this necessary?
