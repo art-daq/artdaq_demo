@@ -19,7 +19,7 @@ art_make( BASENAME_ONLY
   ${ROOT_NET}
   ${ROOT_REFLEX}
   cetlib
-  ${CETLIB_EXCEPT}
+  cetlib_except
 )
 
 #art_make(NO_PLUGINS # WAnt different link lists for modues
@@ -33,46 +33,46 @@ art_make( BASENAME_ONLY
 simple_plugin(ArtdaqDemoBuildInfo "module"
   artdaq_DAQdata
   artdaq_BuildInfo
-  artdaq-core_BuildInfo
-  artdaq-utilities_BuildInfo
+  artdaq_core::artdaq-core_BuildInfo
+  artdaq_utilities::artdaq-utilities_BuildInfo
   artdaq-demo_BuildInfo
-  artdaq-core-demo_BuildInfo
+  artdaq_core_demo::artdaq-core-demo_BuildInfo
   art_Persistency_Provenance
-  ${MF_MESSAGELOGGER}
-  ${FHICLCPP}
-  ${CETLIB}
-  ${CETLIB_EXCEPT}
+  MF_MessageLogger
+  fhiclcpp
+  cetlib
+  cetlib_except
 )
 
 simple_plugin(NthEvent "module"
-	${CETLIB_EXCEPT}
+	cetlib_except
 )
 
 simple_plugin(ToyDump "module"
-	artdaq-core_Data
-    artdaq-core_Utilities
-	artdaq-core-demo_Overlays
+	artdaq_core::artdaq-core_Data
+    artdaq_core::artdaq-core_Utilities
+	artdaq_core_demo::artdaq-core-demo_Overlays
 	art_Persistency_Provenance
-	${CETLIB_EXCEPT}
+	cetlib_except
 )
 
 simple_plugin(ASCIIDump "module"
-			  artdaq-core_Data
-              artdaq-core_Utilities
-			  artdaq-core-demo_Overlays
+			  artdaq_core::artdaq-core_Data
+              artdaq_core::artdaq-core_Utilities
+			  artdaq_core_demo::artdaq-core-demo_Overlays
 			  art_Persistency_Provenance
-			  ${CETLIB_EXCEPT}
+			  cetlib_except
 )
 
 simple_plugin(RootApplication "module"
-  ${CETLIB_EXCEPT}
+  cetlib_except
   ${ROOT_CORE}
   )
 
 simple_plugin(WFViewer "module"
-			  artdaq-core_Data
-              artdaq-core_Utilities
-			  artdaq-core-demo_Overlays
+			  artdaq_core::artdaq-core_Data
+              artdaq_core::artdaq-core_Utilities
+			  artdaq_core_demo::artdaq-core-demo_Overlays
 			  MF_MessageLogger
   art_Persistency_Provenance
   ${ROOT_CORE}
@@ -80,28 +80,28 @@ simple_plugin(WFViewer "module"
 			  ${ROOT_HIST}
 			  ${ROOT_GUI}
 			  ${ROOT_RIO}
-  ${CETLIB_EXCEPT}
+  cetlib_except
   )
 
 simple_plugin(CheckIntegrity "module"
-			  artdaq-core_Data
-              artdaq-core_Utilities
-			  artdaq-core-demo_Overlays
+			  artdaq_core::artdaq-core_Data
+              artdaq_core::artdaq-core_Utilities
+			  artdaq_core_demo::artdaq-core-demo_Overlays
 			art_Persistency_Provenance
-  ${MESSAGEFACILITY_LIBS}
-  ${CETLIB_EXCEPT}
+  MF_MessageLogger
+  cetlib_except
 )
   
 simple_plugin(EventReporterOutput "module"
   artdaq_ArtModules
   artdaq_DAQdata
-  artdaq-core_Utilities
+  artdaq_core::artdaq-core_Utilities
   art_Framework_Services_Registry
   art_Utilities
   MF_MessageLogger
   fhiclcpp
   cetlib
-  ${CETLIB_EXCEPT}
+  cetlib_except
   ${ROOT_CORE}
   ${ROOT_RIO}
 )
