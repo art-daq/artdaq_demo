@@ -514,7 +514,7 @@ ${opt_mfext+export ARTDAQ_MFEXTENSIONS_ENABLED=1}
 export ARTDAQDEMO_DATA_DIR=${datadir}
 export ARTDAQDEMO_LOG_DIR=${logdir}
 
-export FHICL_FILE_PATH=.:\$ARTDAQ_DEMO_DIR/tools/snippets:\$ARTDAQ_DEMO_DIR/tools/fcl:\$FHICL_FILE_PATH
+export FHICL_FILE_PATH=\$ARTDAQDEMO_BUILD/fcl:\$ARTDAQ_DEMO_DIR/tools/fcl:\$FHICL_FILE_PATH
 
 # 03-Jun-2018, KAB: added second call to mrbSetEnv to ensure that the code that is built
 # from the srcs area in the mrb environment is what is found first in the PATH.
