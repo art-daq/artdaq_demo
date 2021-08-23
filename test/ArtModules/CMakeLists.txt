@@ -27,7 +27,7 @@ cet_test(CheckIntegrity_RawFragmentHeaderV2 HANDBUILT
   ${CMAKE_CURRENT_BINARY_DIR}/RawFragmentHeaderV2_example_file.root
 )
 
-  cet_script(driver_with_verification.sh)
+  cet_script(ALWAYS_COPY driver_with_verification.sh)
 
   cet_test(driver_with_verification_t HANDBUILT
 	TEST_EXEC driver_with_verification.sh
