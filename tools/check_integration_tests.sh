@@ -3,7 +3,7 @@
 #set -x
 setup_sourced=0
 
-min_events_ascii_simulator_example=10000
+min_events_ascii_simulator_example=600
 min_events_circular_buffer_mode_example=60
 min_events_circular_buffer_mode_withRM=10
 min_events_complex_subsystems=600
