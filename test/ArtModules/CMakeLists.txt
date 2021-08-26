@@ -1,4 +1,4 @@
-
+#[[
 file(DOWNLOAD https://artdaq.fnal.gov/TestDataFiles/RawFragmentHeaderV1_example_file.root ${CMAKE_CURRENT_BINARY_DIR}/RawFragmentHeaderV1_example_file.root TIMEOUT 30 STATUS RawFragmentHeaderV1Status)
 file(DOWNLOAD https://artdaq.fnal.gov/TestDataFiles/RawFragmentHeaderV2_example_file.root ${CMAKE_CURRENT_BINARY_DIR}/RawFragmentHeaderV2_example_file.root TIMEOUT 30 STATUS RawFragmentHeaderV2Status)
 
@@ -26,7 +26,7 @@ cet_test(CheckIntegrity_RawFragmentHeaderV2 HANDBUILT
   REQUIRED_FILES
   ${CMAKE_CURRENT_BINARY_DIR}/RawFragmentHeaderV2_example_file.root
 )
-
+]]
   cet_script(ALWAYS_COPY driver_with_verification.sh)
 
   cet_test(driver_with_verification_t HANDBUILT
