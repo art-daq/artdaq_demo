@@ -1,4 +1,4 @@
-art_make( BASENAME_ONLY
+cet_make( BASENAME_ONLY
  LIBRARY_NAME artdaq-demo_ArtModules
   NO_PLUGINS
   DICT_DICTIONARIES
@@ -22,7 +22,7 @@ art_make( BASENAME_ONLY
   cetlib_except
 )
 
-#art_make(NO_PLUGINS # WAnt different link lists for modues
+#cet_make(NO_PLUGINS # WAnt different link lists for modues
 #  LIB_LIBRARIES artdaq-core-demo_Overlays
 #)
 

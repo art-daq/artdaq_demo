@@ -21,7 +21,7 @@ old_style_config_vars
 product				version		optional
 artdaq				v3_10_03
 artdaq_core_demo	v1_08_03
-cetbuildtools		v8_13_04	-	only_for_build
+cetmodules			v2_26_00		-	only_for_build
 end_product_list
 
 # See https://cdcvs.fnal.gov/redmine/projects/cet-is-public/wiki/AboutQualifiers for information about the qualifiers used

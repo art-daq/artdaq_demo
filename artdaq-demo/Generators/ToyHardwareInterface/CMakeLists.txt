@@ -1,4 +1,4 @@
-art_make(
+cet_make(
         LIB_LIBRARIES
         art_Utilities
         fhiclcpp

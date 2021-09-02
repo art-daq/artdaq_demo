@@ -9,19 +9,14 @@
 
 cmake_minimum_required (VERSION 3.17)
 
-find_package(cetbuildtools)
+find_package(cetmodules)
+set(CET_CETBUILDTOOLS_COMPAT TRUE)
+include(Compatibility)
+set(CET_WARN_DEPRECATED)
 
 project(artdaq_demo VERSION 3.10.03)
-# cetbuildtools contains our cmake modules
-SET ( CETBUILDTOOLS_VERSION $ENV{CETBUILDTOOLS_VERSION} )
-IF (NOT CETBUILDTOOLS_VERSION)
-    MESSAGE (FATAL_ERROR "ERROR: setup cetbuildtools to get the cmake modules")
-ENDIF()
 
 set(CMAKE_MODULE_PATH
-  $ENV{ART_DIR}/Modules
-  $ENV{CANVAS_DIR}/Modules
-	$ENV{CETBUILDTOOLS_DIR}/Modules
 			  $ENV{ARTDAQ_UTILITIES_DIR}/Modules
 	${CMAKE_MODULE_PATH})
 

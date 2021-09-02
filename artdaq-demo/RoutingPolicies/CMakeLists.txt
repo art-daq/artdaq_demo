@@ -1,4 +1,4 @@
-simple_plugin("MisbehaviorTest" "policy"
+basic_plugin("MisbehaviorTest" "policy"
     artdaq_RoutingPolicies
     artdaq_DAQdata
     fhiclcpp
@@ -8,7 +8,7 @@ simple_plugin("MisbehaviorTest" "policy"
     cetlib
     )
 
-simple_plugin(NthEvent "policy"
+basic_plugin(NthEvent "policy"
 artdaq_RoutingPolicies
 artdaq_DAQdata
 fhiclcpp

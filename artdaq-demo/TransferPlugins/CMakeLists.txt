@@ -1,7 +1,5 @@
 
-include_directories($ENV{MPICH_INC} )
-
-simple_plugin(NthEvent "transfer"
+basic_plugin(NthEvent "transfer"
   artdaq_TransferPlugins
   artdaq_core::artdaq-core_Utilities
   artdaq_DAQrate

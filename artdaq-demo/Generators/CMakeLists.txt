@@ -1,5 +1,5 @@
 
-simple_plugin(ToySimulator "generator"
+basic_plugin(ToySimulator "generator"
   artdaq-demo_Generators_ToyHardwareInterface
   artdaq_core_demo::artdaq-core-demo_Overlays
   artdaq_Generators
@@ -15,7 +15,7 @@ simple_plugin(ToySimulator "generator"
 cetlib_except
   )
 
-simple_plugin(AsciiSimulator "generator"
+basic_plugin(AsciiSimulator "generator"
   artdaq_core_demo::artdaq-core-demo_Overlays
   artdaq_Generators
   artdaq_DAQdata
@@ -28,7 +28,7 @@ simple_plugin(AsciiSimulator "generator"
   cetlib_except
   )
 
-simple_plugin(UDPReceiver "generator"
+basic_plugin(UDPReceiver "generator"
     artdaq_core_demo::artdaq-core-demo_Overlays
     artdaq_Generators
     artdaq_DAQdata

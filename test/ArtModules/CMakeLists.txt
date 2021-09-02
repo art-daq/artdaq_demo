@@ -1,5 +1,5 @@
 
-cet_script(driver_with_verification.sh)
+cet_script(ALWAYS_COPY driver_with_verification.sh)
 
   cet_test(driver_with_verification_t HANDBUILT
 	TEST_EXEC driver_with_verification.sh

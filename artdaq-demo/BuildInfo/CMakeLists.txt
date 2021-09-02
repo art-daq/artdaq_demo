@@ -41,7 +41,7 @@ endif()
 configure_file ( ${CMAKE_CURRENT_SOURCE_DIR}/GetPackageBuildInfo.cc.in
   ${CMAKE_CURRENT_BINARY_DIR}/GetPackageBuildInfo.cc @ONLY )
 
-art_make_library( LIBRARY_NAME artdaq-demo_BuildInfo
+cet_make_library( LIBRARY_NAME artdaq-demo_BuildInfo
                   SOURCE
 		  ${CMAKE_CURRENT_BINARY_DIR}/GetPackageBuildInfo.cc
                  )
