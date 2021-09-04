@@ -26,7 +26,10 @@ demo::ToySimulator::ToySimulator(fhicl::ParameterSet const& ps)
     : CommandableFragmentGenerator(ps)
     , hardware_interface_(new ToyHardwareInterface(ps))
     , timestamp_(0)
+    , starting_timestamp_(0)
     , timestampScale_(ps.get<int>("timestamp_scale_factor", 1))
+    , sequence_id_scale_(ps.get<size_t>("sequence_scale_factor", 1))
+    , initial_sequence_id_(ps.get<size_t>("initial_sequence_id", 1))
     , rollover_subrun_interval_(ps.get<int>("rollover_subrun_interval", 0))
     , metadata_({0, 0, 0})
     , readout_buffer_(nullptr)
@@ -39,6 +42,14 @@ demo::ToySimulator::ToySimulator(fhicl::ParameterSet const& ps)
 
 {
 	hardware_interface_->AllocateReadoutBuffer(&readout_buffer_);
+
+	auto ts = ps.get<int>("starting_timestamp", 0);
+	if (ts < 0) { starting_timestamp_ = artdaq::Fragment::InvalidTimestamp; }
+	else
+	{
+		starting_timestamp_ = static_cast<artdaq::Fragment::timestamp_t>(ts);
+	}
+	timestamp_ = starting_timestamp_;
 
 	if (exception_on_config_)
 	{
@@ -219,7 +230,7 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 		}
 	}
 
-	ev_counter_inc();
+	ev_counter_inc(sequence_id_scale_);
 	timestamp_ += timestampScale_;
 
 	TLOG(TLVL_DEBUG + 3) << "getNext_: DONE";
@@ -229,7 +240,11 @@ bool demo::ToySimulator::getNext_(artdaq::FragmentPtrs& frags)
 void demo::ToySimulator::start()
 {
 	hardware_interface_->StartDatataking();
-	timestamp_ = 0;
+	while (ev_counter() < initial_sequence_id_)
+	{
+		ev_counter_inc();
+	}
+	timestamp_ = starting_timestamp_;
 	lazily_handled_requests_.clear();
 }
 

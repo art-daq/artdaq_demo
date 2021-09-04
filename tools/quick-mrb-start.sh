@@ -33,6 +33,7 @@ prompted for this location.
 --tag         Install a specific tag of artdaq_demo
 --logdir      Set <dir> as the destination for log files
 --datadir     Set <dir> as the destination for data files
+--no-pull     Ignore status from pullProducts
 --recordsdir  Set <dir> as the destination for run record information
 -e, -s, -c    Use specific qualifiers when building ARTDAQ
 -v            Be more verbose
@@ -50,7 +51,7 @@ eval "set -- $env_opts \"\$@\""
 op1chr='rest=`expr "$op" : "[^-]\(.*\)"`   && set -- "-$rest" "$@"'
 op1arg='rest=`expr "$op" : "[^-]\(.*\)"`   && set --  "$rest" "$@"'
 reqarg="$op1arg;"'test -z "${1+1}" &&echo opt -$op requires arg. &&echo "$USAGE" &&exit'
-args= do_help= opt_v=0; opt_w=0; opt_develop=0; opt_skip_extra_products=0;
+args= do_help= opt_v=0; opt_w=0; opt_develop=0; opt_skip_extra_products=0; opt_no_pull=0
 while [ -n "${1-}" ];do
 	if expr "x${1-}" : 'x-' >/dev/null;then
 		op=`expr "x$1" : 'x-\(.*\)'`; shift   # done with $1
@@ -74,6 +75,7 @@ while [ -n "${1-}" ];do
 			-recordsdir) eval $op1arg; recordsdir=$1; shift;;
 			-no-extra-products)  opt_skip_extra_products=1;;
 			-mfext)     opt_mfext=1;;
+			-no-pull)   opt_no_pull=1;;
 			*)          echo "Unknown option -$op"; do_help=1;;
 		esac
 	else
@@ -383,7 +385,9 @@ mrbversion=`grep mrb *_MANIFEST.txt|sort|tail -1|awk '{print $2}'`
 
 	if [ $? -ne 0 ]; then
 	echo "Error in pullProducts. Please go to http://scisoft.fnal.gov/scisoft/bundles/artdaq_demo/${demo_version}/manifest and make sure that a manifest for the specified qualifiers (${squalifier}-${equalifier}) exists."
-	exit 1
+		if [ $opt_no_pull -eq 0 ]; then
+			exit 1
+		fi
 	fi
 export PRODUCTS=$PRODUCTS_SET
 source $Base/products/setup
@@ -510,7 +514,7 @@ ${opt_mfext+export ARTDAQ_MFEXTENSIONS_ENABLED=1}
 export ARTDAQDEMO_DATA_DIR=${datadir}
 export ARTDAQDEMO_LOG_DIR=${logdir}
 
-export FHICL_FILE_PATH=.:\$ARTDAQ_DEMO_DIR/tools/snippets:\$ARTDAQ_DEMO_DIR/tools/fcl:\$FHICL_FILE_PATH
+export FHICL_FILE_PATH=\$ARTDAQDEMO_BUILD/fcl:\$ARTDAQ_DEMO_DIR/tools/fcl:\$FHICL_FILE_PATH
 
 # 03-Jun-2018, KAB: added second call to mrbSetEnv to ensure that the code that is built
 # from the srcs area in the mrb environment is what is found first in the PATH.

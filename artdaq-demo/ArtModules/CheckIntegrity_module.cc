@@ -42,8 +42,9 @@ public:
 	 * \param pset ParameterSet used to configure CheckIntegrity
 	 *
 	 * CheckIntegrity has the following paramters:
-	 * "raw_data_label": The label applied to data (usually "daq")
-	 * "frag_type": The fragment type to analyze ("TOY1" or "TOY2")
+	 * "raw_data_label" (Default: "daq"): The label applied to data (usually "daq")
+	 * "exception_on_integrity_failure" (Default: false): Whether to throw an exception (abort processing) if an
+	 * integrity issue is found
 	 */
 	explicit CheckIntegrity(fhicl::ParameterSet const& pset);
 
@@ -65,10 +66,13 @@ private:
 	CheckIntegrity& operator=(CheckIntegrity&&) = delete;
 
 	std::string raw_data_label_;
+	bool exception_on_integrity_failure_;
 };
 
 demo::CheckIntegrity::CheckIntegrity(fhicl::ParameterSet const& pset)
-    : EDAnalyzer(pset), raw_data_label_(pset.get<std::string>("raw_data_label"))
+    : EDAnalyzer(pset)
+    , raw_data_label_(pset.get<std::string>("raw_data_label", "daq"))
+    , exception_on_integrity_failure_(pset.get<bool>("exception_on_integrity_failure", false))
 {}
 
 void demo::CheckIntegrity::analyze(art::Event const& evt)
@@ -125,7 +129,9 @@ void demo::CheckIntegrity::analyze(art::Event const& evt)
 	bool err = false;
 	for (const auto& frag : fragments)
 	{
+		// These methods take significantly more time when processing non-CurrentVersion Fragments, so cache them here
 		ToyFragment bb(frag);
+		auto dist_type = bb.hdr_distribution_type();
 
 		if (bb.hdr_event_size() * sizeof(ToyFragment::Header::data_t) !=
 		    frag.dataSize() * sizeof(artdaq::RawDataType))
@@ -135,16 +141,52 @@ void demo::CheckIntegrity::analyze(art::Event const& evt)
 			                 << ": Size mismatch!"
 			                 << " ToyFragment Header reports size of "
 			                 << bb.hdr_event_size() * sizeof(ToyFragment::Header::data_t)
-			                 << " bytes, Fragment report size of " << frag.dataSize() * sizeof(artdaq::RawDataType)
+			                 << " bytes, but Fragment reports size of "
+			                 << frag.dataSize() * sizeof(artdaq::RawDataType) << " bytes.";
+
+			if (exception_on_integrity_failure_)
+			{
+				throw cet::exception("CheckIntegrity")
+				    << "Error: in run " << evt.run() << ", subrun " << evt.subRun() << ", event " << evt.event()
+				    << ", seqID " << frag.sequenceID() << ", fragID " << frag.fragmentID() << ": Size mismatch!"
+				    << " ToyFragment Header reports size of "
+				    << bb.hdr_event_size() * sizeof(ToyFragment::Header::data_t)
+				    << " bytes, but Fragment reports size of " << frag.dataSize() * sizeof(artdaq::RawDataType)
+				    << " bytes.";
+			}
+			continue;
+		}
+
+		if ((frag.size() - frag.headerSizeWords() - frag.dataSize()) * sizeof(artdaq::RawDataType) !=
+		    sizeof(ToyFragment::Metadata))
+		{
+			TLOG(TLVL_ERROR) << "Error: in run " << evt.run() << ", subrun " << evt.subRun() << ", event "
+			                 << evt.event() << ", seqID " << frag.sequenceID() << ", fragID " << frag.fragmentID()
+			                 << ": Metadata error!"
+			                 << " ToyFragment metadata size should be " << sizeof(ToyFragment::Metadata)
+			                 << " bytes, but Fragment reports size of "
+			                 << (frag.size() - frag.headerSizeWords() - frag.dataSize()) *
+			                        sizeof(artdaq::RawDataType)
 			                 << " bytes.";
+			if (exception_on_integrity_failure_)
+			{
+				throw cet::exception("CheckIntegrity")
+				    << "Error: in run " << evt.run() << ", subrun " << evt.subRun() << ", event " << evt.event()
+				    << ", seqID " << frag.sequenceID() << ", fragID " << frag.fragmentID() << ": Metadata error!"
+				    << " ToyFragment metadata size should be " << sizeof(ToyFragment::Metadata)
+				    << " bytes, but Fragment reports size of "
+				    << (frag.size() - frag.headerSizeWords() - frag.dataSize()) * sizeof(artdaq::RawDataType)
+				    << " bytes.";
+			}
 			continue;
 		}
 
 		{
 			auto adc_iter = bb.dataBeginADCs();
+			auto adc_end = bb.dataEndADCs();
 			ToyFragment::adc_t expected_adc = 1;
 
-			for (; adc_iter != bb.dataEndADCs(); adc_iter++, expected_adc++)
+			for (; adc_iter != adc_end; adc_iter++, expected_adc++)
 			{
 				if (expected_adc > demo::ToyFragment::adc_range(frag.metadata<ToyFragment::Metadata>()->num_adc_bits))
 				{
@@ -152,13 +194,20 @@ void demo::CheckIntegrity::analyze(art::Event const& evt)
 				}
 
 				// ELF 7/10/18: Distribution type 2 is the monotonically-increasing one
-				if (bb.hdr_distribution_type() == 2 && *adc_iter != expected_adc)
+				if (dist_type == 2 && *adc_iter != expected_adc)
 				{
 					TLOG(TLVL_ERROR) << "Error: in run " << evt.run() << ", subrun " << evt.subRun() << ", event "
 					                 << evt.event() << ", seqID " << frag.sequenceID() << ", fragID "
 					                 << frag.fragmentID() << ": expected an ADC value of " << expected_adc << ", got "
 					                 << *adc_iter;
 					err = true;
+					if (exception_on_integrity_failure_)
+					{
+						throw cet::exception("CheckIntegrity")
+						    << "Error: in run " << evt.run() << ", subrun " << evt.subRun() << ", event " << evt.event()
+						    << ", seqID " << frag.sequenceID() << ", fragID " << frag.fragmentID()
+						    << ": expected an ADC value of " << expected_adc << ", got " << *adc_iter;
+					}
 					break;
 				}
 
@@ -172,6 +221,13 @@ void demo::CheckIntegrity::analyze(art::Event const& evt)
 					                 << frag.fragmentID() << ": " << *adc_iter
 					                 << " is out-of-range for this Fragment type";
 					err = true;
+					if (exception_on_integrity_failure_)
+					{
+						throw cet::exception("CheckIntegrity")
+						    << "Error: in run " << evt.run() << ", subrun " << evt.subRun() << ", event " << evt.event()
+						    << ", seqID " << frag.sequenceID() << ", fragID " << frag.fragmentID() << ": " << *adc_iter
+						    << " is out-of-range for this Fragment type";
+					}
 					break;
 				}
 			}

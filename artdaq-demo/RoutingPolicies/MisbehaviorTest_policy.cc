@@ -33,10 +33,18 @@ public:
 	~MisbehaviorTest() override = default;
 
 	/**
-	 * \brief Generate and return a Routing Table
-	 * \return An artdaq::detail::RoutingPacket with the Routing Table information
-	 */
-	artdaq::detail::RoutingPacket GetCurrentTable() override;
+	 * @brief Use the current tokens to add entries to the routing table
+	 * @param table Routing Table to append to
+	*/
+	void CreateRoutingTable(artdaq::detail::RoutingPacket& table) override;
+
+	/**
+	 * @brief Using the existing tokens, determine a route for a given Sequence ID
+	 * @param seq Sequence ID to route
+	 * @param requesting_rank Rank requesting the route
+	 * @return Routing information
+	*/
+	artdaq::detail::RoutingPacketEntry CreateRouteForSequenceID(artdaq::Fragment::sequence_id_t seq, int requesting_rank) override;
 
 private:
 	MisbehaviorTest(MisbehaviorTest const&) = delete;
@@ -45,6 +53,7 @@ private:
 	MisbehaviorTest& operator=(MisbehaviorTest&&) = delete;
 
 	artdaq::Fragment::sequence_id_t misbehave_after_;
+	artdaq::Fragment::sequence_id_t misbehave_until_{0};  // For overloading EventBuilder in request mode
 	size_t misbehave_pause_ms_;
 	bool misbehave_conflicting_table_data_;
 	bool misbehave_corrupt_table_data_;
@@ -69,22 +78,19 @@ MisbehaviorTest::MisbehaviorTest(const fhicl::ParameterSet& ps)
 	}
 }
 
-artdaq::detail::RoutingPacket MisbehaviorTest::GetCurrentTable()
+void MisbehaviorTest::CreateRoutingTable(artdaq::detail::RoutingPacket& table)
 {
-	auto tokens = getTokensSnapshot();
-	artdaq::detail::RoutingPacket output;
-
-	auto half = tokens->size() / 2;
+	auto half = tokens_.size() / 2;
 	size_t counter = 0;
 	for (; counter < half; ++counter)
 	{
-		output.emplace_back(artdaq::detail::RoutingPacketEntry(next_sequence_id_, tokens->at(counter)));
+		table.emplace_back(artdaq::detail::RoutingPacketEntry(next_sequence_id_, tokens_.at(counter)));
 		next_sequence_id_++;
 	}
 
 	if (next_sequence_id_ > misbehave_after_)
 	{
-		if (!tokens->empty())
+		if (!tokens_.empty())
 		{
 			if (misbehave_pause_ms_ > 0)
 			{
@@ -95,19 +101,19 @@ artdaq::detail::RoutingPacket MisbehaviorTest::GetCurrentTable()
 			if (misbehave_conflicting_table_data_)
 			{
 				mf::LogError("MisbehaviorTest") << "Adding conflicting data point to output";
-				output.emplace_back(next_sequence_id_, tokens->at(counter) + 1);
+				table.emplace_back(next_sequence_id_, tokens_.at(counter) + 1);
 			}
 			if (misbehave_corrupt_table_data_)
 			{
 				mf::LogError("MisbehaviorTest") << "Adding random data point";
-				output.emplace_back(seedAndRandom(), rand());  // NOLINT(cert-msc50-cpp)
+				table.emplace_back(seedAndRandom(), rand());  // NOLINT(cert-msc50-cpp)
 			}
 			if (misbehave_overload_event_builder_)
 			{
-				mf::LogError("MisbehaviorTest") << "Sending 100 events in a row to Rank " << tokens->at(0);
+				mf::LogError("MisbehaviorTest") << "Sending 100 events in a row to Rank " << tokens_.at(0);
 				for (auto ii = 0; ii < 100; ++ii)
 				{
-					output.emplace_back(next_sequence_id_, tokens->at(0));
+					table.emplace_back(next_sequence_id_, tokens_.at(0));
 					next_sequence_id_++;
 				}
 			}
@@ -115,10 +121,57 @@ artdaq::detail::RoutingPacket MisbehaviorTest::GetCurrentTable()
 		}
 	}
 
-	for (; counter < tokens->size(); ++counter)
+	for (; counter < tokens_.size(); ++counter)
 	{
-		output.emplace_back(artdaq::detail::RoutingPacketEntry(next_sequence_id_, tokens->at(counter)));
+		table.emplace_back(artdaq::detail::RoutingPacketEntry(next_sequence_id_, tokens_.at(counter)));
 		next_sequence_id_++;
+	}
+}
+artdaq::detail::RoutingPacketEntry MisbehaviorTest::CreateRouteForSequenceID(artdaq::Fragment::sequence_id_t seq, int)
+{
+	artdaq::detail::RoutingPacketEntry output;
+	if (!tokens_.empty())
+	{
+		if (seq > misbehave_after_ || seq < misbehave_until_)
+		{
+			if (seq > misbehave_until_)
+			{
+				misbehave_after_ += misbehave_after_;
+			}
+			if (misbehave_pause_ms_ > 0)
+			{
+				mf::LogError("MisbehaviorTest")
+				    << "Pausing for " << misbehave_pause_ms_ << " milliseconds before sending table update";
+				usleep(misbehave_pause_ms_ * 1000);
+
+				auto dest = tokens_.front();  // No-Op: Use first token
+				output = artdaq::detail::RoutingPacketEntry(seq, dest);
+				tokens_.pop_front();
+				tokens_used_since_last_update_++;
+			}
+			// misbehave_conflicting_table_data_ is not applicable for request mode
+			if (misbehave_corrupt_table_data_)
+			{
+				mf::LogError("MisbehaviorTest") << "Adding random data point";
+				output = artdaq::detail::RoutingPacketEntry(seedAndRandom(), rand());  // NOLINT(cert-msc50-cpp)
+			}
+			if (misbehave_overload_event_builder_)
+			{
+				output = artdaq::detail::RoutingPacketEntry(seq, tokens_.front());
+				// Not removing token
+				if (seq > misbehave_until_)
+				{
+					misbehave_until_ = seq + 100;
+				}
+			}
+		}
+		else
+		{
+			auto dest = tokens_.front();  // No-Op: Use first token
+			output = artdaq::detail::RoutingPacketEntry(seq, dest);
+			tokens_.pop_front();
+			tokens_used_since_last_update_++;
+		}
 	}
 
 	return output;

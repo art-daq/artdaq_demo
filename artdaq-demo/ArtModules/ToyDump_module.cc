@@ -10,8 +10,8 @@
 #include "art/Framework/Core/EDAnalyzer.h"
 #include "art/Framework/Core/ModuleMacros.h"
 #include "art/Framework/Principal/Event.h"
-#include "art/Framework/Principal/SubRun.h"
 #include "art/Framework/Principal/Handle.h"
+#include "art/Framework/Principal/SubRun.h"
 #include "canvas/Utilities/Exception.h"
 
 #include "artdaq-core-demo/Overlays/FragmentType.hh"
@@ -84,7 +84,8 @@ private:
 	std::string output_file_name_;
 
 	std::map<size_t, size_t> fragment_counts_;
-	size_t event_count_;
+	size_t event_count_{0};
+	art::EventNumber_t last_event_{0};
 };
 
 demo::ToyDump::ToyDump(fhicl::ParameterSet const& pset)
@@ -102,6 +103,11 @@ demo::ToyDump::~ToyDump() = default;
 void demo::ToyDump::analyze(art::Event const& evt)
 {
 	art::EventNumber_t eventNumber = evt.event();
+	if (last_event_ != 0 && last_event_ + 1 != eventNumber)
+	{
+		TLOG(TLVL_WARNING) << "Event ordering problem! Current event number " << eventNumber << " disagrees with predicted " << last_event_ + 1;
+	}
+	last_event_ = eventNumber;
 
 	// ***********************
 	// *** Toy Fragments ***

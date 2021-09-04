@@ -3,7 +3,7 @@
 #set -x
 setup_sourced=0
 
-min_events_ascii_simulator_example=10000
+min_events_ascii_simulator_example=600
 min_events_circular_buffer_mode_example=60
 min_events_circular_buffer_mode_withRM=10
 min_events_complex_subsystems=600
@@ -36,7 +36,7 @@ min_fragments_eventbuilder_diskwriting=2
 min_fragments_file_closing_example=2
 min_fragments_issue24231_test1=4
 min_fragments_mediumsystem_with_routing_manager=10
-min_fragments_mu2e_sample_system=3
+min_fragments_mu2e_sample_system=1
 min_fragments_multiple_art_processes_example=2
 min_fragments_multiple_dataloggers=4
 min_fragments_multiple_fragment_ids=6
@@ -107,6 +107,7 @@ function check_event_count() {
 #	echo "Dump file is $ldump"
 
     local fevents=`grep "Events total" $ldump|sed 's/.*total = \([0-9]*\).*/\1/g'`
+	local ooevents=`grep -c "Event ordering problem" $ldump`
 
 	local mineventsVarname=`echo min_events_${lconfig}`
 	local minevents=${!mineventsVarname}
@@ -114,6 +115,10 @@ function check_event_count() {
 
 	if [ $fevents -lt $minevents ];then
 		echo "    File $lfile has $fevents events, which is less than the minimum required: $minevents!"
+		res=1
+	fi
+	if [ $ooevents -gt 0 ];then
+		echo "    File $lfile has $ooevents out-of-order events! This could be benign, but check dump output for other problems!"
 		res=1
 	fi
 
@@ -182,6 +187,10 @@ for run in `ls -d run_records/*|sort -V`;do
 			check_event_count $file $run_config_name
 		    check_fragment_count $file $run_config_name
 	    done
+    else
+        echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+        echo "!!!!!RUN $run_number WITH CONFIGURATION $run_config_name HAS NO DATA!!!!"
+        echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
 	fi
 done
 check_onmon
