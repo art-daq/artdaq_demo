@@ -19,8 +19,8 @@ old_style_config_vars
 
 #
 product				version		optional
-artdaq				v3_10_03
-artdaq_core_demo	v1_08_03
+artdaq				v3_11_00
+artdaq_core_demo	v1_09_00
 cetmodules			v2_26_00		-	only_for_build
 end_product_list
 
@@ -35,47 +35,12 @@ e20:s112:debug	e20:s112:debug	e20:s112:debug
 e19:s112:prof	e19:s112:prof	e19:s112:prof
 e19:s112:debug	e19:s112:debug	e19:s112:debug
 
-c7:s111:prof	c7:s111:prof	c7:s111:prof
-c7:s111:debug	c7:s111:debug	c7:s111:debug
-e20:s111:prof	e20:s111:prof	e20:s111:prof
-e20:s111:debug	e20:s111:debug	e20:s111:debug
-e19:s111:prof	e19:s111:prof	e19:s111:prof
-e19:s111:debug	e19:s111:debug	e19:s111:debug
-
 c7:s110:prof	c7:s110:prof	c7:s110:prof
 c7:s110:debug	c7:s110:debug	c7:s110:debug
 e20:s110:prof	e20:s110:prof	e20:s110:prof
 e20:s110:debug	e20:s110:debug	e20:s110:debug
 e19:s110:prof	e19:s110:prof	e19:s110:prof
 e19:s110:debug	e19:s110:debug	e19:s110:debug
-
-c7:s109:prof	c7:s109:prof	c7:s109:prof
-c7:s109:debug	c7:s109:debug	c7:s109:debug
-e20:s109:prof	e20:s109:prof	e20:s109:prof
-e20:s109:debug	e20:s109:debug	e20:s109:debug
-e19:s109:prof	e19:s109:prof	e19:s109:prof
-e19:s109:debug	e19:s109:debug	e19:s109:debug
-
-c7:s108:prof	c7:s108:prof	c7:s108:prof
-c7:s108:debug	c7:s108:debug	c7:s108:debug
-e20:s108:prof	e20:s108:prof	e20:s108:prof
-e20:s108:debug	e20:s108:debug	e20:s108:debug
-e19:s108:prof	e19:s108:prof	e19:s108:prof
-e19:s108:debug	e19:s108:debug	e19:s108:debug
-
-c7:s106:prof	c7:s106:prof	c7:s106:prof
-c7:s106:debug	c7:s106:debug	c7:s106:debug
-e20:s106:prof	e20:s106:prof	e20:s106:prof
-e20:s106:debug	e20:s106:debug	e20:s106:debug
-e19:s106:prof	e19:s106:prof	e19:s106:prof
-e19:s106:debug	e19:s106:debug	e19:s106:debug
-
-c7:s105:prof	c7:s105:prof	c7:s105:prof
-c7:s105:debug	c7:s105:debug	c7:s105:debug
-e20:s105:prof	e20:s105:prof	e20:s105:prof
-e20:s105:debug	e20:s105:debug	e20:s105:debug
-e19:s105:prof	e19:s105:prof	e19:s105:prof
-e19:s105:debug	e19:s105:debug	e19:s105:debug
 
 end_qualifier_list
 

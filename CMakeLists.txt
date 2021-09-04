@@ -14,7 +14,7 @@ set(CET_CETBUILDTOOLS_COMPAT TRUE)
 include(Compatibility)
 set(CET_WARN_DEPRECATED)
 
-project(artdaq_demo VERSION 3.10.03)
+project(artdaq_demo VERSION 3.11.00)
 
 set(CMAKE_MODULE_PATH
 			  $ENV{ARTDAQ_UTILITIES_DIR}/Modules
@@ -121,8 +121,4 @@ add_subdirectory(tools)
 # doc - Documentation
 add_subdirectory(doc)
 
-# ups - table and config files
-add_subdirectory(ups)
-
-# packaging utility
-include(UseCPack)
+cet_cmake_config()
