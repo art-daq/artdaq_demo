@@ -492,15 +492,10 @@ echo ...done with cleanup and check
 
 setup mrb $mrbversion
 source $Base/localProducts_artdaq_demo_${demo_version}_${equalifier}_${squalifier}_${build_type}/setup
+if [ \$# -ge 1 -a "\${1-}" = for_running -a -e "\$MRB_BUILDDIR/\$MRB_PROJECT-\$MRB_PROJECT_VERSION" ];then
+   source "\${MRB_DIR}/libexec/shell_independence"; source "\$MRB_BUILDDIR/\$MRB_PROJECT-\$MRB_PROJECT_VERSION"
+else
    mrbsetenv
-
-if [[ "x\${ARTDAQ_MPICH_PLUGIN_DIR:-}" == "x" ]]; then
-  for plugin_version in \`ups list -aK+ artdaq_mpich_plugin -q ${equalifier}:${squalifier}:eth:${build_type}|awk '{print \$2}'|sed 's/\"//g'\`;do
-    if [ \`ups depend artdaq_mpich_plugin \$plugin_version -q ${equalifier}:${squalifier}:eth:${build_type} 2>/dev/null|grep -c "artdaq \$ARTDAQ_VERSION"\` -gt 0 ]; then
-      setup artdaq_mpich_plugin \$plugin_version -q ${equalifier}:${squalifier}:eth:${build_type}
-      break;
-    fi
-  done
 fi
 
 export TRACE_NAME=TRACE
@@ -515,17 +510,6 @@ export ARTDAQDEMO_DATA_DIR=${datadir}
 export ARTDAQDEMO_LOG_DIR=${logdir}
 
 export FHICL_FILE_PATH=\$ARTDAQDEMO_BUILD/fcl:\$ARTDAQ_DEMO_DIR/tools/fcl:\$FHICL_FILE_PATH
-
-# 03-Jun-2018, KAB: added second call to mrbSetEnv to ensure that the code that is built
-# from the srcs area in the mrb environment is what is found first in the PATH.
-if [ \`echo \$ARTDAQ_DIR|grep -c "$Base"\` -eq 0 ]; then
-  echo ""
-  echo ">>> ARTDAQ_DIR=\$ARTDAQ_DIR <<<"
-  echo ">>> Setting up the MRB environment again to ensure that MRB-based executables and libraries are used during running. <<<"
-  echo ""
-  mrbsetenv
-  echo ">>> ARTDAQ_DIR=\$ARTDAQ_DIR <<<"
-fi
 
 echo Check for Toy...
 IFSsav=\$IFS IFS=:; for dd in \$LD_LIBRARY_PATH;do IFS=\$IFSsav; ls \$dd/*Toy* 2>/dev/null ;done
