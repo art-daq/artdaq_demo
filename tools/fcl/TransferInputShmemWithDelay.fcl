@@ -89,7 +89,7 @@ physics:
   end_paths: [ a3 ]
 }
 
-services: { ArtdaqSharedMemoryServiceInterface: { service_provider: ArtdaqSharedMemoryService }
+services: { ArtdaqSharedMemoryServiceInterface: { service_provider: ArtdaqGlobalsService }
 ArtdaqFragmentNamingServiceInterface: { service_provider: ArtdaqFragmentNamingService helper_plugin: "ArtdaqDemo" }
 }
 

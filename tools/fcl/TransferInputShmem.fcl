@@ -52,7 +52,7 @@ physics: {
   end_paths: [ a3 ]
 }
 
-services: { ArtdaqSharedMemoryServiceInterface: { service_provider: ArtdaqSharedMemoryService }}
+services: { ArtdaqSharedMemoryServiceInterface: { service_provider: ArtdaqGlobalsService }}
 
 outputs: {
   out1: {
