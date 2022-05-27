@@ -1,5 +1,4 @@
 #include <iostream>
-#include "artdaq-utilities/Plugins/MakeParameterSet.hh"
 #include "fhiclcpp/ParameterSet.h"
 
 #include <boost/program_options.hpp>
@@ -60,7 +59,7 @@ int main(int argc, char* argv[]) try
 	auto file_name = vm["config"].as<std::string>();
 	auto filepath_maker = cet::filepath_lookup("FHICL_FILE_PATH");
 
-	auto complete_pset = artdaq::make_pset(file_name, filepath_maker);
+	auto complete_pset = fhicl::ParameterSet::make(file_name, filepath_maker);
 
 	std::cout << complete_pset.to_indented_string(0, false) << "\n";
 
