@@ -21,7 +21,7 @@ cet_build_plugin(WFViewer art::module LIBRARIES REG artdaq_core_demo::artdaq-cor
 
 cet_build_plugin(CheckIntegrity art::module LIBRARIES REG artdaq_core_demo::artdaq-core-demo_Overlays)
   
-cet_build_plugin(EventReporterOutput art::module LIBRARIES REG artdaq::DAQdata ROOT::Core)
+cet_build_plugin(EventReporterOutput art::module LIBRARIES REG artdaq::DAQdata ROOT::Core artdaq_core::artdaq-core_Data_ParentageMap)
 
 install_headers(SUBDIRS detail)
 install_source(SUBDIRS detail)
