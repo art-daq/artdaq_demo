@@ -353,8 +353,8 @@ if [[ $notag -eq 1 ]] && [[ $opt_develop -eq 0 ]]; then
   demo_version=v`grep "project" $Base/download/CMakeLists.txt|grep -oE "VERSION [^)]*"|awk '{print $2}'|sed 's/\./_/g'`
   tag=$demo_version
 fi
-artdaq_version=`grep "^artdaq " $Base/download/product_deps | awk '{print $2}'`
-coredemo_version=`grep "^artdaq_core_demo " $Base/download/product_deps | awk '{print $2}'`
+artdaq_version=`grep "^artdaq[ 	]" $Base/download/product_deps | awk '{print $2}'`
+coredemo_version=`grep "^artdaq_core_demo[ 	]" $Base/download/product_deps | awk '{print $2}'`
 defaultQuals=`grep "defaultqual" $Base/download/product_deps|awk '{print $2}'`
 
 defaultE=`echo $defaultQuals|cut -f1 -d:`
@@ -405,35 +405,38 @@ set +u
 source $Base/localProducts_artdaq_demo_${demo_version}_${equalifier}_${squalifier}_${build_type}/setup
 set -u
 
+echo artdaq_version=$artdaq_version demo_version=$demo_version coredemo_version=$coredemo_version
+
 cd $MRB_SOURCE
 if [[ $opt_develop -eq 1 ]]; then
 	if [ $opt_w -gt 0 ];then
-		mrb gitCheckout -d artdaq_core ssh://p-artdaq@cdcvs.fnal.gov/cvs/projects/artdaq-core
-		mrb gitCheckout -d artdaq_utilities ssh://p-artdaq-utilities@cdcvs.fnal.gov/cvs/projects/artdaq-utilities
-		mrb gitCheckout ssh://p-artdaq@cdcvs.fnal.gov/cvs/projects/artdaq
-		mrb gitCheckout -d artdaq_core_demo ssh://p-artdaq-core-demo@cdcvs.fnal.gov/cvs/projects/artdaq-core-demo
-		mrb gitCheckout -d artdaq_demo ssh://p-artdaq-demo@cdcvs.fnal.gov/cvs/projects/artdaq-demo
-#		mrb gitCheckout -d artdaq_mpich_plugin ssh://p-artdaq-utilities@cdcvs.fnal.gov/cvs/projects/artdaq-utilities-mpich-plugin
+		mrb gitCheckout ssh://git@github.com/art-daq/artdaq_core
+		mrb gitCheckout ssh://git@github.com/art-daq/artdaq_utilities
+		mrb gitCheckout ssh://git@github.com/art-daq/artdaq
+		mrb gitCheckout ssh://git@github.com/art-daq/artdaq_core_demo
+		mrb gitCheckout ssh://git@github.com/art-daq/artdaq_demo
+		mrb gitCheckout ssh://git@github.com/art-daq/artdaq_epics_plugin
+		mrb gitCheckout ssh://git@github.com/art-daq/artdaq_mfextensions
 	else
-		mrb gitCheckout -d artdaq_core http://cdcvs.fnal.gov/projects/artdaq-core
-		mrb gitCheckout -d artdaq_utilities http://cdcvs.fnal.gov/projects/artdaq-utilities
-		mrb gitCheckout http://cdcvs.fnal.gov/projects/artdaq
-		mrb gitCheckout -d artdaq_core_demo http://cdcvs.fnal.gov/projects/artdaq-core-demo
-		mrb gitCheckout -d artdaq_demo http://cdcvs.fnal.gov/projects/artdaq-demo
-#		mrb gitCheckout -d artdaq_mpich_plugin http://cdcvs.fnal.gov/projects/artdaq-utilities-mpich-plugin
-#		mrb gitCheckout -d artdaq_ganglia_plugin http://cdcvs.fnal.gov/projects/artdaq-utilities-ganglia-plugin
-		mrb gitCheckout -d artdaq_epics_plugin http://cdcvs.fnal.gov/projects/artdaq-utilities-epics-plugin
-		mrb gitCheckout -d artdaq_mfextensions http://cdcvs.fnal.gov/projects/mf-extensions-git
+		mrb gitCheckout https://github.com/art-daq/artdaq_core
+		mrb gitCheckout https://github.com/art-daq/artdaq_utilities
+                mrb gitCheckout https://github.com/art-daq/artdaq
+                mrb gitCheckout https://github.com/art-daq/artdaq_core_demo
+                mrb gitCheckout https://github.com/art-daq/artdaq_demo
+                mrb gitCheckout https://github.com/art-daq/artdaq_epics_plugin
+                mrb gitCheckout https://github.com/art-daq/artdaq_mfextensions
 	fi
 else
 	if [ $opt_w -gt 0 ];then
-		mrb gitCheckout -t ${coredemo_version} -d artdaq_core_demo ssh://p-artdaq-core-demo@cdcvs.fnal.gov/cvs/projects/artdaq-core-demo
-		mrb gitCheckout -t ${demo_version} -d artdaq_demo ssh://p-artdaq-demo@cdcvs.fnal.gov/cvs/projects/artdaq-demo
-		mrb gitCheckout -t ${artdaq_version} ssh://p-artdaq@cdcvs.fnal.gov/cvs/projects/artdaq
+		mrb gitCheckout -t ${coredemo_version} ssh://git@github.com/art-daq/artdaq_core_demo
+		mrb gitCheckout -t ${demo_version}     ssh://git@github.com/art-daq/artdaq_demo
+		mrb gitCheckout -t ${artdaq_version}   ssh://git@github.com/art-daq/artdaq
+		mrb gitCheckout -t artdaq-${artdaq_version}   ssh://git@github.com/art-daq/artdaq_utilities
 	else
-#		mrb gitCheckout -t ${coredemo_version} -d artdaq_core_demo http://cdcvs.fnal.gov/projects/artdaq-core-demo
-		mrb gitCheckout -t ${demo_version} -d artdaq_demo http://cdcvs.fnal.gov/projects/artdaq-demo
-#		mrb gitCheckout -t ${artdaq_version} http://cdcvs.fnal.gov/projects/artdaq
+		mrb gitCheckout -t ${coredemo_version} https://github.com/art-daq/artdaq_core_demo
+		mrb gitCheckout -t ${demo_version}     https://github.com/art-daq/artdaq_demo
+		mrb gitCheckout -t ${artdaq_version}   https://github.com/art-daq/artdaq
+		mrb gitCheckout -t artdaq-${artdaq_version}   https://github.com/art-daq/artdaq_utilities
 	fi
 fi
 
@@ -527,6 +530,7 @@ mrbsetenv
 set -u
 PRODUCTS=`dropit -D -E -p"$PRODUCTS"`    # clean it
 export CETPKG_J=$((`cat /proc/cpuinfo|grep processor|tail -1|awk '{print $3}'` + 1))
+ups active
 mrb build    # VERBOSE=1
 installStatus=$?
 
