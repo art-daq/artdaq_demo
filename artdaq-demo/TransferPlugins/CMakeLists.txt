@@ -1,15 +1,6 @@
 
-basic_plugin(NthEvent "transfer"
-  artdaq_TransferPlugins
-  artdaq_core::artdaq-core_Utilities
-  artdaq_DAQrate
-  artdaq_DAQdata
-  MF_MessageLogger
-  fhiclcpp
-  ${Boost_SYSTEM_LIBRARY}
-  cetlib
-  cetlib_except
-)
+include(artdaq::transfer)
+cet_build_plugin(NthEvent artdaq::transfer)
 
 install_headers()
 install_source()

@@ -1,12 +1,6 @@
-basic_plugin("MisbehaviorTest" "policy"
-    artdaq_RoutingPolicies
-    artdaq_DAQdata
-    fhiclcpp
-    MF_MessageLogger
-  ${Boost_SYSTEM_LIBRARY}
-    cetlib_except
-    cetlib
-    )
+
+include(PolicyPlugins)
+cet_build_plugin(MisbehaviorTest artdaq::policy LIBRARIES REG artdaq::DAQdata)
 
 install_headers()
 install_fhicl(SUBDIRS fcl)

@@ -20,9 +20,9 @@ old_style_config_vars
 
 #
 product				version		optional
-artdaq				v3_11_02
-artdaq_core_demo	v1_09_02
-cetmodules			v3_13_02		-	only_for_build
+artdaq				v3_12_00
+artdaq_core_demo	v1_10_00
+cetmodules			v3_16_00		-	only_for_build
 end_product_list
 
 # See https://cdcvs.fnal.gov/redmine/projects/cet-is-public/wiki/AboutQualifiers for information about the qualifiers used
@@ -49,13 +49,6 @@ e20:s112:prof	e20:s112:prof	e20:s112:prof
 e20:s112:debug	e20:s112:debug	e20:s112:debug
 e19:s112:prof	e19:s112:prof	e19:s112:prof
 e19:s112:debug	e19:s112:debug	e19:s112:debug
-
-c7:s110:prof	c7:s110:prof	c7:s110:prof
-c7:s110:debug	c7:s110:debug	c7:s110:debug
-e20:s110:prof	e20:s110:prof	e20:s110:prof
-e20:s110:debug	e20:s110:debug	e20:s110:debug
-e19:s110:prof	e19:s110:prof	e19:s110:prof
-e19:s110:debug	e19:s110:debug	e19:s110:debug
 
 end_qualifier_list
 

@@ -1,7 +1,5 @@
 #include "artdaq-demo/Generators/AsciiSimulator.hh"
 
-#include "canvas/Utilities/Exception.h"
-
 #include "artdaq-core-demo/Overlays/AsciiFragment.hh"
 #include "artdaq-core-demo/Overlays/AsciiFragmentWriter.hh"
 #include "artdaq-core-demo/Overlays/FragmentType.hh"

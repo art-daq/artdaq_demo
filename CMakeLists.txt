@@ -7,18 +7,11 @@
 # ======================================================================
 
 
-cmake_minimum_required (VERSION 3.17)
+cmake_minimum_required (VERSION 3.19)
 
-find_package(cetmodules)
-set(CET_CETBUILDTOOLS_COMPAT TRUE)
-include(Compatibility)
-set(CET_WARN_DEPRECATED)
+find_package(cetmodules 3.08.00 REQUIRED)
 
-project(artdaq_demo VERSION 3.11.02)
-
-set(CMAKE_MODULE_PATH
-			  $ENV{ARTDAQ_UTILITIES_DIR}/Modules
-	${CMAKE_MODULE_PATH})
+project(artdaq_demo VERSION 3.12.00)
 
 include(CetCMakeEnv)
 cet_cmake_env()
@@ -54,60 +47,11 @@ endif()
 
 #cet_report_compiler_flags()
 
-# these are minimum required versions, not the actual product versions
-find_ups_product( cetbuildtools v3_03_00 )
-find_ups_product( TRACE v3_03_00 )
-find_ups_product( artdaq v0_04_02 )
-find_ups_product( artdaq_utilities v1_00_00)
-find_ups_product( artdaq_core v1_00_00 )
-find_ups_product( artdaq_core_demo v0_00_01 )
-find_ups_product( art v1_06_00 )
-  find_ups_product( canvas v1_00_00 )
-find_ups_product( fhiclcpp v2_16_00 )
-find_ups_product( messagefacility v1_10_00 )
-#find_ups_product( cpp0x v1_03_00 )
-find_ups_product( cetlib v1_03_00 )
-find_ups_root( v5_34_00 )
-find_ups_boost( v1_50_0 filesystem
-                        program_options
-                        unit_test_framework
- )
-
-string(REGEX MATCHALL "[0-9][0-9]?[0-9]?" ART_VERSION_LIST "$ENV{ART_VERSION}")
-list(GET ART_VERSION_LIST 0 ART_MAJOR_VERSION)
-list(GET ART_VERSION_LIST 1 ART_MINOR_VERSION)
-list(GET ART_VERSION_LIST 2 ART_PATCH_VERSION)
-
-message("-DART_HEX_VERSION=0x${ART_MAJOR_VERSION}${ART_MINOR_VERSION}${ART_PATCH_VERSION}")
-set(ART_HEX_VERSION 0x${ART_MAJOR_VERSION}${ART_MINOR_VERSION}${ART_PATCH_VERSION})
-add_definitions(-DART_HEX_VERSION=0x${ART_MAJOR_VERSION}${ART_MINOR_VERSION}${ART_PATCH_VERSION})
-
-string(REGEX MATCHALL "[0-9][0-9]?[0-9]?" MESSAGEFACILITY_VERSION_LIST "$ENV{MESSAGEFACILITY_VERSION}")
-list(GET MESSAGEFACILITY_VERSION_LIST 0 MESSAGEFACILITY_MAJOR_VERSION)
-list(GET MESSAGEFACILITY_VERSION_LIST 1 MESSAGEFACILITY_MINOR_VERSION)
-list(GET MESSAGEFACILITY_VERSION_LIST 2 MESSAGEFACILITY_PATCH_VERSION)
-
-message("-DMESSAGEFACILITY_HEX_VERSION=0x${MESSAGEFACILITY_MAJOR_VERSION}${MESSAGEFACILITY_MINOR_VERSION}${MESSAGEFACILITY_PATCH_VERSION}")
-add_definitions(-DMESSAGEFACILITY_HEX_VERSION=0x${MESSAGEFACILITY_MAJOR_VERSION}${MESSAGEFACILITY_MINOR_VERSION}${MESSAGEFACILITY_PATCH_VERSION})
-
-string(REGEX MATCHALL "[0-9][0-9]?[0-9]?" CANVAS_VERSION_LIST "$ENV{CANVAS_VERSION}")
-list(GET CANVAS_VERSION_LIST 0 CANVAS_MAJOR_VERSION)
-list(GET CANVAS_VERSION_LIST 1 CANVAS_MINOR_VERSION)
-list(GET CANVAS_VERSION_LIST 2 CANVAS_PATCH_VERSION)
-
-message("-DCANVAS_HEX_VERSION=0x${CANVAS_MAJOR_VERSION}${CANVAS_MINOR_VERSION}${CANVAS_PATCH_VERSION}")
-add_definitions(-DCANVAS_HEX_VERSION=0x${CANVAS_MAJOR_VERSION}${CANVAS_MINOR_VERSION}${CANVAS_PATCH_VERSION})
-
-# as of fhiclcpp v4_15_00 (s108), ParameterSet::make is the preferred way to make a ParameterSet
-check_ups_version(fhiclcpp $ENV{FHICLCPP_VERSION} v4_15_00 PRODUCT_MATCHES_VAR PSET_MAKE)
-if(PSET_MAKE)
-  add_definitions(-DSIMPLER_PSET_MAKE)
-endif()
-
-# macros for art_dictionary and simple_plugin
-include(ArtMake)
-include(BuildPlugins)
-include(CetTest)
+find_package(artdaq_utilities 1.07.02 REQUIRED)
+find_package(artdaq_core 3.08.04 REQUIRED)
+find_package(artdaq 3.11.02 REQUIRED)
+find_package(art 3.09.03 REQUIRED)
+find_package(artdaq_core_demo 1.10.00 REQUIRED)
 
 # source
 add_subdirectory(artdaq-demo)

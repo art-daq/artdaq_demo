@@ -3,8 +3,8 @@
 // https://cdcvs.fnal.gov/redmine/projects/artdaq-demo/wiki/Fragments_and_FragmentGenerators_w_Toy_Fragments_as_Examples
 
 #include "artdaq-demo/Generators/ToySimulator.hh"
+#include "artdaq/DAQdata/Globals.hh"
 
-#include "canvas/Utilities/Exception.h"
 #include "cetlib_except/exception.h"
 #include "fhiclcpp/ParameterSet.h"
 

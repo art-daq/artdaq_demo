@@ -4,11 +4,10 @@ run_demo.sh xt_cmd.sh)
 
 cet_script(ALWAYS_COPY configure_artdaq_database.sh)
 
-cet_make_exec(read_fhicl SOURCE readfhicl.cc
+cet_make_exec(NAME read_fhicl SOURCE readfhicl.cc
   LIBRARIES
-  fhiclcpp
-  ${Boost_PROGRAM_OPTIONS_LIBRARY}
-  cetlib
+  fhiclcpp::fhiclcpp
+  Boost::program_options
   )  
   
 # Is this necessary?
