@@ -13,4 +13,6 @@ cet_make_exec(NAME read_fhicl SOURCE readfhicl.cc
 # Is this necessary?
 #install_source()
 install_fhicl(SUBDIRS fcl)
+install_headers()
+install_source()
 
