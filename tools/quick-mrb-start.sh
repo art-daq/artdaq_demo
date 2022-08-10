@@ -559,11 +559,11 @@ daqintdir=$Base/DAQInterface
 cd $Base
 
 if [ $opt_w -gt 0 ];then
-    git clone ssh://p-artdaq-utilities@cdcvs.fnal.gov/cvs/projects/artdaq-utilities-daqinterface
+    git clone git@github.com:art-daq/artdaq_daqinterface.git 
 else
-    git clone http://cdcvs.fnal.gov/projects/artdaq-utilities-daqinterface
+    git clone https://github.com/art-daq/artdaq_daqinterface
 fi
-cd artdaq-utilities-daqinterface
+cd artdaq_daqinterface
 if [[ $opt_develop -eq 1 ]]; then 
     git checkout develop
 else
@@ -576,10 +576,10 @@ fi
 
 mkdir $daqintdir
 cd $daqintdir
-cp ../artdaq-utilities-daqinterface/bin/mock_ups_setup.sh .
-cp ../artdaq-utilities-daqinterface/docs/* .
+cp ../artdaq_daqinterface/bin/mock_ups_setup.sh .
+cp ../artdaq_daqinterface/docs/* .
 
-sed -i -r 's!^\s*export ARTDAQ_DAQINTERFACE_DIR.*!export ARTDAQ_DAQINTERFACE_DIR='$Base/artdaq-utilities-daqinterface'!' mock_ups_setup.sh
+sed -i -r 's!^\s*export ARTDAQ_DAQINTERFACE_DIR.*!export ARTDAQ_DAQINTERFACE_DIR='$Base/artdaq_daqinterface'!' mock_ups_setup.sh
 sed -i -r 's!^\s*export DAQINTERFACE_SETTINGS.*!export DAQINTERFACE_SETTINGS='$PWD/settings_example'!' user_sourcefile_example
 sed -i -r 's!^\s*export DAQINTERFACE_KNOWN_BOARDREADERS_LIST.*!export DAQINTERFACE_KNOWN_BOARDREADERS_LIST='$PWD/known_boardreaders_list_example'!' user_sourcefile_example
 sed -i -r '/export DAQINTERFACE_USER_SOURCEFILE_ERRNO=0/i \

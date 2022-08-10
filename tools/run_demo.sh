@@ -12,7 +12,7 @@ get_this_dir()
 validate_basedir()
 {
 	valid_basedir=0
-	if [ -d $basedir/artdaq-utilities-daqinterface ] || [ -d $ARTDAQ_DAQINTERFACE_DIR ]; then
+	if [ -d $basedir/artdaq_daqinterface ] || [ -d $ARTDAQ_DAQINTERFACE_DIR ]; then
 	    if [ -d $basedir/DAQInterface ]; then
 		valid_basedir=1
 	    fi
@@ -111,7 +111,7 @@ validate_toolsdir
 validate_fhicldir
 
 if [ $valid_basedir -eq 0 ]; then
-	echo "Provided base directory (${basedir}) is not valid! Must contain DAQInterface directory, and artdaq-utilities-daqinterface directory if \$ARTDAQ_DAQINTERFACE_DIR is not set"
+	echo "Provided base directory (${basedir}) is not valid! Must contain DAQInterface directory, and artdaq_daqinterface directory if \$ARTDAQ_DAQINTERFACE_DIR is not set"
 	return 1
 	exit 1
 fi
