@@ -1,7 +1,7 @@
 # The parent line must be the first non-comment line in the file
 # This line defines the product name and version
 parent artdaq_demo	
-defaultqual	e20:s110
+defaultqual	e20:s112
 
 # These optional lines define the installed directories where
 # headers, libraries, and executables will be found
@@ -22,26 +22,21 @@ old_style_config_vars
 product				version		optional
 artdaq				v3_12_00
 artdaq_core_demo	v1_10_00
-cetmodules			v3_16_00		-	only_for_build
+cetmodules			v3_19_02		-	only_for_build
 end_product_list
 
 # See https://cdcvs.fnal.gov/redmine/projects/cet-is-public/wiki/AboutQualifiers for information about the qualifiers used
 # -nq- here means there is no qualifier
 # a "-" here means the dependent product is not required by the parent and will not be setup
 qualifier		artdaq			artdaq_core_demo
-c7:s116:prof	c7:s116:prof	c7:s116:prof
-c7:s116:debug	c7:s116:debug	c7:s116:debug
-e20:s116:prof	e20:s116:prof	e20:s116:prof
-e20:s116:debug	e20:s116:debug	e20:s116:debug
-e19:s116:prof	e19:s116:prof	e19:s116:prof
-e19:s116:debug	e19:s116:debug	e19:s116:debug
-
-c7:s114:prof	c7:s114:prof	c7:s114:prof
-c7:s114:debug	c7:s114:debug	c7:s114:debug
-e20:s114:prof	e20:s114:prof	e20:s114:prof
-e20:s114:debug	e20:s114:debug	e20:s114:debug
-e19:s114:prof	e19:s114:prof	e19:s114:prof
-e19:s114:debug	e19:s114:debug	e19:s114:debug
+c7:s118:prof	c7:s118:prof	c7:s118:prof
+c7:s118:debug	c7:s118:debug	c7:s118:debug
+c14:s118:prof	c14:s118:prof	c14:s118:prof
+c14:s118:debug	c14:s118:debug	c14:s118:debug
+e20:s118:prof	e20:s118:prof	e20:s118:prof
+e20:s118:debug	e20:s118:debug	e20:s118:debug
+e26:s118:prof	e26:s118:prof	e26:s118:prof
+e26:s118:debug	e26:s118:debug	e26:s118:debug
 
 c7:s112:prof	c7:s112:prof	c7:s112:prof
 c7:s112:debug	c7:s112:debug	c7:s112:debug
