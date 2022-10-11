@@ -10,3 +10,6 @@ cet_make(
 	artdaq_core_demo::artdaq-core-demo_Overlays
 	${Boost_SYSTEM_LIBRARY}
         )
+        
+install_headers()
+install_source()
