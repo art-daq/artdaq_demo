@@ -9,7 +9,6 @@ if [ $git_sts -eq 0 ];then
 	exit 1
 fi
 
-
 starttime=`date`
 Base=$PWD
 test -d products || mkdir products
@@ -83,7 +82,6 @@ while [ -n "${1-}" ];do
 	fi
 done
 eval "set -- $args \"\$@\""; unset args aa
-set -u   # complain about uninitialed shell variables - helps development
 
 test -n "${do_help-}" -o $# -ge 2 && echo "$USAGE" && exit
 
@@ -91,7 +89,6 @@ if [[ -n "${tag:-}" ]] && [[ $opt_develop -eq 1 ]]; then
 	echo "The \"--tag\" and \"--develop\" options are incompatible - please specify only one."
 	exit
 fi
-
 
 # JCF, 1/16/15
 # Save all output from this script (stdout + stderr) in a file with a
@@ -158,129 +155,6 @@ function detectAndPull() {
 	cd $startDir
 }
 
-#
-# urlencode -- encode special characters for post/get arguments
-#
-urlencode() {
-   perl -pe 'chomp(); s{\W}{sprintf("%%%02x",ord($&))}ge;' "$@"
-}
-
-site=https://cdcvs.fnal.gov/redmine
-listf=/tmp/list_p$$
-cookief=/tmp/cookies_p$$
-rlverbose=${rlverbose:=false}
-#
-# login form
-#
-do_login() {
-     get_passwords
-     get_auth_token "${site}/login"
-     post_url  \
-       "${site}/login" \
-       "back_url=$site" \
-       "authenticity_token=$authenticity_token" \
-       "username=`echo $user | urlencode`" \
-       "password=`echo $pass | urlencode`" \
-       "login=Login »" 
-     if grep '>Sign in' $listf > /dev/null;then
-        echo "Login failed."
-        false
-     else
-        true
-     fi
-}
-get_passwords() {
-   case "x${user-}y${pass-}" in
-   xy)
-       if [ -r   ${REDMINE_AUTHDIR:-.}/.redmine_lib_passfile ];then 
-	   read -r user pass < ${REDMINE_AUTHDIR:-.}/.redmine_lib_passfile
-       else
-	   user=$USER
-           stty -echo
-	   printf "Services password for $user: "
-	   read pass
-           stty echo
-       fi;;
-    esac
-}
-get_auth_token() {
-    authenticity_token=`fetch_url "${1}" |
-                  tee /tmp/at_p$$ |
-                  grep 'name="authenticity_token"' |
-                  head -1 |
-                  sed -e 's/.*value="//' -e 's/".*//' | 
-                  urlencode `
-}
-
-#
-# fetch_url -- GET a url from a site, maintaining cookies, etc.
-#
-fetch_url() {
-     wget \
-        --no-check-certificate \
-	--load-cookies=${cookief} \
-        --referer="${lastpage-}" \
-	--save-cookies=${cookief} \
-	--keep-session-cookies \
-	-o ${debugout:-/dev/null} \
-	-O - \
-	"$1"  | ${debugfilter:-cat}
-     lastpage="$1"
-}
-
-#
-# post_url POST to a url maintaining cookies, etc.
-#    takes a url and multiple form data arguments
-#    which are joined with "&" signs
-#
-post_url() {
-     url="$1"
-     extra=""
-     if  [ "$url" == "-b" ];then
-         extra="--remote-encoding application/octet-stream"
-         shift
-         url=$1
-     fi
-     shift
-     the_data=""
-     sep=""
-     df=/tmp/postdata$$
-     :>$df
-     for d in "$@";do
-        printf "%s" "$sep$d" >> $df
-        sep="&"
-     done
-     wget -O $listf \
-        -o $listf.log \
-        --debug \
-        --verbose \
-        $extra \
-        --no-check-certificate \
-	--load-cookies=${cookief} \
-	--save-cookies=${cookief} \
-        --referer="${lastpage-}" \
-	--keep-session-cookies \
-        --post-file="$df"  $url
-     if grep '<div.*id=.errorExplanation' $listf > /dev/null;then
-        echo "Failed: error was:"
-        cat $listf | sed -e '1,/<div.*id=.errorExplanation/d' | sed -e '/<.div>/,$d'
-        return 1
-     fi
-     if grep '<div.*id=.flash_notice.*Success' $listf > /dev/null;then
-        $rlverbose && echo "Succeeded"
-        return 0
-     fi
-     # not sure if it worked... 
-     $rlverbose && echo "Unknown -- detagged output:"
-     $rlverbose && cat $listf | sed -e 's/<[^>]*>//g'
-     $rlverbose && echo "-----"
-     $rlverbose && cat $listf.log
-     $rlverbose && echo "-----"
-     return 0
-} # post_url
-
-do_login https://cdcvs.fnal.gov/redmine
-
 cd $Base/download
 
 # 28-Feb-2017, KAB: use central products areas, if available and not skipped
@@ -323,9 +197,9 @@ if [[ $opt_skip_extra_products -eq 0 ]]; then
   PRODUCTS_SET="${PRODUCTS:-}"
 fi
 
-echo "Cloning cetpkgsupport to determine current OS"
-git clone http://cdcvs.fnal.gov/projects/cetpkgsupport
-os=`./cetpkgsupport/bin/get-directory-name os`
+curl https://scisoft.fnal.gov/scisoft/packages/cetpkgsupport/v1_14_01/cetpkgsupport-1.14.01-noarch.tar.bz2|tar -jxf -
+mv cetpkgsupport/v1_14_01/bin/get-directory-name .
+os=`$Base/download/get-directory-name os`
 
 if [[ "$os" == "u14" ]]; then
 	echo "-H Linux64bit+3.19-2.19" >../products/ups_OVERRIDE.`hostname`
@@ -338,8 +212,8 @@ if [ -z "${tag:-}" ]; then
   notag=1;
 fi
 if [[ -e product_deps ]]; then mv product_deps product_deps.save; fi
-wget --load-cookies=$cookief https://cdcvs.fnal.gov/redmine/projects/artdaq-demo/repository/revisions/$tag/raw/ups/product_deps
-wget --load-cookies=$cookief https://cdcvs.fnal.gov/redmine/projects/artdaq-demo/repository/revisions/$tag/raw/CMakeLists.txt
+wget https://raw.githubusercontent.com/art-daq/artdaq-demo/$tag/ups/product_deps
+wget https://raw.githubusercontent.com/art-daq/artdaq-demo/$tag/CMakeLists.txt
 demo_version=v`grep "project" $Base/download/CMakeLists.txt|grep -oE "VERSION [^)]*"|awk '{print $2}'|sed 's/\./_/g'`
 echo "Demo Version is $demo_version"
 if [[ $notag -eq 1 ]] && [[ $opt_develop -eq 0 ]]; then
@@ -348,8 +222,8 @@ if [[ $notag -eq 1 ]] && [[ $opt_develop -eq 0 ]]; then
   # 06-Mar-2017, KAB: re-fetch the product_deps file based on the tag
   mv product_deps product_deps.orig
   mv CMakeLists.txt CMakeLists.txt.orig
-  wget --load-cookies=$cookief https://cdcvs.fnal.gov/redmine/projects/artdaq-demo/repository/revisions/$tag/raw/ups/product_deps
-  wget --load-cookies=$cookief https://cdcvs.fnal.gov/redmine/projects/artdaq-demo/repository/revisions/$tag/raw/CMakeLists.txt
+  wget https://raw.githubusercontent.com/art-daq/artdaq_demo/$tag/ups/product_deps
+  wget https://raw.githubusercontent.com/art-daq/artdaq_demo/$tag/CMakeLists.txt
   demo_version=v`grep "project" $Base/download/CMakeLists.txt|grep -oE "VERSION [^)]*"|awk '{print $2}'|sed 's/\./_/g'`
   tag=$demo_version
 fi
@@ -377,8 +251,7 @@ else
 	build_type="prof"
 fi
 
-wget --load-cookies=$cookief http://scisoft.fnal.gov/scisoft/bundles/tools/pullProducts
-rm -f /tmp/postdata$$ /tmp/at_p$$ $cookief $listf
+wget http://scisoft.fnal.gov/scisoft/bundles/tools/pullProducts
 chmod +x pullProducts
 ./pullProducts $Base/products ${os} artdaq_demo-${demo_version} ${squalifier}-${equalifier} ${build_type}
 mrbversion=`grep mrb *_MANIFEST.txt|sort|tail -1|awk '{print $2}'`
@@ -401,49 +274,40 @@ setup gitflow
 export MRB_PROJECT=artdaq_demo
 cd $Base
 mrb newDev -f -v $demo_version -q ${equalifier}:${squalifier}:${build_type}
-set +u
 source $Base/localProducts_artdaq_demo_${demo_version}_${equalifier}_${squalifier}_${build_type}/setup
-set -u
 
 echo artdaq_version=$artdaq_version demo_version=$demo_version coredemo_version=$coredemo_version
 
 cd $MRB_SOURCE
 if [[ $opt_develop -eq 1 ]]; then
 	if [ $opt_w -gt 0 ];then
-		mrb gitCheckout ssh://git@github.com/art-daq/artdaq_core
-		mrb gitCheckout ssh://git@github.com/art-daq/artdaq_utilities
-		mrb gitCheckout ssh://git@github.com/art-daq/artdaq
-		mrb gitCheckout ssh://git@github.com/art-daq/artdaq_core_demo
-		mrb gitCheckout ssh://git@github.com/art-daq/artdaq_demo
-		mrb gitCheckout ssh://git@github.com/art-daq/artdaq_epics_plugin
-		mrb gitCheckout ssh://git@github.com/art-daq/artdaq_mfextensions
+		mrb gitCheckout git@github.com/art-daq/artdaq_core
+		mrb gitCheckout git@github.com/art-daq/artdaq_utilities
+		mrb gitCheckout git@github.com/art-daq/artdaq
+		mrb gitCheckout git@github.com/art-daq/artdaq_core_demo
+		mrb gitCheckout git@github.com/art-daq/artdaq_demo
+		mrb gitCheckout git@github.com/art-daq/artdaq_epics_plugin
+		mrb gitCheckout git@github.com/art-daq/artdaq_mfextensions
 	else
 		mrb gitCheckout https://github.com/art-daq/artdaq_core
 		mrb gitCheckout https://github.com/art-daq/artdaq_utilities
-                mrb gitCheckout https://github.com/art-daq/artdaq
-                mrb gitCheckout https://github.com/art-daq/artdaq_core_demo
-                mrb gitCheckout https://github.com/art-daq/artdaq_demo
-                mrb gitCheckout https://github.com/art-daq/artdaq_epics_plugin
-                mrb gitCheckout https://github.com/art-daq/artdaq_mfextensions
+        mrb gitCheckout https://github.com/art-daq/artdaq
+        mrb gitCheckout https://github.com/art-daq/artdaq_core_demo
+        mrb gitCheckout https://github.com/art-daq/artdaq_demo
+        mrb gitCheckout https://github.com/art-daq/artdaq_epics_plugin
+        mrb gitCheckout https://github.com/art-daq/artdaq_mfextensions
 	fi
 else
-	if [ $opt_w -gt 0 ];then
-		mrb gitCheckout -t ${coredemo_version} ssh://git@github.com/art-daq/artdaq_core_demo
-		mrb gitCheckout -t ${demo_version}     ssh://git@github.com/art-daq/artdaq_demo
-		mrb gitCheckout -t ${artdaq_version}   ssh://git@github.com/art-daq/artdaq
-		mrb gitCheckout -t artdaq-${artdaq_version}   ssh://git@github.com/art-daq/artdaq_utilities
-	else
 		mrb gitCheckout -t ${coredemo_version} https://github.com/art-daq/artdaq_core_demo
 		mrb gitCheckout -t ${demo_version}     https://github.com/art-daq/artdaq_demo
 		mrb gitCheckout -t ${artdaq_version}   https://github.com/art-daq/artdaq
 		mrb gitCheckout -t artdaq-${artdaq_version}   https://github.com/art-daq/artdaq_utilities
-	fi
 fi
 
 os=`$Base/download/cetpkgsupport/bin/get-directory-name os`
 test "$os" = "slf7" && os="sl7"
 if [[ "x${opt_viewer-}" != "x" ]] && [[ $opt_develop -eq 1 ]]; then
-	mrb gitCheckout -d artdaq_mfextensions http://cdcvs.fnal.gov/projects/mf-extensions-git
+	mrb gitCheckout -d artdaq_mfextensions https://github.com/art-daq/artdaq_mfextensions
 	qtver=$( awk '/^[[:space:]]*qt[[:space:]]*/ {print $2}' artdaq_mfextensions/ups/product_deps )
 	detectAndPull qt ${os}-x86_64 ${equalifier} ${qtver}
 fi
@@ -525,9 +389,7 @@ EOF
 
 # Build artdaq_demo
 cd $MRB_BUILDDIR
-set +u
 mrbsetenv
-set -u
 PRODUCTS=`dropit -D -E -p"$PRODUCTS"`    # clean it
 export CETPKG_J=$((`cat /proc/cpuinfo|grep processor|tail -1|awk '{print $3}'` + 1))
 ups active
@@ -536,10 +398,10 @@ installStatus=$?
 
 if [ $installStatus -eq 0 ]; then
 	echo "artdaq-demo has been installed correctly. Please see: "
-	echo "https://cdcvs.fnal.gov/redmine/projects/artdaq-demo/wiki/Running_a_sample_artdaq-demo_system"
+	echo "https://github.com/art-daq/artdaq_demo/wiki/Running_a_sample_artdaq-demo_system"
 	echo "for instructions on how to run, or re-run this script with the --run-demo option"
 	echo
-	echo "Will now install DAQInterface as described at https://cdcvs.fnal.gov/redmine/projects/artdaq-utilities/wiki/Artdaq-daqinterface..."
+	echo "Will now install DAQInterface as described at https://github.com/art-daq/artdaq_daqinterface/wiki/Artdaq-daqinterface..."
 else
 	echo "BUILD ERROR!!! SOMETHING IS VERY WRONG!!!"
 	echo
@@ -611,10 +473,8 @@ if [ "x${opt_run_demo-}" != "x" ]; then
     if [ $installStatus -eq 0 ]; then
 	echo doing the demo
 
-	set +u
 	. ./run_demo.sh --basedir $Base --toolsdir ${Base}/srcs/artdaq_demo/tools
-	set -u
-    else
+	else
         echo 'Build error (see above) precludes running the demo (i.e --run-demo option specified)'
     fi
 fi
