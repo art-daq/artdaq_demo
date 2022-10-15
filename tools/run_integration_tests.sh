@@ -10,8 +10,8 @@ only_print_cmdline=0
 
 if [ -d $ARTDAQ_DAQINTERFACE_DIR/simple_test_config ]; then
 	simple_test_config_dir=$ARTDAQ_DAQINTERFACE_DIR/simple_test_config
-elif [ -d $PWD/artdaq-utilities-daqinterface/simple_test_config ]; then
-	simple_test_config_dir=$PWD/artdaq-utilities-daqinterface/simple_test_config
+elif [ -d $PWD/artdaq_daqinterface/simple_test_config ]; then
+	simple_test_config_dir=$PWD/artdaq_daqinterface/simple_test_config
 else
 	echo "ERROR: Could not locate artdaq_daqinterface's simple_test_config directory in $ARTDAQ_DAQINTERFACE_DIR or $PWD/artdaq-utilities-daqinterface" >&2
 	exit 2
