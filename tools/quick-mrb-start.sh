@@ -281,13 +281,14 @@ echo artdaq_version=$artdaq_version demo_version=$demo_version coredemo_version=
 cd $MRB_SOURCE
 if [[ $opt_develop -eq 1 ]]; then
 	if [ $opt_w -gt 0 ];then
-		mrb gitCheckout git@github.com/art-daq/artdaq_core
-		mrb gitCheckout git@github.com/art-daq/artdaq_utilities
-		mrb gitCheckout git@github.com/art-daq/artdaq
-		mrb gitCheckout git@github.com/art-daq/artdaq_core_demo
-		mrb gitCheckout git@github.com/art-daq/artdaq_demo
-		mrb gitCheckout git@github.com/art-daq/artdaq_epics_plugin
-		mrb gitCheckout git@github.com/art-daq/artdaq_mfextensions
+		git clone git@github.com:art-daq/artdaq_core
+		git clone git@github.com:art-daq/artdaq_utilities
+		git clone git@github.com:art-daq/artdaq
+		git clone git@github.com:art-daq/artdaq_core_demo
+		git clone git@github.com:art-daq/artdaq_demo
+		git clone git@github.com:art-daq/artdaq_epics_plugin
+		git clone git@github.com:art-daq/artdaq_mfextensions
+                mrb uc
 	else
 		mrb gitCheckout https://github.com/art-daq/artdaq_core
 		mrb gitCheckout https://github.com/art-daq/artdaq_utilities
