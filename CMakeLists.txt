@@ -22,6 +22,7 @@ cet_set_compiler_flags(DIAGS VIGILANT
  EXTRA_FLAGS -pedantic
  )
  
+# Debug streamer.
 string(TOUPPER ${CMAKE_BUILD_TYPE} BTYPE_UC)
 if(BTYPE_UC STREQUAL DEBUG)
   add_definitions(-DDEBUGME)
@@ -37,6 +38,13 @@ if(BTYPE_UC STREQUAL DEBUG)
 			message("!!! Thread Sanitizer Activated!!!")
 			add_compile_options(-fsanitize=thread -Wno-unused-command-line-argument)
 			add_link_options(-ltsan)
+		endif()
+	endif()
+	if(DEFINED ENV{USE_UBSAN})
+		if($ENV{USE_UBSAN} GREATER 0)
+			message("!!! Undefined Sanitizer Activated!!!")
+			add_compile_options(-fsanitize=undefined -Wno-unused-command-line-argument)
+			add_link_options(-lubsan)
 		endif()
 	endif()
 	if(DEFINED ENV{USE_GCOV})
