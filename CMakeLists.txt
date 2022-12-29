@@ -58,7 +58,7 @@ endif()
 find_package(artdaq_utilities 1.07.02 REQUIRED)
 find_package(artdaq_core 3.08.04 REQUIRED)
 find_package(artdaq 3.11.02 REQUIRED)
-find_package(art 3.09.03 REQUIRED)
+find_package(art 3.09.03 REQUIRED QUIET)
 find_package(artdaq_core_demo 1.10.00 REQUIRED)
 
 # source
