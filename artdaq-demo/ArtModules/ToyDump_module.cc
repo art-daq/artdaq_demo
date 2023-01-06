@@ -67,7 +67,7 @@ public:
 	/**
 	 * @brief Print summary information from a SubRun
 	 * @param sr Subrun object
-	*/
+	 */
 	void endSubRun(art::SubRun const& sr) override;
 
 private:

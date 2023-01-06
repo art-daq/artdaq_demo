@@ -35,7 +35,7 @@ public:
 	/**
 	 * @brief Use the current tokens to add entries to the routing table
 	 * @param table Routing Table to append to
-	*/
+	 */
 	void CreateRoutingTable(artdaq::detail::RoutingPacket& table) override;
 
 	/**
@@ -43,7 +43,7 @@ public:
 	 * @param seq Sequence ID to route
 	 * @param requesting_rank Rank requesting the route
 	 * @return Routing information
-	*/
+	 */
 	artdaq::detail::RoutingPacketEntry CreateRouteForSequenceID(artdaq::Fragment::sequence_id_t seq, int requesting_rank) override;
 
 private:
