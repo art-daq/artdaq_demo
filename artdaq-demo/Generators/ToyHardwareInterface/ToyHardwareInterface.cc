@@ -171,8 +171,7 @@ void ToyHardwareInterface::FillBuffer(char* buffer, size_t* bytes_read)
 				};
 				break;
 
-			case DistributionType::monotonic:
-			{
+			case DistributionType::monotonic: {
 				generator = [&]() {
 					if (++gen_seed > maxADCvalue_)
 					{
