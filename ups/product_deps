@@ -40,8 +40,6 @@ e26:s122:debug	e26:s122:debug	e26:s122:debug
 
 c7:s118:prof	c7:s118:prof	c7:s118:prof
 c7:s118:debug	c7:s118:debug	c7:s118:debug
-c14:s118:prof	c14:s118:prof	c14:s118:prof
-c14:s118:debug	c14:s118:debug	c14:s118:debug
 e20:s118:prof	e20:s118:prof	e20:s118:prof
 e20:s118:debug	e20:s118:debug	e20:s118:debug
 e26:s118:prof	e26:s118:prof	e26:s118:prof
