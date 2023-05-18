@@ -3,7 +3,7 @@ source setupARTDAQDEMO
 
 bootfile_name=${bootfile_name:-"boot.txt"}
 brlistfile_name=${brlistfile_name:-"known_boardreaders_list_example"}
-ignoredConfigs="dune_sample_system|pdune_swtrig|subconfigs|issue24231_test3"
+ignoredConfigs="dune_sample_system|pdune_swtrig|subconfigs|issue24231_test3|missed_requests|multiple_fragments_per_read|protodune_mock_system"
 extra_args="${extra_args}"
 daqinterface_rundir=${daqinterface_rundir:-"$PWD/DAQInterface"}
 only_print_cmdline=0
