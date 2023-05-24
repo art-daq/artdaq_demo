@@ -288,7 +288,6 @@ if [[ $opt_develop -eq 1 ]]; then
 		git clone git@github.com:art-daq/artdaq_demo
 		git clone git@github.com:art-daq/artdaq_epics_plugin
 		git clone git@github.com:art-daq/artdaq_mfextensions
-                mrb uc
 	else
 		mrb gitCheckout https://github.com/art-daq/artdaq_core
 		mrb gitCheckout https://github.com/art-daq/artdaq_utilities
@@ -305,7 +304,7 @@ else
 		mrb gitCheckout -t artdaq-${artdaq_version}   https://github.com/art-daq/artdaq_utilities
 fi
 
-os=`$Base/download/cetpkgsupport/bin/get-directory-name os`
+os=`$Base/download/get-directory-name os`
 test "$os" = "slf7" && os="sl7"
 if [[ "x${opt_viewer-}" != "x" ]] && [[ $opt_develop -eq 1 ]]; then
 	mrb gitCheckout -d artdaq_mfextensions https://github.com/art-daq/artdaq_mfextensions
@@ -321,6 +320,8 @@ done
 for vv in `awk '/TRACE\s*v/{print$2}' */ups/product_deps | sort -u`;do
 	detectAndPull TRACE ${os}-x86_64 nq $vv
 done
+
+mrb uc
 
 ARTDAQ_DEMO_DIR=$Base/srcs/artdaq_demo
 ARTDAQ_DIR=$Base/srcs/artdaq
