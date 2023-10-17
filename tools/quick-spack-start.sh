@@ -107,7 +107,7 @@ if [ -z "${tag:-}" ]; then
   notag=1;
 fi
 wget https://raw.githubusercontent.com/art-daq/artdaq-demo/$tag/CMakeLists.txt
-demo_version=v`grep "project" $Base/download/CMakeLists.txt|grep -oE "VERSION [^)]*"|awk '{print $2}'|sed 's/\./_/g'`
+demo_version=v`grep "project" $Base/CMakeLists.txt|grep -oE "VERSION [^)]*"|awk '{print $2}'|sed 's/\./_/g'`
 echo "Demo Version is $demo_version"
 if [[ $notag -eq 1 ]] && [[ $opt_develop -eq 0 ]]; then
   tag=$demo_version
@@ -115,19 +115,16 @@ if [[ $notag -eq 1 ]] && [[ $opt_develop -eq 0 ]]; then
   # 06-Mar-2017, KAB: re-fetch the product_deps file based on the tag
   mv CMakeLists.txt CMakeLists.txt.orig
   wget https://raw.githubusercontent.com/art-daq/artdaq_demo/$tag/CMakeLists.txt
-  demo_version=v`grep "project" $Base/download/CMakeLists.txt|grep -oE "VERSION [^)]*"|awk '{print $2}'|sed 's/\./_/g'`
+  demo_version=v`grep "project" $Base/CMakeLists.txt|grep -oE "VERSION [^)]*"|awk '{print $2}'|sed 's/\./_/g'`
   tag=$demo_version
 fi
-artdaq_version=`grep "^artdaq[ 	]" $Base/download/product_deps | awk '{print $2}'`
-coredemo_version=`grep "^artdaq_core_demo[ 	]" $Base/download/product_deps | awk '{print $2}'`
-defaultQuals=`grep "defaultqual" $Base/download/product_deps|awk '{print $2}'`
 
-defaultS=`echo $defaultQuals|cut -f2 -d:`
+defaultS="s124"
 
 if [ -n "${squalifier-}" ]; then
-	squalifier="s=${squalifier}"
+	squalifier="${squalifier}"
 else
-	squalifier="s=${defaultS#s}"
+	squalifier="${defaultS#s}"
 fi
 compiler_info="" # Maybe do e- and c- qualifiers?
 
@@ -135,15 +132,43 @@ if ! [ -d $spackdir ];then
 	$(
     cd ${spackdir%/spack}
     git clone https://github.com/FNALssi/spack.git -b fnal-develop
+    cd spack
+    git checkout 28793268e7c943ad75347fe8ccbabfa30ef189b2 # For now
         )
 fi
 
 source $spackdir/share/spack/setup-env.sh
 
+repo_found=`spack repo list|grep -c fnal_art`
+if [ $repo_found -eq 0 ]; then
+    cd $spackdir/var/spack/repos
+    git clone https://github.com/FNALssi/fnal_art.git
+    spack repo add ./fnal_art
+fi
+
+if ! [ -f ~/.spack/packages.yaml ];then
+	# Fetch appropriate packages.yaml from Github
+	if [ `uname -r|grep -c el7` -gt 0 ];then
+		# SL7 version
+		packurl="https://raw.githubusercontent.com/art-daq/artdaq-demo/develop/tools/packages.yaml.sl7"
+	else
+		# AL9 version
+		packurl="https://raw.githubusercontent.com/art-daq/artdaq-demo/develop/tools/packages.yaml.al9"
+	fi
+	curl -o $spackdir/etc/spack/packages.yaml $packurl
+fi
+
 cd $Base
+spack compiler find
+
 spack env create artdaq
 spack env activate artdaq
-spack add artdaq-suite@${demo_version}${compiler_info} ${squalifier} +demo~pcp
+
+#spack add art-suite@s$squalifier
+#spack concretize --force
+#spack install
+
+spack add artdaq-suite@${demo_version}${compiler_info} s=${squalifier} +demo~pcp
 spack concretize --force
 spack install
 
