@@ -150,10 +150,10 @@ if ! [ -f ~/.spack/packages.yaml ];then
 	# Fetch appropriate packages.yaml from Github
 	if [ `uname -r|grep -c el7` -gt 0 ];then
 		# SL7 version
-		packurl="https://raw.githubusercontent.com/art-daq/artdaq-demo/develop/tools/packages.yaml.sl7"
+		packurl="https://raw.githubusercontent.com/FNALssi/fermi-spack-tools/main/templates/packages.yaml.scientific7"
 	else
 		# AL9 version
-		packurl="https://raw.githubusercontent.com/art-daq/artdaq-demo/develop/tools/packages.yaml.al9"
+		packurl="https://raw.githubusercontent.com/FNALssi/fermi-spack-tools/main/templates/packages.yaml.almalinux9"
 	fi
 	curl -o $spackdir/etc/spack/packages.yaml $packurl
 fi
