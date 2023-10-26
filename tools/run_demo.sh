@@ -12,10 +12,15 @@ get_this_dir()
 validate_basedir()
 {
 	valid_basedir=0
+	
 	if [ -d $basedir/artdaq_daqinterface ] || [ -d $ARTDAQ_DAQINTERFACE_DIR ]; then
-	    if [ -d $basedir/DAQInterface ]; then
 		valid_basedir=1
-	    fi
+	fi
+	if ! [ -d $basedir/DAQInterface ]; then
+		valid_basedir=0
+	fi
+	if ! [ -f $basedir/setupARTDAQDEMO ]; then
+		valid_basedir=0
 	fi
 }
 
@@ -35,9 +40,13 @@ validate_fhicldir()
 	fi
 }
 
-get_this_dir
-basedir=$ssi_mdt_dir
+basedir=$PWD
 validate_basedir
+if [ $valid_basedir -eq 0 ]; then
+  get_this_dir
+  basedir=$ssi_mdt_dir
+  validate_basedir
+fi
 
 toolsdir="$basedir/srcs/artdaq_demo/tools"
 validate_toolsdir
