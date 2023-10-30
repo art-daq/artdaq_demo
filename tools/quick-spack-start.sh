@@ -146,11 +146,13 @@ if [ $repo_found -eq 0 ]; then
     spack repo add ./fnal_art
 fi
 
+sl7mode=0
 if ! [ -f ~/.spack/packages.yaml ];then
 	# Fetch appropriate packages.yaml from Github
 	if [ `uname -r|grep -c el7` -gt 0 ];then
 		# SL7 version
 		packurl="https://raw.githubusercontent.com/FNALssi/fermi-spack-tools/main/templates/packages.yaml.scientific7"
+		sl7mode=1
 	else
 		# AL9 version
 		packurl="https://raw.githubusercontent.com/FNALssi/fermi-spack-tools/main/templates/packages.yaml.almalinux9"
@@ -163,6 +165,15 @@ spack compiler find
 
 spack env create artdaq
 spack env activate artdaq
+
+if [ $sl7mode -eq 1 ];then
+	spack add gcc@11.3.0
+	spack concretize --force
+	spack install
+	spack load gcc@11.3.0
+	spack compiler find
+	compiler_info="%gcc@11.3.0"
+fi
 
 #spack add art-suite@s$squalifier
 #spack concretize --force
