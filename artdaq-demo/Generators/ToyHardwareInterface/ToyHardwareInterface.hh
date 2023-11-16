@@ -93,20 +93,23 @@ public:
 private:
 	bool taking_data_;
 
-	std::size_t nADCcounts_;
-	std::size_t maxADCcounts_;
+	struct RateInfo {
+		std::size_t size_bytes;
+		std::size_t rate_hz;
+		std::chrono::microseconds duration;
+	};
+
 	std::size_t change_after_N_seconds_;
 	std::size_t pause_after_N_seconds_;  // sleep this many seconds every change_after_N_seconds_
-	std::size_t nADCcounts_after_N_seconds_;
 	bool exception_after_N_seconds_;
 	bool exit_after_N_seconds_;
 	bool abort_after_N_seconds_;
 	bool hang_after_N_seconds_;
 	demo::FragmentType fragment_type_;
 	std::size_t maxADCvalue_;
-	std::size_t throttle_usecs_;
-	std::size_t usecs_between_sends_;
 	DistributionType distribution_type_;
+	std::vector<RateInfo> configured_rates_;
+	std::vector<RateInfo>::iterator current_rate_;
 
 	using time_type = decltype(std::chrono::steady_clock::now());
 
@@ -119,8 +122,15 @@ private:
 	std::unique_ptr<std::normal_distribution<double>> gaussian_distn_;
 
 	time_type start_time_;
-	int send_calls_;
+	time_type rate_start_time_;
+	int rate_send_calls_;
 	int serial_number_;
+
+	
+	std::chrono::microseconds rate_to_delay_(std::size_t hz);
+	std::chrono::steady_clock::time_point next_trigger_time_();
+	size_t bytes_to_nWords_(size_t bytes);
+	size_t maxADCcounts_();
 };
 
 #endif
