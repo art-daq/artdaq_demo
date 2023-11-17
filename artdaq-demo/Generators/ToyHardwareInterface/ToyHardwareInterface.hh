@@ -2,6 +2,7 @@
 #define artdaq_demo_Generators_ToyHardwareInterface_ToyHardwareInterface_hh
 
 #include "artdaq-core-demo/Overlays/FragmentType.hh"
+#include "artdaq-core-demo/Overlays/ToyFragment.hh"
 
 #include "fhiclcpp/fwd.h"
 
@@ -21,8 +22,6 @@
 class ToyHardwareInterface
 {
 public:
-	typedef uint16_t data_t;  ///< The type used to represent ADC counts (which are 12 or 14 bits, for TOY1 or TOY2)
-
 	/**
 	 * \brief Construct and configure ToyHardwareInterface
 	 * \param ps fhicl::ParameterSet with configuration options for ToyHardwareInterface
@@ -118,7 +117,7 @@ private:
 	// Members needed to generate the simulated data
 
 	std::mt19937 engine_;
-	std::unique_ptr<std::uniform_int_distribution<data_t>> uniform_distn_;
+	std::unique_ptr<std::uniform_int_distribution<demo::ToyFragment::adc_t>> uniform_distn_;
 	std::unique_ptr<std::normal_distribution<double>> gaussian_distn_;
 
 	time_type start_time_;
@@ -130,6 +129,7 @@ private:
 	std::chrono::microseconds rate_to_delay_(std::size_t hz);
 	std::chrono::steady_clock::time_point next_trigger_time_();
 	size_t bytes_to_nWords_(size_t bytes);
+	size_t bytes_to_nADCs_(size_t bytes);
 	size_t maxADCcounts_();
 };
 

@@ -32,7 +32,7 @@ ToyHardwareInterface::ToyHardwareInterface(fhicl::ParameterSet const& ps)
     , distribution_type_(static_cast<DistributionType>(ps.get<int>("distribution_type")))
     , configured_rates_()
     , engine_(ps.get<int64_t>("random_seed", 314159))
-    , uniform_distn_(new std::uniform_int_distribution<data_t>(0, maxADCvalue_))
+    , uniform_distn_(new std::uniform_int_distribution<demo::ToyFragment::adc_t>(0, maxADCvalue_))
     , gaussian_distn_(new std::normal_distribution<double>(0.5 * maxADCvalue_, 0.1 * maxADCvalue_))
     , start_time_(fake_time_)
     , rate_start_time_(fake_time_)
@@ -59,17 +59,17 @@ ToyHardwareInterface::ToyHardwareInterface(fhicl::ParameterSet const& ps)
 		auto rate = 1000000 / wait;
 
 		RateInfo before;
-		before.size_bytes = counts1 * sizeof(data_t) + sizeof(demo::ToyFragment::Header);
+		before.size_bytes = counts1 * sizeof(demo::ToyFragment::Header::data_t) + sizeof(demo::ToyFragment::Header);
 		before.rate_hz = rate;
-		before.duration = change_after_N_seconds_ != std::numeric_limits<size_t>::max() 
-			? std::chrono::microseconds(1000000 * change_after_N_seconds_) 
-			: std::chrono::microseconds(1000000);
+		before.duration = change_after_N_seconds_ != std::numeric_limits<size_t>::max()
+		                      ? std::chrono::microseconds(1000000 * change_after_N_seconds_)
+		                      : std::chrono::microseconds(1000000);
 		configured_rates_.push_back(before);
 
 		if (change_after_N_seconds_ != std::numeric_limits<size_t>::max())
 		{
 			RateInfo after;
-			after.size_bytes = counts2 * sizeof(data_t) + sizeof(demo::ToyFragment::Header);
+			after.size_bytes = counts2 * sizeof(demo::ToyFragment::Header::data_t) + sizeof(demo::ToyFragment::Header);
 			after.rate_hz = rate;
 			after.duration = std::chrono::microseconds(1000000 * change_after_N_seconds_);
 			configured_rates_.push_back(after);
@@ -91,7 +91,8 @@ ToyHardwareInterface::ToyHardwareInterface(fhicl::ParameterSet const& ps)
 	}
 
 	bool first = true;
-	for (auto& rate : configured_rates_) {
+	for (auto& rate : configured_rates_)
+	{
 		TLOG(TLVL_INFO) << (first ? "W" : ", then w") << "ill generate " << rate.size_bytes << " B Fragments at " << rate.rate_hz << " Hz for " << rate.duration.count() << " us";
 		first = false;
 	}
@@ -166,13 +167,13 @@ void ToyHardwareInterface::FillBuffer(char* buffer, size_t* bytes_read)
 			}
 		}
 
-		TLOG(TLVL_DEBUG + 3) << "FillBuffer: Setting bytes_read to " << sizeof(demo::ToyFragment::Header) + bytes_to_nWords_(current_rate_->size_bytes) * sizeof(data_t);
-		*bytes_read = sizeof(demo::ToyFragment::Header) + bytes_to_nWords_(current_rate_->size_bytes) * sizeof(data_t);
+		TLOG(TLVL_DEBUG + 3) << "FillBuffer: Setting bytes_read to " << sizeof(demo::ToyFragment::Header) + bytes_to_nWords_(current_rate_->size_bytes) * sizeof(demo::ToyFragment::Header::data_t);
+		*bytes_read = sizeof(demo::ToyFragment::Header) + bytes_to_nWords_(current_rate_->size_bytes) * sizeof(demo::ToyFragment::Header::data_t);
 		TLOG(TLVL_DEBUG + 3) << "FillBuffer: Making the fake data, starting with the header";
 
 		// Can't handle a fragment whose size isn't evenly divisible by
 		// the demo::ToyFragment::Header::data_t type size in bytes
-		// std::cout << "Bytes to read: " << *bytes_read << ", sizeof(data_t): " <<
+		// std::cout << "Bytes to read: " << *bytes_read << ", sizeof(demo::ToyFragment::Header::data_t): " <<
 		// sizeof(demo::ToyFragment::Header::data_t) << std::endl;
 		assert(*bytes_read % sizeof(demo::ToyFragment::Header::data_t) == 0);
 
@@ -184,20 +185,20 @@ void ToyHardwareInterface::FillBuffer(char* buffer, size_t* bytes_read)
 
 		TLOG(TLVL_DEBUG + 3) << "FillBuffer: Generating nADCcounts ADC values ranging from 0 to max based on the desired distribution";
 
-		std::function<data_t()> generator;
-		data_t gen_seed = 0;
+		std::function<demo::ToyFragment::adc_t()> generator;
+		demo::ToyFragment::adc_t gen_seed = 0;
 
 		switch (distribution_type_)
 		{
 			case DistributionType::uniform:
-				generator = [&]() { return static_cast<data_t>((*uniform_distn_)(engine_)); };
+				generator = [&]() { return static_cast<demo::ToyFragment::adc_t>((*uniform_distn_)(engine_)); };
 				break;
 
 			case DistributionType::gaussian:
 				generator = [&]() {
 					do
 					{
-						gen_seed = static_cast<data_t>(std::round((*gaussian_distn_)(engine_)));
+						gen_seed = static_cast<demo::ToyFragment::adc_t>(std::round((*gaussian_distn_)(engine_)));
 					} while (gen_seed > maxADCvalue_);
 					return gen_seed;
 				};
@@ -225,8 +226,8 @@ void ToyHardwareInterface::FillBuffer(char* buffer, size_t* bytes_read)
 		if (distribution_type_ != DistributionType::uninitialized && distribution_type_ != DistributionType::uninit2)
 		{
 			TLOG(TLVL_DEBUG + 3) << "FillBuffer: Calling generate_n";
-			std::generate_n(reinterpret_cast<data_t*>(reinterpret_cast<demo::ToyFragment::Header*>(buffer) + 1),  // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast,cppcoreguidelines-pro-bounds-pointer-arithmetic)
-			                bytes_to_nWords_(current_rate_->size_bytes), generator);
+			std::generate_n(reinterpret_cast<demo::ToyFragment::adc_t*>(reinterpret_cast<demo::ToyFragment::Header*>(buffer) + 1),  // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast,cppcoreguidelines-pro-bounds-pointer-arithmetic)
+			                bytes_to_nADCs_(current_rate_->size_bytes), generator);
 		}
 	}
 	else
@@ -248,7 +249,7 @@ void ToyHardwareInterface::FillBuffer(char* buffer, size_t* bytes_read)
 void ToyHardwareInterface::AllocateReadoutBuffer(char** buffer)
 {
 	*buffer = reinterpret_cast<char*>(  // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
-	    new uint8_t[sizeof(demo::ToyFragment::Header) + maxADCcounts_() * sizeof(data_t)]);
+	    new uint8_t[sizeof(demo::ToyFragment::Header) + maxADCcounts_() * sizeof(demo::ToyFragment::Header::data_t)]);
 }
 
 void ToyHardwareInterface::FreeReadoutBuffer(const char* buffer) { delete[] buffer; }
@@ -278,7 +279,13 @@ std::chrono::steady_clock::time_point ToyHardwareInterface::next_trigger_time_()
 size_t ToyHardwareInterface::bytes_to_nWords_(size_t bytes)
 {
 	if (bytes < sizeof(demo::ToyFragment::Header)) return 0;
-	return (bytes - sizeof(demo::ToyFragment::Header)) / sizeof(data_t) + ((bytes - sizeof(demo::ToyFragment::Header)) % sizeof(data_t) == 0 ? 0 : 1);
+	return ceil((bytes - sizeof(demo::ToyFragment::Header)) / static_cast<double>(sizeof(demo::ToyFragment::Header::data_t)));
+}
+
+size_t ToyHardwareInterface::bytes_to_nADCs_(size_t bytes)
+{
+	if (bytes < sizeof(demo::ToyFragment::Header)) return 0;
+	return ceil((bytes - sizeof(demo::ToyFragment::Header)) / static_cast<double>(sizeof(demo::ToyFragment::adc_t)));
 }
 
 size_t ToyHardwareInterface::maxADCcounts_()
