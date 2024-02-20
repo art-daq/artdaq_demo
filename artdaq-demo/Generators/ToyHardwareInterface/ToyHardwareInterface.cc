@@ -56,7 +56,7 @@ ToyHardwareInterface::ToyHardwareInterface(fhicl::ParameterSet const& ps)
 		auto throttle = ps.get<size_t>("throttle_usecs", 100000);
 		auto between = ps.get<size_t>("usecs_between_sends", 0);
 		auto wait = throttle + between;
-		auto rate = 1000000 / wait;
+		auto rate = wait > 0 ? 1000000 / wait : 0;
 
 		RateInfo before;
 		before.size_bytes = counts1 * sizeof(demo::ToyFragment::Header::data_t) + sizeof(demo::ToyFragment::Header);
