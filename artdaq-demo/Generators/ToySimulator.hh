@@ -111,7 +111,8 @@ private:
 
 	FragmentType fragment_type_;
 	ToyHardwareInterface::DistributionType distribution_type_;
-	int generated_fragments_per_event_;
+	size_t fragment_group_size_;
+	std::chrono::microseconds fragment_group_timeout_;
 	bool exception_on_config_;
 	bool dies_on_config_;
 

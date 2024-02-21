@@ -1,5 +1,7 @@
-cet_make(
-        LIB_LIBRARIES
+cet_make_library(
+    SOURCE
+    ToyHardwareInterface.cc
+        LIBRARIES
         art_Utilities
         fhiclcpp
         cetlib
