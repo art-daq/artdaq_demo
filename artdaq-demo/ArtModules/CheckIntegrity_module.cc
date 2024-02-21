@@ -129,7 +129,12 @@ void demo::CheckIntegrity::analyze(art::Event const& evt)
 		ToyFragment bb(frag);
 		auto dist_type = bb.hdr_distribution_type();
 
-		if (bb.hdr_event_size() * sizeof(ToyFragment::Header::data_t) !=
+		auto evtSize = bb.hdr_event_size() * sizeof(ToyFragment::Header::data_t);
+		if (bb.hdr_event_size() % (sizeof(artdaq::RawDataType) / sizeof(ToyFragment::Header::data_t)) != 0) {
+			evtSize = ceil(evtSize / static_cast<double>(sizeof(artdaq::RawDataType))) * sizeof(artdaq::RawDataType);
+		}
+
+		if (evtSize !=
 		    frag.dataSize() * sizeof(artdaq::RawDataType))
 		{
 			TLOG(TLVL_ERROR) << "Error: in run " << evt.run() << ", subrun " << evt.subRun() << ", event "
