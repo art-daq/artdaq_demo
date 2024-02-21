@@ -71,6 +71,8 @@ add_subdirectory(test)
 add_subdirectory(tools)
 
 # doc - Documentation
+if (NOT DEFINED ENV{DISABLE_DOXYGEN})
 add_subdirectory(doc)
+endif()
 
 cet_cmake_config()

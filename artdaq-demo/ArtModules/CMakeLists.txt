@@ -19,6 +19,8 @@ cet_build_plugin(RootApplication art::module LIBRARIES REG ROOT::Gui )
 
 cet_build_plugin(WFViewer art::module LIBRARIES REG artdaq_core_demo::artdaq-core-demo_Overlays ROOT::Core ROOT::Gui)
 
+cet_build_plugin(DemoViewer art::module LIBRARIES REG artdaq_core_demo::artdaq-core-demo_Overlays ROOT::Core ROOT::Gui)
+
 cet_build_plugin(CheckIntegrity art::module LIBRARIES REG artdaq_core_demo::artdaq-core-demo_Overlays)
   
 cet_build_plugin(EventReporterOutput art::module LIBRARIES REG artdaq::DAQdata ROOT::Core artdaq_core::artdaq-core_Data_ParentageMap)
