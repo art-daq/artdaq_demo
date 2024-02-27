@@ -115,8 +115,6 @@ private:
 	bool           dynamicMode_;
 
 	TApplication*  _app;
-	bool           force_new_;
-	bool           dont_quit_;
 
 
 	void getXYDims_ ();
