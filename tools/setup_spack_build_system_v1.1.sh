@@ -75,11 +75,11 @@ EOF
     repo_found=`spack repo list|grep -c spack-repos/fnal_art`
     if [ $repo_found -eq 0 ]; then
         echo "Adding repo: fnal_art"
-        git clone https://github.com/FNALssi/fnal_art.git
-        cd fnal_art && git checkout 63c056f8e8cf80e42fdccb7492cad1bb96cc6c85 ; cd $Base/spack-repos
+        git clone https://github.com/art-daq/fnal_art.git
+        cd fnal_art && git checkout artdaq/Spack1.1 ; cd $Base/spack-repos
         spack repo add ./fnal_art/spack_repo/fnal_art
     else
-        cd fnal_art && git fetch -a && git checkout 63c056f8e8cf80e42fdccb7492cad1bb96cc6c85 ; cd $Base/spack-repos
+        cd fnal_art && git fetch -a && git checkout artdaq/Spack1.1 ; cd $Base/spack-repos
     fi
 
     repo_found=`spack repo list|grep -c spack-repos/scd_recipes`

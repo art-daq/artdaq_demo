@@ -7,10 +7,10 @@ function install_spack_build_system()
     if ! [ -d $spackdir ];then
         $(
         cd ${spackdir%/spack}
-        git clone https://github.com/art-daq/spack.git -b eflumerf/FixPerlPackageStash
+        git clone https://github.com/art-daq/spack.git -b artdaq/Spack0.28
             )
     else
-        cd $spackdir && git checkout eflumerf/FixPerlPackageStash && git pull ; cd $Base
+        cd $spackdir && git checkout artdaq/Spack0.28 && git pull ; cd $Base
     fi
 
     cat >setup-env.sh <<-EOF
@@ -49,11 +49,11 @@ EOF
     repo_found=`spack repo list|awk '{print $1}'|grep -c fnal_art`
     if [ $repo_found -eq 0 ]; then
         echo "Adding repo: fnal_art"
-        git clone https://github.com/FNALssi/fnal_art.git
-        cd fnal_art && git checkout ddeec355456e3bca5e4a743ce5d4906fa74a51b6 ; cd ..
+        git clone https://github.com/art-daq/fnal_art.git
+        cd fnal_art && git checkout artdaq/Spack0.28 ; cd ..
         spack repo add ./fnal_art
     else
-        cd fnal_art && git fetch -a && git checkout ddeec355456e3bca5e4a743ce5d4906fa74a51b6 ; cd ..
+        cd fnal_art && git fetch -a && git checkout artdaq/Spack0.28 ; cd ..
     fi
 
     repo_found=`spack repo list|awk '{print $1}'|grep -c scd_recipes`
